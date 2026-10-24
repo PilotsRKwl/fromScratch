@@ -40,6 +40,83 @@ public class BagPipelineTest
 	private void request(LootingBagReader.Session proof){proof.request(source.character,source.observe(),B,source.bagTick);}
 	private void inspectNextTick(LootingBagReader.Session proof){source.observer.tick();source.bagTick++;proof.tick(source.character,source.observe(),source.bagTick,source.open);}
 	private BankRun saved() throws Exception{return repository.load(root,source.character).get();}
+	private BuybackDialog.BagConfirmation confirmation() throws Exception
+	{
+		BankRun reviewed=view.getRun();BagObservation[] preview={null};controller.bagPreview(q->preview[0]=q);
+		BuybackDialog.BagConfirmation[] panel={null};
+		javax.swing.SwingUtilities.invokeAndWait(()->panel[0]=new BuybackDialog.BagConfirmation(reviewed,new BankIcons(id->null),preview[0],q->controller.buyBag(reviewed.getRevision(),UUID.randomUUID(),q,p->{})));
+		return panel[0];
+	}
+	private javax.swing.JCheckBox emptyCheckbox(BuybackDialog.BagConfirmation panel)
+	{return (javax.swing.JCheckBox)BankPolishTest.all(panel).stream().filter(c->"bagEmptyAttestation".equals(c.getName())).findFirst().orElse(null);}
+	private void declareEmpty(BuybackDialog.BagConfirmation panel) throws Exception
+	{javax.swing.SwingUtilities.invokeAndWait(()->{emptyCheckbox(panel).doClick(0);panel.getConfirmButton().doClick(0);});worker.runAll();}
+	private void noNativeContents(){contents=null;display=null;visible=false;nativeEmpty=false;inspection();}
+	@Test public void noGridNoPacketShowsRealConfirmationAndUncheckedCannotPurchase() throws Exception
+	{
+		noNativeContents();BankRun before=saved();assertEquals(BagObservation.State.UNKNOWN,source.bag().getState());
+		BuybackDialog.BagConfirmation panel=confirmation();assertNotNull(emptyCheckbox(panel));assertFalse(panel.getConfirmButton().isEnabled());
+		javax.swing.SwingUtilities.invokeAndWait(()->{panel.getConfirmButton().doClick(0);emptyCheckbox(panel).doClick(0);assertTrue(panel.getConfirmButton().isEnabled());emptyCheckbox(panel).doClick(0);assertFalse(panel.getConfirmButton().isEnabled());});
+		worker.runAll();assertEquals(before,saved());
+		assertTrue(BuybackDialog.bagConfirmation(before,source.bag()).contains("couldn't read"));
+		assertFalse(BuybackDialog.bagConfirmation(before,source.bag()).contains("Your Looting Bag is empty."));
+	}
+	@Test public void realEmptyCheckboxCommitsAuditedZeroOffsetsAndPersistsWithoutNativeInterface() throws Exception
+	{
+		noNativeContents();BankRun before=saved();List<Overdrafts.Warning> alerts=new ArrayList<>();controller.overdrafts(alerts::addAll);BuybackDialog.BagConfirmation panel=confirmation();declareEmpty(panel);
+		BankRun after=saved();BuybackPurchase receipt=after.getBuybacks().getPurchases().get(0);
+		assertEquals(BagObservation.State.PLAYER_CONFIRMED_EMPTY,receipt.getBagConfirmation());assertEquals(10000,receipt.getGp());assertTrue(receipt.getLegacyRunes().isEmpty());
+		assertEquals(90000,BuybackEngine.available(after));assertEquals(before.getBalances(),after.getBalances());assertEquals(before.getPhysical(),after.getPhysical());assertEquals(before.getInitialBank(),after.getInitialBank());assertEquals(before.getFinancial(),after.getFinancial());assertEquals(before.getPotions(),after.getPotions());assertTrue(alerts.isEmpty());
+		assertTrue(after.getRecent().get(0).getBalanceChanges().isEmpty());assertTrue(after.getRecent().get(0).getReason().contains("PLAYER_CONFIRMED_EMPTY"));assertEquals(before.getRunId(),after.getRunId());
+		javax.swing.SwingUtilities.invokeAndWait(()->{javax.swing.JScrollPane history=(javax.swing.JScrollPane)BuybackDialog.history(after,new BankIcons(id->null));javax.swing.JTable table=(javax.swing.JTable)history.getViewport().getView();assertEquals("Player confirmed empty",table.getValueAt(0,5));panel.getConfirmButton().doClick(0);});
+		assertEquals(1,saved().getBuybacks().getPurchases().size());controller.stop();source.observer.reset();launch();settle();assertEquals(after.getBuybacks(),saved().getBuybacks());assertEquals(90000,BuybackEngine.available(saved()));
+	}
+	@Test public void unknownDialogCannotOverrideContentsVerifiedBeforeConfirmation() throws Exception
+	{
+		noNativeContents();BuybackDialog.BagConfirmation panel=confirmation();BankRun before=saved();source.bagInspection=null;proof(new Item(N,100));declareEmpty(panel);
+		assertEquals(before,saved());assertTrue(view.getMessage().contains("verified contents"));
+		BuybackDialog.BagConfirmation populated=confirmation();assertNull(emptyCheckbox(populated));assertTrue(populated.getConfirmButton().isEnabled());
+		javax.swing.SwingUtilities.invokeAndWait(()->populated.getConfirmButton().doClick(0));worker.runAll();assertEquals(before.balance(N)-100,saved().balance(N));assertEquals(10000,saved().getBuybacks().getCommittedGp());assertEquals(BagObservation.State.VERIFIED_NONEMPTY,saved().getBuybacks().getPurchases().get(0).getBagConfirmation());
+	}
+	@Test public void nativeEmptyWithoutGridUsesRealConfirmationWithoutAttestation() throws Exception
+	{
+		contents=null;display=null;visible=false;LootingBagReader.Session proof=inspection();request(proof);
+		proof.message(source.character,source.observe(),source.bagTick,net.runelite.api.ChatMessageType.GAMEMESSAGE,"Your looting bag is empty.");
+		BuybackDialog.BagConfirmation panel=confirmation();assertNull(emptyCheckbox(panel));assertTrue(panel.getConfirmButton().isEnabled());
+		javax.swing.SwingUtilities.invokeAndWait(()->panel.getConfirmButton().doClick(0));worker.runAll();
+		assertEquals(BagObservation.State.VERIFIED_EMPTY,saved().getBuybacks().getPurchases().get(0).getBagConfirmation());assertEquals(10000,saved().getBuybacks().getCommittedGp());
+	}
+	@Test public void manualEmptyOpenFormSharesEntitlementAndDuplicateAttemptsCannotChargeAgain() throws Exception
+	{
+		bank(O,100,0,100000);noNativeContents();assertFalse(source.potionStorageUnlocked());BuybackDialog.BagConfirmation panel=confirmation();declareEmpty(panel);
+		assertEquals(O,saved().getBuybacks().getPurchases().get(0).getPouchItemId());bank(B,100,0,100000);assertEquals("1",overlay.getProjection().label(B));
+		controller.buyBag(saved().getRevision(),UUID.randomUUID(),BagObservation.playerConfirmedEmpty(B),p->fail("Duplicate purchase"));worker.runAll();assertEquals(1,saved().getBuybacks().getPurchases().size());assertEquals(10000,saved().getBuybacks().getCommittedGp());
+	}
+	@Test public void manualEmptyCannotSpendWithoutFundsOrExactlyOneBankedBag() throws Exception
+	{
+		bank(B,100,0,9999);noNativeContents();BuybackDialog.BagConfirmation funds=confirmation();javax.swing.SwingUtilities.invokeAndWait(()->emptyCheckbox(funds).doClick(0));assertFalse(funds.getConfirmButton().isEnabled());
+		BankRun before=saved();controller.buyBag(before.getRevision(),UUID.randomUUID(),BagObservation.playerConfirmedEmpty(B),p->fail("Insufficient GP"));worker.runAll();assertEquals(before,saved());
+		bank(0,100,0,100000);before=saved();controller.buyBag(before.getRevision(),UUID.randomUUID(),BagObservation.playerConfirmedEmpty(B),p->fail("No physical bag"));worker.runAll();assertEquals(before,saved());
+		source.items=new Item[]{new Item(B,1),new Item(O,1),new Item(C,100000)};source.observer.changed();settle();BuybackDialog.BagConfirmation ambiguous=confirmation();javax.swing.SwingUtilities.invokeAndWait(()->emptyCheckbox(ambiguous).doClick(0));assertFalse(ambiguous.getConfirmButton().isEnabled());
+	}
+	@Test public void emptyDeclarationFromOldDialogCannotCrossCharacterOrRunRevision() throws Exception
+	{
+		noNativeContents();BuybackDialog.BagConfirmation panel=confirmation();BankRun before=saved();source.character=SnapshotFixtures.CHARACTER_B;declareEmpty(panel);assertEquals(before,repository.load(root,before.getCharacter()).get());assertNull(view.getRun());
+		source.character=before.getCharacter();source.observer.reset();settle();panel=confirmation();bank(B,101,0,100000);BankRun newer=saved();declareEmpty(panel);assertEquals(newer,saved());
+	}
+	@Test public void manualEmptyWorksWithUnlockedPotionStorageAndFailedPersistenceCannotSpend() throws Exception
+	{
+		com.fromscratch.potion.PotionType prayer=new com.fromscratch.potion.PotionType(1,"Prayer potion",false,Collections.singletonMap(ItemID._4DOSEPRAYERRESTORE,4));source.storage=new com.fromscratch.potion.PotionObservation(true,Collections.singletonMap(1,prayer),Collections.singletonMap(1,12L),Instant.now());assertTrue(source.potionStorageUnlocked());
+		noNativeContents();BankRun before=saved();BuybackDialog.BagConfirmation panel=confirmation();fail=true;declareEmpty(panel);assertTrue(view.isError());assertEquals(before,saved());assertEquals(before.getPotions(),saved().getPotions());
+		fail=false;controller.retry();worker.runAll();settle();com.fromscratch.potion.PotionState state=saved().getPotions();declareEmpty(confirmation());assertEquals(state,saved().getPotions());assertEquals(10000,saved().getBuybacks().getCommittedGp());
+	}
+	@Test public void staleNativeProofRequiresNewExplicitChoiceAndCurrentPacketContradictsEmptyMessage() throws Exception
+	{
+		BagObservation expired=new BagObservation(B,Collections.emptyMap(),Collections.emptyMap(),Instant.now().minusSeconds(121));BuybackDialog.BagConfirmation[] panel={null};
+		javax.swing.SwingUtilities.invokeAndWait(()->panel[0]=new BuybackDialog.BagConfirmation(view.getRun(),new BankIcons(id->null),expired,q->fail("Old native proof")));assertNotNull(emptyCheckbox(panel[0]));assertFalse(panel[0].getConfirmButton().isEnabled());
+		contents=new Item[]{new Item(N,100)};display=null;visible=false;LootingBagReader.Session proof=inspection();request(proof);proof.changed(source.character,source.observe(),source.bagTick,true);
+		proof.message(source.character,source.observe(),source.bagTick,net.runelite.api.ChatMessageType.GAMEMESSAGE,"Your looting bag is empty.");assertEquals(BagObservation.State.VERIFIED_NONEMPTY,source.bag().getState());
+	}
 	@Test public void loadedBagCommitsOnePaymentAndAllOffsetsWithoutPhysicalChanges()throws Exception
 	{proof(new Item(N,100),new Item(D,50),new Item(C,25000));BankRun old=saved();buy();assertEquals(0,saved().balance(N));assertEquals(-50,saved().balance(D));assertEquals(75000,saved().balance(C));assertEquals(65000,BuybackEngine.available(saved()));assertEquals(10000,saved().getBuybacks().getCommittedGp());assertEquals(old.getPhysical(),saved().getPhysical());assertEquals(old.getFinancial(),saved().getFinancial());assertEquals("1",overlay.getProjection().label(B));assertTrue(repository.history(root,saved(),null,false).getRows().stream().anyMatch(r->r.getCategory().equals("Automatic — Legacy Looting Bag")&&r.getPurchase()!=null));}
 	@Test public void partialAndFullReturnsPreserveEarnedRunesAndNeverCreateGainOrPeak()throws Exception

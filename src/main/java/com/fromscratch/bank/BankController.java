@@ -303,7 +303,13 @@ public final class BankController implements BankActions
 			requireRevision(revision);BankObservation fresh=requireBank();
 			if(!run.getPhysical().equals(fresh.getBank().getQuantities())){throw new IllegalArgumentException("Your bank changed. Reopen Legacy Buybacks.");}
 			com.fromscratch.buyback.BagObservation contents=source.bag();
-			if(preview==null||!contents.fresh(Instant.now())||preview.getItemId()!=contents.getItemId()||!preview.getQuantities().equals(contents.getQuantities())){throw new IllegalArgumentException(com.fromscratch.buyback.BagObservation.INSTRUCTION);}
+			if(preview!=null&&preview.getState()==com.fromscratch.buyback.BagObservation.State.PLAYER_CONFIRMED_EMPTY)
+			{
+				if(!preview.fresh(Instant.now())){throw new IllegalArgumentException("Your empty-bag confirmation expired. Reopen Legacy Buybacks.");}
+				if(contents.fresh(Instant.now())&&contents.getState()==com.fromscratch.buyback.BagObservation.State.VERIFIED_NONEMPTY){throw new IllegalArgumentException("Your Looting Bag has verified contents. Review them in Legacy Buybacks; an empty declaration cannot replace them.");}
+				contents=preview;
+			}
+			else if(preview==null||!contents.fresh(Instant.now())||preview.getItemId()!=contents.getItemId()||!preview.getQuantities().equals(contents.getQuantities())){throw new IllegalArgumentException(com.fromscratch.buyback.BagObservation.INSTRUCTION);}
 			if(!source.buybackDefinition(contents.getItemId())){throw new IllegalArgumentException("The Looting Bag definition could not be verified. No GP was spent.");}
 			BankRun candidate=BankEngine.buyBag(run,purchaseId,fresh.getSession(),Instant.now(),contents);
 			save(candidate,()->committed.accept(candidate.getBuybacks().getPurchases().get(candidate.getBuybacks().getPurchases().size()-1)));

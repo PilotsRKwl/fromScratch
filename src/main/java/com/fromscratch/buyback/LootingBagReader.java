@@ -110,7 +110,15 @@ public final class LootingBagReader
 		public void message(String key,BankObservation bank,long tick,ChatMessageType type,String text)
 		{
 			if(scope(key,bank)&&(type==ChatMessageType.GAMEMESSAGE||type==ChatMessageType.SPAM)&&requested>=0&&tick>=requestTick&&tick<=requestTick+REQUEST_TICKS&&isEmptyMessage(text))
-			{captured=new BagObservation(requested,Collections.emptyMap(),Collections.emptyMap(),clock.get());requested=-1;packetAt=null;}
+			{
+				// Even a native empty response must not override a conflicting current packet.
+				if(packetAt!=null&&packetTick>=requestTick)
+				{
+					try{Item[] items=reader.access.contents();if(items!=null&&(items.length>28||!aggregate(items).isEmpty())){return;}}
+					catch(RuntimeException ex){return;}
+				}
+				captured=new BagObservation(requested,Collections.emptyMap(),Collections.emptyMap(),clock.get());requested=-1;packetAt=null;
+			}
 		}
 		public void tick(String key,BankObservation bank,long tick,boolean bankOpen)
 		{

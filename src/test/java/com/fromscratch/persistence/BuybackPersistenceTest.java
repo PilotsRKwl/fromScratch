@@ -27,6 +27,22 @@ public class BuybackPersistenceTest
 		BankRun run=repository.save(root,initial,BankEngine.observe(initial,new com.fromscratch.model.ContainerSnapshot(funded.getPhysical(),3),UUID.randomUUID(),SnapshotFixtures.TIME));return prepare?repository.save(root,run,BuybackModelTest.emptyPouch(run)):run;
 	}
 	private BankRun load()throws Exception{return repository.load(root,SnapshotFixtures.CHARACTER_A).get();}
+	@Test public void manualBagReceiptIsExplicitAndCannotClaimNonemptyContentsAreEmpty()
+	{
+		Map<String,Long> floor=Collections.singletonMap("looting_bag_family",0L);
+		BuybackPurchase receipt=new BuybackPurchase(UUID.randomUUID(),"looting_bag_family",10000,SnapshotFixtures.TIME,floor,ItemID.LOOTING_BAG,Collections.emptyMap(),BagObservation.State.PLAYER_CONFIRMED_EMPTY);
+		JsonObject encoded=BuybackCodec.purchase(receipt);assertEquals("PLAYER_CONFIRMED_EMPTY",encoded.getAsJsonObject("bag").get("confirmation").getAsString());assertEquals(receipt,BuybackCodec.purchase(encoded));
+		encoded.getAsJsonObject("bag").getAsJsonObject("runes").addProperty(Integer.toString(ItemID.NATURERUNE),100);
+		try{BuybackCodec.purchase(encoded);fail("Nonempty manual declaration accepted");}catch(IllegalArgumentException expected){}
+	}
+	@Test public void oldNativeBagReceiptsKeepTheirEncodingAndVerifiedMeaning()
+	{
+		for(Map<Integer,Long> contents:Arrays.asList(Collections.<Integer,Long>emptyMap(),Collections.singletonMap(ItemID.NATURERUNE,100L)))
+		{
+			BuybackPurchase receipt=new BuybackPurchase(UUID.randomUUID(),"looting_bag_family",10000,SnapshotFixtures.TIME,Collections.singletonMap("looting_bag_family",0L),ItemID.LOOTING_BAG,contents);
+			JsonObject old=BuybackCodec.purchase(receipt);assertFalse(old.getAsJsonObject("bag").has("confirmation"));BuybackPurchase read=BuybackCodec.purchase(old);assertEquals(receipt,read);assertEquals(old,BuybackCodec.purchase(read));assertEquals(contents.isEmpty()?BagObservation.State.VERIFIED_EMPTY:BagObservation.State.VERIFIED_NONEMPTY,read.getBagConfirmation());
+		}
+	}
 	private Map<String,String> m6()throws Exception
 	{
 		BankRun old=active(false);old=repository.save(root,old,BankEngine.expense(old,15,"Verified expense",UUID.randomUUID(),SnapshotFixtures.TIME));

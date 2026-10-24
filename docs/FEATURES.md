@@ -56,7 +56,7 @@ The authoritative catalog and exact approved variants are in [BuybackCatalog](..
 
 ## Pouch and bag contents
 
-A storage buyback unlocks the equipment, not preexisting contents. Rune Pouch uses a fresh bank-associated client/server varbit read and RuneLite's rune enum; no forced pouch withdrawal. Looting Bag uses current bank-session container 516 or explicitly observed native inspection/empty evidence. Missing data is not assumed empty. A purchase is blocked when the intended contents cannot be established.
+A storage buyback unlocks the equipment, not preexisting contents. Rune Pouch uses a fresh bank-associated client/server varbit read and RuneLite's rune enum; no forced pouch withdrawal. Looting Bag uses current bank-session container 516 or explicitly observed native inspection/empty evidence. Missing data is not assumed empty. If an empty bag provides no readable contents, Legacy Buybacks offers **I confirm my Looting Bag is empty**. This voluntary declaration is recorded as **Player confirmed empty**, costs the same 10K GP, and adds no contents adjustments. Verified populated contents cannot be overridden. For a bag containing items, use its native Check or View option, return it to the bank and retry.
 
 Verified old contents create purchase-linked signed deficits in the same transaction. Existing earned nature runes +100 minus old pouch contents 500 becomes -400; depositing those 500 restores +100 without fresh gains. Coins in a bag affect raw signed bank coins separately from the 10K payment. Offsets persist, are applied once, and are not ordinary spending. Future refills never create another charge/offset. Earlier legitimate purchases are preserved.
 

@@ -8,17 +8,21 @@ import lombok.Value;
 @Value
 public class BagObservation
 {
-	public static final String INSTRUCTION="Looting Bag contents are not verified. Withdraw your bag and choose View, then return it to the bank and retry within two minutes. Do not change its contents before confirming.";
-	public enum State { UNKNOWN, VERIFIED_EMPTY, VERIFIED_NONEMPTY }
-	int itemId; Map<Integer,Long> quantities; Map<Integer,String> names; Instant at;
+	public static final String INSTRUCTION="From Scratch couldn't read your Looting Bag contents. If it is empty, confirm that in Legacy Buybacks. Otherwise use the bag's native Check or View option, then return it to the bank and retry. Do not change its contents before confirming.";
+	public enum State { UNKNOWN, VERIFIED_EMPTY, VERIFIED_NONEMPTY, PLAYER_CONFIRMED_EMPTY }
+	int itemId; Map<Integer,Long> quantities; Map<Integer,String> names; Instant at; State state;
 	public BagObservation(int itemId,Map<Integer,Long> quantities,Map<Integer,String> names,Instant at)
+	{this(itemId,quantities,names,at,itemId<0?State.UNKNOWN:quantities.isEmpty()?State.VERIFIED_EMPTY:State.VERIFIED_NONEMPTY);}
+	private BagObservation(int itemId,Map<Integer,Long> quantities,Map<Integer,String> names,Instant at,State state)
 	{
 		if(itemId!=-1&&!BuybackCatalog.variants("looting_bag_family").containsKey(itemId)){throw new IllegalArgumentException("Invalid bag form");}
 		this.itemId=itemId;this.quantities=quantities(quantities);this.names=Collections.unmodifiableMap(new TreeMap<>(names));this.at=Objects.requireNonNull(at);
-		if(itemId==-1&&!this.quantities.isEmpty()){throw new IllegalArgumentException("Unknown bag contents");}
+		this.state=Objects.requireNonNull(state);
+		if(itemId==-1&&!this.quantities.isEmpty()||state==State.PLAYER_CONFIRMED_EMPTY&&(itemId<0||!this.quantities.isEmpty())){throw new IllegalArgumentException("Invalid bag contents evidence");}
 	}
 	public boolean fresh(Instant now){return itemId>0&&!at.isAfter(now)&&now.isBefore(at.plusSeconds(120));}
-	public State getState(){return itemId<0?State.UNKNOWN:quantities.isEmpty()?State.VERIFIED_EMPTY:State.VERIFIED_NONEMPTY;}
+	/** A voluntary declaration, never a native observation. Final purchase revalidates it. */
+	public static BagObservation playerConfirmedEmpty(int itemId){return new BagObservation(itemId,Collections.emptyMap(),Collections.emptyMap(),Instant.now(),State.PLAYER_CONFIRMED_EMPTY);}
 	public static BagObservation unknown(){return new BagObservation(-1,Collections.emptyMap(),Collections.emptyMap(),Instant.now());}
 	public static Map<Integer,Long> quantities(Map<Integer,Long> values)
 	{
