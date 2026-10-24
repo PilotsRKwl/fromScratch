@@ -12,18 +12,18 @@ Bank your loot after each trip and watch your new collection grow. That first us
 
 ## How to Play
 
-**From Scratch is getting ready for public beta testing. Download instructions will appear here when the beta is available.**
+**[Download the From Scratch Friends Beta](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft).**
 
 We're preparing From Scratch for publication on the RuneLite Plugin Hub. It has not been submitted or approved yet.
 
-Once the Windows beta is available:
+Requires Windows 64-bit. Java is included.
 
-1. **Download From Scratch.** When the beta is available, download **FromScratch-Beta-Setup.exe**.
+1. **Download From Scratch.** Get [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.7-potion-storage-overdraft/FromScratch-Beta-Setup.exe).
 2. **Install From Scratch.** Double-click the file and follow the installation wizard. A **From Scratch Beta** shortcut appears on your desktop.
 3. **Open From Scratch.** Double-click the shortcut and follow RuneLite's sign-in instructions.
 4. **Start your challenge.** Enable From Scratch in RuneLite, open its purple coin panel, and follow the setup instructions.
 
-[Watch for beta announcements](https://github.com/PilotsRKwl/fromScratch/releases) · [Installation help](docs/INSTALLATION.md)
+[Release notes](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft) · [Installation help](docs/INSTALLATION.md)
 
 ## The Challenge
 
