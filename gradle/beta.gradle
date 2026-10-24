@@ -18,8 +18,8 @@ sourceSets {
 	}
 }
 dependencies {
-	betaImplementation 'net.runelite:client:1.13.3'
-	betaRuntimeOnly 'net.runelite:jshell:1.13.3'
+	betaImplementation 'net.runelite:client:1.13.4'
+	betaRuntimeOnly 'net.runelite:jshell:1.13.4'
 }
 tasks.withType(AbstractArchiveTask).configureEach {
 	preserveFileTimestamps = false
