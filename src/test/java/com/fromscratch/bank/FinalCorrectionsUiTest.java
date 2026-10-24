@@ -19,15 +19,16 @@ public class FinalCorrectionsUiTest
 	{ return BankPolishTest.all(panel).stream().filter(c -> name.equals(c.getName())).findFirst().get(); }
 	private static void layout(Container root)
 	{ root.doLayout(); for (Component c : root.getComponents()) { if (c instanceof Container) { layout((Container)c); } } }
-	@Test public void setupExplainsOutsideBankStorageWithoutAddingAnObservationGate() throws Exception
+	@Test public void setupNumbersActionsAndRemovesRedundantStorageParagraph() throws Exception
 	{
 		SwingUtilities.invokeAndWait(() ->
 		{
 			BankPanel panel = new BankPanel(); panel.render(setup(), null); panel.setSize(225, 960); layout(panel);
-			JLabel note = (JLabel)named(panel, "setupStorageNote");
-			assertTrue(note.isVisible()); assertTrue(note.getText().contains("Items in Grand Exchange offers or other storage"));
-			assertTrue(note.getText().contains("Collect them into your bank first")); assertTrue(note.getText().contains("legacy"));
-			assertTrue(note.getPreferredSize().width <= note.getWidth()); assertTrue(note.getPreferredSize().height <= note.getHeight());
+			assertFalse(BankPolishTest.all(panel).stream().anyMatch(c->"setupStorageNote".equals(c.getName())));
+			assertTrue(((JLabel)named(panel,"setupInstructions")).getText().contains("1. Bank everything"));
+			assertTrue(((JLabel)named(panel,"setupInstructions")).getText().contains("2. Unequip"));
+			assertFalse(named(panel,"potionSetup").isVisible());
+			assertTrue(((JLabel)named(panel,"setupBankStep")).getText().contains("3. Bank recorded"));
 			for (Component c : BankPolishTest.all(panel)) { if (c instanceof JLabel) { assertFalse(((JLabel)c).getText().contains("Special storage is excluded.")); } }
 			JCheckBox attested = (JCheckBox)BankPolishTest.all(panel).stream().filter(c -> c instanceof JCheckBox).findFirst().get();
 			JButton start = (JButton)((JPanel)named(panel, "startActionRow")).getComponent(0);

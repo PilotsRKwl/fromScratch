@@ -65,11 +65,14 @@ public class FromScratchPlugin extends Plugin
 	@Inject private com.fromscratch.playtime.PlaytimeTracker playtime;
 	@Inject private net.runelite.api.Client client;
 	@Inject private ConfigManager configManager;
+	@Inject private net.runelite.client.Notifier notifier;
+	@Inject private net.runelite.client.chat.ChatMessageManager chat;
 
 	@Override
 	protected void startUp()
 	{
 		bankOverlayState.configure(config);
+		sidebar.negativeColor(config.negativeVirtualQuantityColor());
 		observer.configure(config.developmentItemTrace());
 		bankOverlay.start();
 		prices.start();
@@ -82,6 +85,7 @@ public class FromScratchPlugin extends Plugin
 			virtualBank.fullBankSelected(()->SwingUtilities.invokeLater(()->configManager.setConfiguration(FromScratchConfig.GROUP,"virtualBankView",false)));
 			setupController.informationActions(this::updateVirtualBank);
 			setupController.initialBankView(virtualBank::fullBankForSetup);
+			setupController.overdrafts(warnings->{for(com.fromscratch.bank.Overdrafts.Warning warning:warnings){String text=warning.message();chat.queue(net.runelite.client.chat.QueuedMessage.builder().type(net.runelite.api.ChatMessageType.GAMEMESSAGE).runeLiteFormattedMessage(net.runelite.client.util.ColorUtil.wrapWithColorTag("From Scratch: LEGACY ITEMS OVERDRAWN",java.awt.Color.RED)+" "+text).build());try{notifier.notify("From Scratch: LEGACY ITEMS OVERDRAWN. "+text);}catch(RuntimeException ex){log.debug("From Scratch notification delivery failed",ex);}}});
 		});
 		setupController.start(this::getPluginDirectory);
 		clientThread.invokeLater(()->
@@ -143,6 +147,7 @@ public class FromScratchPlugin extends Plugin
 	@Subscribe public void onMenuOptionClicked(MenuOptionClicked event)
 	{
 		examine.clicked(event);observer.bagClicked(event);
+		if(event.getParam1()==InterfaceID.Bankmain.POTIONSTORE_BUTTON){virtualBank.potionStorageSelected();return;}
 		// invokeLater defers reconciliation until core Bank Tags has handled this same click.
 		if(event.getMenuOption().startsWith("View tab")||event.getMenuOption().equals("View all items")){virtualBank.nativeTabSelected();}else{virtualBank.viewChanged();}
 	}
@@ -153,8 +158,10 @@ public class FromScratchPlugin extends Plugin
 	{if(event.getScriptId()==net.runelite.api.ScriptID.BANKMAIN_SEARCH_TOGGLE){virtualBank.searchSelected();}}
 	@Subscribe(priority=-1) public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
 	{
+		observer.potionScript(event.getScriptId());
 		if(event.getScriptId()==net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING){virtualBank.bankBuilt();virtualBank.title(config.virtualQuantityColor());}
 	}
+	@Subscribe public void onVarbitChanged(net.runelite.api.events.VarbitChanged event){observer.potionVarp(event.getVarpId());}
 	private void updateVirtualBank(com.fromscratch.bank.BankRun run)
 	{
 		try
@@ -221,7 +228,7 @@ public class FromScratchPlugin extends Plugin
 	{
 		if (event.getGroupId() == InterfaceID.BANKMAIN)
 		{
-			if(event.isUnload()) { virtualBank.bankClosed(); observer.bagUnavailable(); }
+			if(event.isUnload()) { virtualBank.bankClosed(); observer.bagBankClosed();observer.potionClosed(); }
 			observer.changed();
 		}
 		else if (event.getGroupId() == InterfaceID.BANKPIN_KEYPAD || event.getGroupId() == InterfaceID.BANKPIN_SETTINGS)
@@ -236,6 +243,7 @@ public class FromScratchPlugin extends Plugin
 		if (FromScratchConfig.GROUP.equals(event.getGroup()))
 		{
 			bankOverlayState.configure(config);
+			sidebar.negativeColor(config.negativeVirtualQuantityColor());
 			observer.configure(config.developmentItemTrace());
 			clientThread.invokeLater(()->{virtualBank.setEnabled(config.virtualBankView());updateVirtualBank(setupController.currentRun());virtualBank.title(config.virtualQuantityColor());});
 		}

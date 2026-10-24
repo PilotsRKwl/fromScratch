@@ -17,10 +17,13 @@ final class ExamineFormatter
 	static final int OPTIONAL_TEXT_BUDGET=160;
 	private ExamineFormatter() { }
 	static String format(BankRun run,int id,String name,long quantity,PriceQuote price,long ha,Color color)
+	{return format(run,id,name,quantity,price,ha,color,com.fromscratch.overlay.BankOverlayState.DEFAULT_NEGATIVE_COLOR);}
+	static String format(BankRun run,int id,String name,long quantity,PriceQuote price,long ha,Color color,Color negativeColor)
 	{
 		Color accent=color==null?new Color(0x1DFF00):color;
+		Color signed=quantity<0?(negativeColor==null?com.fromscratch.overlay.BankOverlayState.DEFAULT_NEGATIVE_COLOR:negativeColor):accent;
 		ChatMessageBuilder text=new ChatMessageBuilder();
-		number(text,accent,"From Scratch: "+QuantityFormatter.formatNumber(quantity));
+		number(text,signed,"From Scratch: "+QuantityFormatter.formatNumber(quantity));
 		// append(String) escapes Jagex markup, unlike append(Color,String). Only trusted numbers use the latter.
 		// GAMEMESSAGE's native chat builder interprets a literal pipe as name|body (scripts 84/632).
 		// This is a control delimiter even in a short message, not a character-limit/wrapping issue.
@@ -43,7 +46,7 @@ final class ExamineFormatter
 		if(info!=null&&quantity==0) { return message; }
 		if(price!=null&&price.getUnitGp()!=null)
 		{
-			ChatMessageBuilder field=new ChatMessageBuilder().append(separator).append("GE ");total(field,accent,quantity,price.getUnitGp());
+			ChatMessageBuilder field=new ChatMessageBuilder().append(separator).append("GE ");total(field,signed,quantity,price.getUnitGp());
 			if(quantity!=1) { each(field,accent,price.getUnitGp()); }
 			if(price.isStale()) { field.append(" (stale)"); }
 			String extended=optional(message,field.build());if(extended.equals(message)) { return message; }message=extended;separator="; ";
@@ -54,7 +57,7 @@ final class ExamineFormatter
 		}
 		if(ha>0)
 		{
-			ChatMessageBuilder field=new ChatMessageBuilder().append(separator).append("HA ");total(field,accent,quantity,ha);
+			ChatMessageBuilder field=new ChatMessageBuilder().append(separator).append("HA ");total(field,signed,quantity,ha);
 			if(quantity!=1) { each(field,accent,ha); }
 			message=optional(message,field.build());
 		}

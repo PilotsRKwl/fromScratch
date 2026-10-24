@@ -2,7 +2,7 @@
 
 ## Windows beta
 
-The **v0.10.6-friends-installer** candidate is being prepared for owner testing. It has not been published or approved by RuneLite Plugin Hub. Download links will appear on [GitHub Releases](https://github.com/PilotsRKwl/fromScratch/releases) only after release approval.
+The **v0.10.7-potion-storage-overdraft** local test candidate (**0.10.7-beta.1**) is being prepared for owner testing. It includes uncommitted changes and must be rebuilt from the approved committed source before distribution. The existing 10.6 installer remains a separate earlier candidate. It has not been published or approved by RuneLite Plugin Hub. Download links will appear on [GitHub Releases](https://github.com/PilotsRKwl/fromScratch/releases) only after release approval.
 
 The installer supports **64-bit Windows 10 and Windows 11**. Java is included. You do not need to install Java, change PATH, use a terminal or install developer software. Windows' built-in .NET Framework 4.x runs the small application launcher.
 

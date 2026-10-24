@@ -35,6 +35,11 @@ public class NativeExamineTest
 	@Before public void setup() { prices.refresh();examine=new NativeExamine(items,prices,messages::add,()->color);examine.start(()->run); }
 	private void request(int id) { examine.requested("Examine",MenuAction.EXAMINE_ITEM_GROUND,id,0,0); }
 	private void response(ChatMessageType type,String text) { ChatMessage e=new ChatMessage();e.setType(type);e.setMessage(text);examine.response(e); }
+	@Test public void negativeExamineUsesLiveNegativeColorWithoutRecoloringWordsOrPositivePrices()
+	{
+		run=BankEngine.observe(run,bank(0),UUID.randomUUID(),java.time.Instant.now());Color[] negative={Color.RED};examine=new NativeExamine(items,prices,messages::add,()->Color.GREEN,()->negative[0]);examine.start(()->run);
+		for(Color selected:new Color[]{Color.RED,Color.MAGENTA}){negative[0]=selected;request(SHIELD);response(ChatMessageType.ITEM_EXAMINE,"A shield.");String message=messages.get(messages.size()-1);assertTrue(message.startsWith("<col="+(selected==Color.RED?"ff0000":"ff00ff")+">From Scratch: -1</col> x Wooden shield"));assertTrue(message.contains("<col=00ff00>180</col>ea)"));assertFalse(message.contains("<colNORMAL>"));}
+	}
 	@Test public void nativeThenCorePriceThenExactlyOneSupplementAndLiveSegmentColors()
 	{
 		run=BankEngine.observe(run,bank(126),UUID.randomUUID(),java.time.Instant.now());request(SHIELD);assertTrue(messages.isEmpty());

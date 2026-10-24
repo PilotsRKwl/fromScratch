@@ -65,7 +65,7 @@ public class VirtualBankModeTest
 		Source source=new Source();Worker worker=new Worker();BankOverlayState overlay=new BankOverlayState();overlay.enable();
 		BankController controller=new BankController(source,repo,Runnable::run,overlay::updateBank);
 		mode.setEnabled(true);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();
-		source.observer.tick();controller.tick();worker.runAll();controller.startRun(true);worker.runAll();
+		source.observer.tick();controller.tick();worker.runAll();controller.startRun(true,null,true);worker.runAll();
 		assertFalse(access.predicate.contains(SHIELD));source.quantity(3);source.observer.tick();controller.tick();
 		assertFalse(access.predicate.contains(SHIELD)); // Not published before persistence acknowledgment.
 		worker.runAll();assertTrue(access.predicate.contains(SHIELD));assertEquals("2",overlay.getProjection().label(SHIELD));
@@ -167,9 +167,9 @@ public class VirtualBankModeTest
 		Filepath root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());BankRepository repo=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());
 		Source source=new Source();source.items=new net.runelite.api.Item[]{new net.runelite.api.Item(SHIELD,40),new net.runelite.api.Item(OTHER,100)};source.observer.tick();Worker worker=new Worker();List<BankView> displays=new ArrayList<>();
 		BankController controller=new BankController(source,repo,Runnable::run,displays::add);view.setEnabled(true);controller.initialBankView(view::fullBankForSetup);controller.informationActions(run->view.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();
-		assertFalse(displays.get(displays.size()-1).ready());controller.startRun(true);worker.runAll();assertFalse(repo.load(root,source.character).isPresent());assertEquals(0,access.opened);
+		assertFalse(displays.get(displays.size()-1).ready());controller.startRun(true,null,true);worker.runAll();assertFalse(repo.load(root,source.character).isPresent());assertEquals(0,access.opened);
 		while(!clientTasks.isEmpty()){clientTasks.remove().run();}controller.tick();assertTrue(displays.get(displays.size()-1).ready());assertNull(access.active);
-		controller.startRun(true);assertEquals(0,access.opened);assertFalse(repo.load(root,source.character).isPresent());worker.runAll();
+		controller.startRun(true,null,true);assertEquals(0,access.opened);assertFalse(repo.load(root,source.character).isPresent());worker.runAll();
 		BankRun committed=repo.load(root,source.character).get();assertEquals(40,committed.getInitialBank().quantity(SHIELD));assertEquals(100,committed.getInitialBank().quantity(OTHER));assertEquals(0,access.opened);
 		while(!clientTasks.isEmpty()){clientTasks.remove().run();}assertEquals(1,access.opened);assertFalse(access.predicate.contains(SHIELD));assertFalse(access.predicate.contains(OTHER));
 		controller.tick();worker.runAll();committed=repo.load(root,source.character).get(); // Settle the normal first host/session check before testing view-only switching.
@@ -186,10 +186,10 @@ public class VirtualBankModeTest
 		Source source=new Source();Worker worker=new Worker();BankController controller=new BankController(source,repo,Runnable::run,v->{});
 		mode.setEnabled(false);controller.initialBankView(mode::fullBankForSetup);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();source.observer.tick();controller.tick();
 		source.open(false);source.observer.tick();controller.tick();source.open(true);source.observer.tick();controller.tick();assertNull(access.active);assertEquals(0,access.opened);
-		controller.startRun(true);worker.runAll();BankRun first=repo.load(root,source.character).get();assertTrue(first.isActive());assertEquals(1,first.getInitialBank().quantity(SHIELD));assertNull(access.active);assertEquals(0,access.opened);
+		controller.startRun(true,null,true);worker.runAll();BankRun first=repo.load(root,source.character).get();assertTrue(first.isActive());assertEquals(1,first.getInitialBank().quantity(SHIELD));assertNull(access.active);assertEquals(0,access.opened);
 		mode.setEnabled(true);mode.update(first,true,source.observe());assertNotNull(access.active);assertEquals(1,access.opened);
 		controller.reset(first.getRevision());worker.runAll();assertFalse(repo.load(root,source.character).get().isActive());assertNull(access.active);
-		controller.startRun(true);assertNull(access.active);worker.runAll();BankRun second=repo.load(root,source.character).get();assertTrue(second.isActive());assertNotEquals(first.getRunId(),second.getRunId());assertNotNull(access.active);assertEquals(2,access.opened);
+		source.observer.tick();controller.tick();worker.runAll();controller.startRun(true,null,true);assertNull(access.active);worker.runAll();BankRun second=repo.load(root,source.character).get();assertTrue(second.isActive());assertNotEquals(first.getRunId(),second.getRunId());assertNotNull(access.active);assertEquals(2,access.opened);
 		controller.stop();mode.stop();
 	}
 	@Test public void nativeTabsUseCachedIntersectionWithoutReopeningTagOrChangingPreference()
@@ -209,7 +209,7 @@ public class VirtualBankModeTest
 	private boolean allowedByScript(int id){int[] result={-1,id};mode.script("bankSearchFilter",result,2);return result[0]!=0;}
 	@Test public void nativeTabDepositsAndWithdrawalsRemainAuthoritativeAndSearchExitsSafely() throws Exception
 	{
-		Filepath root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());BankRepository repo=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());Source source=new Source();Worker worker=new Worker();BankController controller=new BankController(source,repo,Runnable::run,v->{});mode.setEnabled(true);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();source.observer.tick();controller.tick();controller.startRun(true);worker.runAll();source.quantity(3);source.observer.tick();controller.tick();worker.runAll();
+		Filepath root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());BankRepository repo=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());Source source=new Source();Worker worker=new Worker();BankController controller=new BankController(source,repo,Runnable::run,v->{});mode.setEnabled(true);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();source.observer.tick();controller.tick();controller.startRun(true,null,true);worker.runAll();source.quantity(3);source.observer.tick();controller.tick();worker.runAll();
 		BankRun before=repo.load(root,source.character).get();mode.nativeTabSelected();access.active=null;access.nativeTab=1;int[] build={0};mode.script("bankBuildTab",build,1);mode.bankBuilt();assertEquals(before,repo.load(root,source.character).get());assertTrue(allowedByScript(SHIELD));
 		for(int n:new int[]{1,0,2}){source.quantity(n);source.observer.tick();controller.tick();worker.runAll();assertEquals(n-1,repo.load(root,source.character).get().balance(SHIELD));assertEquals(n>1,allowedByScript(SHIELD));}
 		int opened=access.opened;List<Boolean> preferences=new ArrayList<>();mode.fullBankSelected(()->preferences.add(false));mode.searchSelected();assertEquals(Collections.singletonList(false),preferences);assertEquals(opened,access.opened);int[] untouched={-1,SHIELD};mode.script("bankSearchFilter",untouched,2);assertEquals(-1,untouched[0]);controller.stop();mode.stop();
@@ -217,6 +217,32 @@ public class VirtualBankModeTest
 	@Test public void incompleteNativeTabMetadataFailsSafeWithoutRefreshRecursion()
 	{
 		mode.setEnabled(true);mode.update(run(1),true);mode.nativeTabSelected();access.active=null;access.nativeTab=1;access.nativeSlots=new net.runelite.api.Item[]{null};access.nativeSizes=new int[]{1};int[] build={0};mode.script("bankBuildTab",build,1);assertTrue(mode.isFaulted());int refresh=access.refresh;for(int i=0;i<10;i++){mode.bankBuilt();mode.update(run(1),true);}assertEquals(refresh,access.refresh);assertEquals(1,access.opened);
+	}
+	@Test public void potionStoragePausesFilteringAndReturnsToNativeIntersectionWithoutReopen()
+	{
+		BankRun run=BankEngine.observe(run(1),bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);List<Boolean> preferences=new ArrayList<>();mode.fullBankSelected(()->preferences.add(false));mode.setEnabled(true);mode.update(run,true);int opened=access.opened;
+		mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.update(run,true);int[] untouched={0};mode.script("bankBuildTab",untouched,1);assertEquals(0,untouched[0]);assertFalse(mode.isFaulted());assertTrue(preferences.isEmpty());assertEquals(opened,access.opened);
+		access.nativeTab=1;mode.nativeTabSelected();mode.bankBuilt();assertTrue(allowedByScript(SHIELD));assertNotNull(access.predicate);assertEquals(opened,access.opened);assertFalse(mode.isFaulted());assertTrue(preferences.isEmpty());int refresh=access.refresh;for(int i=0;i<10;i++){mode.bankBuilt();mode.update(run,true);}assertEquals(refresh,access.refresh);
+	}
+	@Test public void earnedBankPotionsSurviveStorageVisitMissingContainerReturnAndRelog() throws Exception
+	{
+		int potion=net.runelite.api.gameval.ItemID._4DOSEPRAYERRESTORE;com.fromscratch.potion.PotionType type=new com.fromscratch.potion.PotionType(1,"Prayer potion",false,Collections.singletonMap(potion,4));com.fromscratch.potion.PotionObservation storage=new com.fromscratch.potion.PotionObservation(true,Collections.singletonMap(1,type),Collections.emptyMap(),SnapshotFixtures.TIME);
+		Filepath root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());BankRepository repo=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());repo.save(root,null,BankEngine.start(SnapshotFixtures.CHARACTER_A,null,bank(0),true,UUID.randomUUID(),SnapshotFixtures.TIME,storage));Source source=new Source();source.items=new net.runelite.api.Item[0];source.storage=storage;Worker worker=new Worker();BankOverlayState overlay=new BankOverlayState();overlay.enable();List<Overdrafts.Warning> alerts=new ArrayList<>();BankController controller=new BankController(source,repo,Runnable::run,overlay::updateBank);controller.overdrafts(alerts::addAll);mode.setEnabled(true);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();source.observer.tick();controller.tick();worker.runAll();
+		try
+		{
+			source.items=new net.runelite.api.Item[]{new net.runelite.api.Item(potion,3)};source.observer.changed();source.observer.tick();controller.tick();worker.runAll();BankRun earned=repo.load(root,source.character).get();assertEquals(3,earned.balance(potion));assertTrue(access.predicate.contains(potion));int opened=access.opened;
+			mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();source.storageOpen=true;source.fullBank=false;source.items=null;source.observer.changed();source.observer.tick();controller.tick();worker.runAll();assertEquals(earned,repo.load(root,source.character).get());assertNotNull(controller.currentRun());assertEquals(3,overlay.getProjection().balance(potion,false));
+			source.items=new net.runelite.api.Item[]{new net.runelite.api.Item(potion,3)};source.observer.tick();controller.tick();worker.runAll();source.storageOpen=false;source.fullBank=true;access.nativeTab=0;mode.bankBuilt();controller.tick();worker.runAll();assertTrue(access.predicate.contains(potion));assertEquals(opened,access.opened);assertFalse(mode.isFaulted());
+			source.character=null;source.observer.reset();controller.tick();worker.runAll();source.character=SnapshotFixtures.CHARACTER_A;source.observer.reset();controller.tick();worker.runAll();source.observer.tick();controller.tick();worker.runAll();assertEquals(3,repo.load(root,source.character).get().balance(potion));assertTrue(access.predicate.contains(potion));assertTrue(alerts.isEmpty());
+		}finally{controller.stop();mode.stop();}
+	}
+	@Test public void disablingWhilePotionStorageOpenDoesNotResumeFilter()
+	{
+		mode.setEnabled(true);mode.update(run(1),true);mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.setEnabled(false);access.nativeTab=0;mode.bankBuilt();assertNull(access.predicate);int[] untouched={0};mode.script("bankBuildTab",untouched,1);assertEquals(0,untouched[0]);assertFalse(mode.isFaulted());
+	}
+	@Test public void closingPotionStorageThenReopeningBankRestoresSavedPreference()
+	{
+		BankRun run=BankEngine.observe(run(1),bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);mode.setEnabled(true);mode.update(run,true);mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.bankClosed();access.nativeTab=0;mode.update(run,true);assertNotNull(access.predicate);assertTrue(access.predicate.contains(SHIELD));assertFalse(mode.isFaulted());assertEquals(2,access.opened);
 	}
 	
 }

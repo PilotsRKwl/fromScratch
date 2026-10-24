@@ -12,6 +12,7 @@ import java.nio.file.*;
 import java.security.*;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.*;
 import javax.inject.Inject;
 import net.runelite.client.util.Filepath;
@@ -40,7 +41,7 @@ public final class BankRepository
 			int version;
 			try { version = Math.toIntExact(BankRunCodec.number(new JsonParser().parse(text).getAsJsonObject().get("formatVersion"))); }
 			catch (RuntimeException ex) { throw new SaveException("Save header is unreadable. Existing files were preserved."); }
-			if (version == BankRunCodec.FORMAT) { BankRun run = codec.decode(text, character); verify(d, run, true); return Optional.of(run); }
+			if (version == BankRunCodec.FORMAT || version == 9) { BankRun run = codec.decode(text, character); verify(d, run, true); return Optional.of(run); }
 			if(version==8)
 			{
 				BankRun old=codec.decode(text,character);verify(d,old,true);String archived=archive(d);
@@ -128,7 +129,7 @@ public final class BankRepository
 		else if(audit.getKind()==BankAudit.Kind.EXCHANGE||audit.getKind()==BankAudit.Kind.BUYBACK)
 		{if(!before.isActive()||before.isAnchored()!=after.isAnchored()||!audit.getPhysicalChanges().isEmpty()||audit.getKind()==BankAudit.Kind.EXCHANGE&&!audit.getBalanceChanges().isEmpty()){throw new SaveException("Invalid observation/purchase bank change.");}}
 		else if (!before.isActive() || !before.isAnchored() || !after.isAnchored()
-			|| (audit.getKind() != BankAudit.Kind.AUTOMATIC && audit.getKind() != BankAudit.Kind.SESSION_CHECK && audit.getKind() != BankAudit.Kind.CORRECTION && audit.getKind()!=BankAudit.Kind.EXPENSE && audit.getKind()!=BankAudit.Kind.POUCH))
+			|| (audit.getKind() != BankAudit.Kind.AUTOMATIC && audit.getKind() != BankAudit.Kind.SESSION_CHECK && audit.getKind() != BankAudit.Kind.CORRECTION && audit.getKind()!=BankAudit.Kind.EXPENSE && audit.getKind()!=BankAudit.Kind.POUCH && audit.getKind()!=BankAudit.Kind.STORAGE && audit.getKind()!=BankAudit.Kind.STORAGE_REVIEW))
 		{ throw new SaveException("Invalid bank accounting transition."); }
 		if (!BankEngine.differences(before.getBalances(), after.getBalances()).equals(audit.getBalanceChanges())) { throw new SaveException("Bank balance audit does not match checkpoint."); }
 		if (audit.getKind() != BankAudit.Kind.ANCHOR && !BankEngine.differences(before.getPhysical(), after.getPhysical()).equals(audit.getPhysicalChanges())) { throw new SaveException("Bank observation audit does not match checkpoint."); }
@@ -144,7 +145,14 @@ public final class BankRepository
 		}
 		Map<Integer,Long> pouchTransfers=com.fromscratch.pouch.PouchEngine.transfers(before.getBuybacks().getPouch(),audit.getPhysicalChanges());
 		Map<Integer,Long> bankProgress=new TreeMap<>(audit.getPhysicalChanges());pouchTransfers.forEach((id,n)->bankProgress.put(id,Math.subtractExact(bankProgress.get(id),n)));bankProgress.values().removeIf(n->n==0);
-		if ((audit.getKind() == BankAudit.Kind.AUTOMATIC || audit.getKind() == BankAudit.Kind.SESSION_CHECK) && (!audit.getBalanceChanges().equals(bankProgress)||!audit.getPouchTransfers().equals(pouchTransfers))) { throw new SaveException("Bank progress does not match its legacy pouch transfer evidence."); }
+		Map<Integer,Long> ordinary=new TreeMap<>(before.getBalances());bankProgress.forEach((id,q)->ordinary.put(id,Math.addExact(before.balance(id),q)));
+		com.fromscratch.potion.PotionEngine.Result storage=com.fromscratch.potion.PotionEngine.apply(before,after.getPhysical(),ordinary,audit.getPotion(),audit.getSession());
+		com.fromscratch.potion.PotionState expectedStorage=audit.getKind()==BankAudit.Kind.CORRECTION?before.getPotions().corrected(audit.getBalanceChanges().keySet()):storage.getState();
+		if(!expectedStorage.equals(after.getPotions())||audit.getPotion()!=null&&!storage.getExclusions().equals(audit.getPotion().getExclusions())){throw new SaveException("Potion Storage checkpoint does not match its observation evidence.");}
+		if(before.getPotions().getObservedAt()!=null&&!before.getPotions().getInitial().equals(after.getPotions().getInitial())){throw new SaveException("Initial Potion Storage observation changed.");}
+		if ((audit.getKind() == BankAudit.Kind.AUTOMATIC || audit.getKind() == BankAudit.Kind.SESSION_CHECK || audit.getKind()==BankAudit.Kind.STORAGE) && (!audit.getBalanceChanges().equals(BankEngine.differences(before.getBalances(),storage.getBank()))||!audit.getPouchTransfers().equals(pouchTransfers))) { throw new SaveException("Bank progress does not match its storage transfer evidence."); }
+		if((audit.getKind()==BankAudit.Kind.STORAGE||audit.getKind()==BankAudit.Kind.STORAGE_REVIEW)&&(!audit.getPhysicalChanges().isEmpty()||audit.getPotion()==null)){throw new SaveException("Invalid Potion Storage operation.");}
+		if(audit.getKind()==BankAudit.Kind.STORAGE_REVIEW&&(audit.getPotion().getReview()==null||!audit.getBalanceChanges().isEmpty())){throw new SaveException("Invalid storage review.");}
 		if(audit.getKind()==BankAudit.Kind.POUCH)
 		{
 			boolean present=com.fromscratch.buyback.BuybackCatalog.variants("rune_pouch_family").keySet().stream().anyMatch(id->before.physical(id)>0);
@@ -219,6 +227,19 @@ public final class BankRepository
 						if (rows.size() == 25) { return new BankHistory.Page(rows, new BankHistory.Cursor(head, offset), ""); }
 					}
 				}
+				if(manual&&audit.getKind()==BankAudit.Kind.STORAGE_REVIEW)
+				{
+					String previous=BankRunCodec.nullable(batch,"previous");
+					if(previous==null){throw new SaveException("Storage correction predecessor is missing.");}
+					BankRun before=codec.decode(BankStorageFiles.readText(d.joinSegment("bank-checkpoint-"+previous+".json")),run.getCharacter());int index=0;
+					for(com.fromscratch.potion.PotionType type:audit.getPotion().getObservation().getTypes().values())
+					{
+						long old=before.getPotions().balance(type.getId()),value=audit.getPotion().getReview().getOrDefault(type.getId(),0L);if(value==old&&before.getPotions().isReviewed()){continue;}
+						if(index++<offset){continue;}
+						rows.add(new BankHistory.Row(audit.getAt(),type.displayId(),type.getName()+" ("+type.unit()+")",Math.subtractExact(value,old),"Manual Potion Storage: "+old+" to "+value+" "+type.unit(),null));offset=index;
+						if(rows.size()==25){return new BankHistory.Page(rows,new BankHistory.Cursor(head,offset),"");}
+					}
+				}
 				String previous = BankRunCodec.nullable(batch, "previous"); head = previous == null ? null : UUID.fromString(previous); offset = 0;
 			}
 			return new BankHistory.Page(rows, head == null ? null : new BankHistory.Cursor(head, offset), rows.isEmpty() ? "No matching bank changes on this page." : "");
@@ -252,6 +273,8 @@ public final class BankRepository
 	}
 	private static void validateStart(BankRun run) throws SaveException
 	{
+		com.fromscratch.potion.PotionState storage=run.getPotions();
+		if(storage.getObservedAt()!=null&&(!storage.isReviewed()||!storage.getBalances().isEmpty()||!storage.getInitial().equals(storage.getPhysical())||!storage.getRemainder().isEmpty()||!storage.getBankOut().isEmpty()||!storage.getStoreOut().isEmpty())){throw new SaveException("New Potion Storage must begin with a verified legacy baseline and zero virtual doses.");}
 		if (!run.isActive() || !run.isAnchored() || !run.getBalances().isEmpty() || !run.getInitialBank().getQuantities().equals(run.getPhysical())
 			|| !run.getRecent().get(0).getBalanceChanges().isEmpty() || !run.getRecent().get(0).getPhysicalChanges().isEmpty()
 			|| !run.getRecent().get(0).getValuations().isEmpty() || !FinancialState.baseline(Collections.emptyMap(),run.getStartedAt(),false).equals(run.getFinancial()) || !run.getExchange().equals(GeState.empty()) || !run.getBuybacks().equals(com.fromscratch.buyback.BuybackState.empty()))
@@ -306,13 +329,59 @@ public final class BankRepository
 		String name = "bank-migration-" + UUID.randomUUID(); Filepath archive = d.joinSegment(name); archive.createDirectories(); JsonObject files = new JsonObject();
 		List<Filepath> originals;
 		try (Stream<Filepath> walk = d.walk(1)) { originals = walk.filter(f -> f.getFileName().endsWith(".json")).collect(Collectors.toList()); }
-		for (Filepath source : originals)
+		// Independent forced copies overlap slow per-file flushes. Only the storage worker
+		// publishes the manifest/current; it waits for every copy, including on failure.
+		String[] digests = new String[originals.size()]; Thread owner = Thread.currentThread();
+		int workers = Math.min(4, originals.size());
+		if (workers > 0)
 		{
-			Filepath copy = archive.joinSegment(source.getFileName()); source.copyTo(copy); force(copy);
-			String digest = digest(source); if (!digest.equals(digest(copy))) { throw new SaveException("Archive verification failed. Original progression was not changed."); } files.addProperty(source.getFileName(), digest);
+			ExecutorService copies = Executors.newFixedThreadPool(workers, task -> { Thread t = new Thread(task, "fromscratch-archive-copy"); t.setDaemon(true); return t; });
+			try
+			{
+				List<CompletableFuture<Void>> pending = new ArrayList<>();
+				for (int worker = 0; worker < workers; worker++)
+				{
+					int start = worker;
+					pending.add(CompletableFuture.runAsync(() ->
+					{
+						for (int i = start; i < originals.size(); i += workers)
+						{
+							Filepath source = originals.get(i);
+							try { digests[i] = copyVerified(source, archive.joinSegment(source.getFileName()), owner); }
+							catch (IOException ex) { throw new CompletionException(ex); }
+						}
+					}, copies));
+				}
+				try { CompletableFuture.allOf(pending.toArray(new CompletableFuture<?>[0])).join(); }
+				catch (CompletionException ex) { if (ex.getCause() instanceof IOException) { throw (IOException) ex.getCause(); } throw ex; }
+			}
+			finally { copies.shutdownNow(); }
 		}
-		writeVerified(archive.joinSegment("manifest.json"), codec.envelope(files, 1)); verifyArchive(archive); return name;
+		for (int i = 0; i < originals.size(); i++) { files.addProperty(originals.get(i).getFileName(), digests[i]); }
+		// Every copy has already been forced and byte-verified below. The forced manifest
+		// publishes that evidence; reopening every newly-created copy again adds no proof.
+		writeVerified(archive.joinSegment("manifest.json"), codec.envelope(files, 1));return name;
 	}
+	/** Stream/hash the source once, force the destination, then verify its exact-byte readback. */
+	private static String copyVerified(Filepath source,Filepath copy,Thread owner) throws IOException
+	{
+		checkArchiveThread(owner);
+		MessageDigest hash=sha256();ByteBuffer buffer=ByteBuffer.allocate(8192);
+		try(FileChannel input=source.openFileChannel(StandardOpenOption.READ);FileChannel output=copy.openFileChannel(StandardOpenOption.CREATE_NEW,StandardOpenOption.WRITE,StandardOpenOption.READ))
+		{
+			int count;while((count=input.read(buffer))!=-1)
+			{
+				checkArchiveThread(owner);
+				hash.update(buffer.array(),0,count);buffer.flip();while(buffer.hasRemaining()){output.write(buffer);}buffer.clear();
+			}
+			checkArchiveThread(owner);output.force(true);
+			String expected=hex(hash.digest());output.position(0);buffer.clear();MessageDigest readback=sha256();
+			while(output.read(buffer)!=-1){checkArchiveThread(owner);buffer.flip();readback.update(buffer);buffer.clear();}
+			if(!expected.equals(hex(readback.digest()))){throw new SaveException("Archive verification failed. Original progression was not changed.");}return expected;
+		}
+	}
+	private static void checkArchiveThread(Thread owner) throws SaveException
+	{ if (owner.isInterrupted() || Thread.currentThread().isInterrupted()) { throw new SaveException("Reset archive interrupted. Current progression was preserved."); } }
 	private void verifyArchive(Filepath archive) throws IOException
 	{
 		JsonObject files = codec.payload(BankStorageFiles.readText(archive.joinSegment("manifest.json")), 1);
@@ -321,20 +390,19 @@ public final class BankRepository
 	}
 	private static String digest(Filepath file) throws IOException
 	{
-		try
-		{
-			MessageDigest digest = MessageDigest.getInstance("SHA-256"); ByteBuffer buffer = ByteBuffer.allocate(8192);
-			try (FileChannel c = file.openFileChannel(StandardOpenOption.READ)) { while (c.read(buffer) != -1) { buffer.flip(); digest.update(buffer); buffer.clear(); } }
-			StringBuilder hex = new StringBuilder(); for (byte b : digest.digest()) { hex.append(String.format("%02x", b & 255)); } return hex.toString();
-		}
-		catch (NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); }
+		MessageDigest hash=sha256();ByteBuffer buffer=ByteBuffer.allocate(8192);
+		try(FileChannel channel=file.openFileChannel(StandardOpenOption.READ)){while(channel.read(buffer)!=-1){buffer.flip();hash.update(buffer);buffer.clear();}}
+		return hex(hash.digest());
 	}
+	private static MessageDigest sha256()
+	{try{return MessageDigest.getInstance("SHA-256");}catch(NoSuchAlgorithmException ex){throw new IllegalStateException(ex);}}
+	private static String hex(byte[] bytes)
+	{char[] result=new char[bytes.length*2];char[] digits="0123456789abcdef".toCharArray();for(int i=0;i<bytes.length;i++){result[i*2]=digits[(bytes[i]&255)>>>4];result[i*2+1]=digits[bytes[i]&15];}return new String(result);}
 	private static void writeVerified(Filepath file, String text) throws IOException
 	{
 		if (!file.exists()) { BankStorageFiles.writeNew(file, text); }
 		if (!BankStorageFiles.readText(file).equals(text)) { throw new SaveException("Recovery file conflicts with this transaction. Existing files were preserved."); }
 	}
-	private static void force(Filepath file) throws IOException { try (FileChannel c = file.openFileChannel(StandardOpenOption.WRITE)) { c.force(true); } }
 	private static void publish(Filepath pending, Filepath current) throws IOException
 	{
 		try { pending.moveTo(current, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING); }

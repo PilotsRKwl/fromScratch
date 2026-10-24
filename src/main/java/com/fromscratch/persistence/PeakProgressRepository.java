@@ -23,6 +23,7 @@ public final class PeakProgressRepository
 	{
 		BigInteger sum=BigInteger.valueOf(run.getFinancial().getExpenseGp());
 		Map<Integer,Long> quantities=new TreeMap<>(run.getBalances());
+		Set<Integer> pooled=com.fromscratch.potion.PotionWealth.pooledItems(run);pooled.forEach(quantities::remove);
 		// A bag opening/closing is one physical item, not two oppositely priced variants.
 		long bag=0;for(int id:com.fromscratch.buyback.BuybackCatalog.variants("looting_bag_family").keySet()){bag=Math.addExact(bag,quantities.getOrDefault(id,0L));quantities.remove(id);}if(bag!=0){quantities.put(ItemID.LOOTING_BAG,bag);}
 		for(Map.Entry<Integer,Long> e:quantities.entrySet())
@@ -32,6 +33,7 @@ public final class PeakProgressRepository
 			if(p==null||!p.verifiedNow()){return null;}
 			sum=sum.add(BigInteger.valueOf(e.getValue()).multiply(BigInteger.valueOf(p.getUnitGp())));
 		}
+		com.fromscratch.potion.PotionWealth.Value potions=com.fromscratch.potion.PotionWealth.calculate(run,prices);if(potions.getMissing()>0||potions.getStale()>0){return null;}sum=sum.add(potions.getGp());
 		try{return Math.max(0,sum.longValueExact());}catch(ArithmeticException ex){return null;}
 	}
 	public Long checkpoint(Filepath root,BankRun run,Long candidate) throws IOException

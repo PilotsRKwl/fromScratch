@@ -9,7 +9,7 @@ import lombok.Value;
 @Value
 public class BankAudit
 {
-	public enum Kind { START, AUTOMATIC, SESSION_CHECK, CORRECTION, MIGRATION, ANCHOR, RESET, FINANCIAL_BASELINE, EXPENSE, EXCHANGE_BASELINE, EXCHANGE, BUYBACK_BASELINE, BUYBACK, POUCH_BASELINE, POUCH }
+	public enum Kind { START, AUTOMATIC, SESSION_CHECK, CORRECTION, MIGRATION, ANCHOR, RESET, FINANCIAL_BASELINE, EXPENSE, EXCHANGE_BASELINE, EXCHANGE, BUYBACK_BASELINE, BUYBACK, POUCH_BASELINE, POUCH, STORAGE, STORAGE_REVIEW }
 	UUID id;
 	UUID session;
 	Instant at;
@@ -22,6 +22,7 @@ public class BankAudit
 	com.fromscratch.buyback.BuybackPurchase buyback;
 	com.fromscratch.pouch.PouchAction pouch;
 	Map<Integer,Long> pouchTransfers;
+	com.fromscratch.potion.PotionUpdate potion;
 	public BankAudit(UUID id, UUID session, Instant at, Kind kind, Map<Integer, Long> physicalChanges,
 		Map<Integer, Long> balanceChanges, String reason)
 	{ this(id,session,at,kind,physicalChanges,balanceChanges,reason,java.util.Collections.emptyList()); }
@@ -37,6 +38,9 @@ public class BankAudit
 	{this(id,session,at,kind,physicalChanges,balanceChanges,reason,valuations,exchange,buyback,null,java.util.Collections.emptyMap());}
 	public BankAudit(UUID id,UUID session,Instant at,Kind kind,Map<Integer,Long> physicalChanges,Map<Integer,Long> balanceChanges,String reason,
 		java.util.List<com.fromscratch.wealth.ValuationEvent> valuations,com.fromscratch.ge.GeUpdate exchange,com.fromscratch.buyback.BuybackPurchase buyback,com.fromscratch.pouch.PouchAction pouch,Map<Integer,Long> pouchTransfers)
+	{this(id,session,at,kind,physicalChanges,balanceChanges,reason,valuations,exchange,buyback,pouch,pouchTransfers,null);}
+	public BankAudit(UUID id,UUID session,Instant at,Kind kind,Map<Integer,Long> physicalChanges,Map<Integer,Long> balanceChanges,String reason,
+		java.util.List<com.fromscratch.wealth.ValuationEvent> valuations,com.fromscratch.ge.GeUpdate exchange,com.fromscratch.buyback.BuybackPurchase buyback,com.fromscratch.pouch.PouchAction pouch,Map<Integer,Long> pouchTransfers,com.fromscratch.potion.PotionUpdate potion)
 	{
 		this.id = java.util.Objects.requireNonNull(id);
 		this.session = java.util.Objects.requireNonNull(session);
@@ -50,6 +54,7 @@ public class BankAudit
 		this.exchange=java.util.Objects.requireNonNull(exchange);this.buyback=buyback;
 		if((kind==Kind.BUYBACK)!=(buyback!=null)||buyback!=null&&(!id.equals(buyback.getId())||!at.equals(buyback.getAt()))){throw new IllegalArgumentException("Invalid purchase audit evidence");}
 		this.pouch=pouch;this.pouchTransfers=com.fromscratch.pouch.PouchState.quantities(pouchTransfers);
+		this.potion=potion;
 		if((kind==Kind.POUCH)!=(pouch!=null)||kind!=Kind.AUTOMATIC&&!this.pouchTransfers.isEmpty()){throw new IllegalArgumentException("Invalid pouch audit evidence");}
 	}
 }

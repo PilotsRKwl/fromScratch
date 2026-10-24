@@ -40,6 +40,9 @@ public final class VirtualBankMode
 	private Set<Integer> positives=Collections.emptySet(),applied=Collections.emptySet();
 	private Set<Integer> eligible=Collections.emptySet();
 	private boolean nativeMode,tabDirty=true;
+	private boolean potionView;
+	// Core Bank Tags identifies the native Potion Storage view by BANK_CURRENTTAB=15.
+	private static final int POTION_TAB=15;
 	private int tabId=-1;
 	private final Map<Integer,Integer> placeholders=new HashMap<>();
 	private BankRun previous;
@@ -62,12 +65,21 @@ public final class VirtualBankMode
 	/** Core closes tags for native tabs/search. Observe that choice; never reopen from a script callback. */
 	public void viewChanged(){if(!operating&&selected){request();}}
 	/** A real native-tab click authorizes native filtering, never a tag reopen. */
-	public void nativeTabSelected(){if(wanted&&selected&&!faulted){nativeMode=true;tabDirty=true;request();}}
+	public void nativeTabSelected(){if(potionView){return;}if(wanted&&selected&&!faulted){nativeMode=true;tabDirty=true;request();}}
+	/** Observe the native button, letting core close its tag before any deferred cleanup. */
+	public void potionStorageSelected(){if(nativeTab()!=POTION_TAB){pausePotions();}}
+	private void pausePotions()
+	{potionView=true;wanted=false;selected=false;nativeMode=false;previousTitle=null;tabDirty=true;applied=Collections.emptySet();request();}
 	/** Native search owns its input; leave our single-tab build mode rather than close that input. */
 	public void searchSelected(){if(wanted&&selected){selectFullBank();request();}}
 	public void itemsChanged(){tabDirty=true;}
 	/** Core may restore a remembered tag without any From Scratch activation. */
-	public void bankBuilt(){if(!operating){attempted=false;request();}}
+	public void bankBuilt()
+	{
+		if(nativeTab()==POTION_TAB){if(!potionView){pausePotions();}return;}
+		if(potionView){potionView=false;if(enabled&&previous!=null&&membershipReady){wanted=true;selected=true;nativeMode=true;tabDirty=true;}}
+		if(!operating){attempted=false;request();}
+	}
 	/** Absolutely no client calls, mutation, registration, IO or refresh in the script's predicate. */
 	boolean contains(int id){return membership.contains(id);}
 	public void update(BankRun run,boolean bankOpen)
@@ -79,7 +91,7 @@ public final class VirtualBankMode
 		if(operating){reentry();return;}
 		if(previous!=null&&run!=null&&(!run.getCharacter().equals(previous.getCharacter())||!Objects.equals(run.getRunId(),previous.getRunId())))
 		{previous=null;membershipReady=false;positives=Collections.emptySet();membership=Collections.emptySet();if(!complete){selected=false;}}
-		wanted=enabled&&bankOpen&&run!=null&&run.isActive()&&run.isAnchored()&&!faulted;
+		wanted=enabled&&!potionView&&bankOpen&&run!=null&&run.isActive()&&run.isAnchored()&&!faulted;
 		// A mounted interface alone is not a complete bank observation. Keep an already selected
 		// committed view during a pending bank write, but never open an uninitialized/stale view.
 		if(!complete&&!selected){wanted=false;}
@@ -170,7 +182,7 @@ public final class VirtualBankMode
 		if(owned(access,access.remembered())){access.remembered("");}
 		if(!wanted||faulted){deactivate(access);return;}
 		if(owned(access,active)&&(!name.equals(active)||!registered)){deactivate(access);if(!wanted){return;}active=access.active();}
-		if(nativeMode&&active==null){tabMembership();if(!membership.equals(applied)){applied=membership;access.refresh();}return;}
+		if(nativeMode&&active==null){if(!registered){registered=true;access.register(name,this::contains);}tabMembership();if(!membership.equals(applied)){applied=membership;access.refresh();}return;}
 		if(!name.equals(active))
 		{
 			if(selected){selectFullBank();return;}if(suspended||!membershipReady||!access.ready()){return;}
@@ -261,7 +273,7 @@ public final class VirtualBankMode
 	private void reentry(){if(!recursionLogged){recursionLogged=true;log.debug("From Scratch Virtual Bank: ignored re-entrant bank lifecycle callback");}}
 	public void bankClosed()
 	{
-		wanted=false;attempted=false;suspended=false;recursionLogged=false;if(operating){reentry();return;}request();
+		potionView=false;wanted=false;attempted=false;suspended=false;recursionLogged=false;if(operating){reentry();return;}request();
 	}
-	public void stop(){enabled=false;wanted=false;previous=null;membershipReady=false;positives=Collections.emptySet();membership=Collections.emptySet();placeholders.clear();request();}
+	public void stop(){potionView=false;enabled=false;wanted=false;previous=null;membershipReady=false;positives=Collections.emptySet();membership=Collections.emptySet();placeholders.clear();request();}
 }

@@ -25,7 +25,7 @@ public class GePipelineTest
 	@Before public void setup()
 	{
 		root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());repository=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());prices=new PriceService(()->new TreeMap<Integer,Long>(){{put(SHIELD,100L);put(ItemID.ASHES,50L);}},Instant::now);prices.refresh();
-		source.items=new Item[]{new Item(SHIELD,1),new Item(ItemID.COINS,1000)};overlay.enable();launch();settle();controller.startRun(true);worker.runAll();settle();
+		source.items=new Item[]{new Item(SHIELD,1),new Item(ItemID.COINS,1000)};overlay.enable();launch();settle();controller.startRun(true,null,true);worker.runAll();settle();
 	}
 	@After public void stop(){controller.stop();}
 	private void launch(){worker=new Worker();controller=new BankController(source,repository,Runnable::run,v->{views.add(v);overlay.updateBank(v);},prices);controller.start(()->root,worker);worker.runAll();}
@@ -34,6 +34,7 @@ public class GePipelineTest
 	private BankRun saved()throws Exception{return repository.load(root,source.character).get();}
 	private void bank(int shields,int coins){source.items=new Item[]{new Item(SHIELD,shields),new Item(ItemID.COINS,coins)};source.observer.changed();settle();}
 	private void offer(int slot,GrandExchangeOfferState state,int filled,long gp){packets.send(controller::exchange,slot,SHIELD,state,10,filled,100,gp);worker.runAll();settle();}
+	@Test public void resetClearsFinalizedHistoryWithoutReplayingOfferAccounting()throws Exception{offer(0,GrandExchangeOfferState.BUYING,0,0);offer(0,GrandExchangeOfferState.BOUGHT,10,900);assertEquals(1,completed(true).size());BankRun before=saved();controller.reset(before.getRevision());worker.runAll();assertFalse(saved().isActive());assertEquals(0,saved().getExchange().getPurchases());assertTrue(saved().getBalances().isEmpty());assertEquals(1,saved().getRecent().size());}
 	private List<GeTrade> completed(boolean buy)throws Exception
 	{
 		GeHistory.Page page=repository.exchangeHistory(root,saved(),null,buy);while(page.isScanning()){page=repository.exchangeHistory(root,saved(),page.getNext(),buy);}return page.getRows();
@@ -131,7 +132,7 @@ public class GePipelineTest
 	@Test public void offersObservedBeforeStartArePreexistingWithoutGeSetup()throws Exception
 	{
 		controller.stop();source.character=SnapshotFixtures.CHARACTER_B;source.observer.reset();packets.reset();launch();settle();assertNull(view().getRun());
-		offer(0,GrandExchangeOfferState.BOUGHT,10,900);controller.startRun(true);worker.runAll();settle();assertEquals(GeOffer.Origin.PREEXISTING,saved().getExchange().getOffers().get(0).getOrigin());
+		offer(0,GrandExchangeOfferState.BOUGHT,10,900);controller.startRun(true,null,true);worker.runAll();settle();assertEquals(GeOffer.Origin.PREEXISTING,saved().getExchange().getOffers().get(0).getOrigin());
 		bank(11,1000);assertEquals(10,saved().balance(SHIELD));assertEquals(0,saved().getFinancial().getGainedGp());assertTrue(view().getMessage().contains("preexisting GE offer"));
 	}
 	@Test public void firstSeenCompletedOfferHasUnknownOriginInsteadOfInventedPriorHistory()throws Exception

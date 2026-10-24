@@ -37,12 +37,19 @@ public final class VirtualBankOverlay extends Overlay
 	private boolean physicalFailed;
 
 	@Inject
-	public VirtualBankOverlay(Client client, RuneLiteBankSource observer, BankOverlayState state, OverlayManager overlayManager)
+	public VirtualBankOverlay(Client client, RuneLiteBankSource observer, BankOverlayState state, OverlayManager overlayManager,net.runelite.client.ui.overlay.tooltip.TooltipManager tooltips)
 	{
 		this(new Context()
 		{
 			private PhysicalCounter[] counters = new PhysicalCounter[0];
 			private final Map<Integer,Boolean> stackable = new HashMap<>();
+			private final Map<Integer,String> names=new HashMap<>();
+			public void hint(Rectangle bounds,int id,int physical,long available)
+			{
+				net.runelite.api.Point mouse=client.getMouseCanvasPosition();if(mouse==null||!bounds.contains(mouse.getX(),mouse.getY())||available==0||physical<=available){return;}
+				String name=names.computeIfAbsent(id,item->client.getItemDefinition(item).getMembersName().replace("<","").replace(">","")).replace('|','/');
+				tooltips.add(new net.runelite.client.ui.overlay.tooltip.Tooltip(String.format(java.util.Locale.ENGLISH,"%s: %,d in bank. %s available in From Scratch. %,d legacy.<br>Withdraw All withdraws all %,d.",name,physical,net.runelite.client.util.ColorUtil.wrapWithColorTag(String.format(java.util.Locale.ENGLISH,"%,d",available),state.getSettings().quantityColor(available)),physical-Math.max(0,available),physical)));
+			}
 			public void physicalQuantities(boolean enabled)
 			{
 				Widget layer = enabled ? client.getWidget(InterfaceID.Bankmain.ITEMS) : null;
@@ -198,6 +205,7 @@ public final class VirtualBankOverlay extends Overlay
 		// moving the label into the visible fragment would make it jump while scrolling.
 		BankItemPainter.paint(graphics, bounds, quantity, quantity == 0 ? "0" : frame.label(identity.balanceItemId), settings);
 		if (physical != null) { BankItemPainter.paintPhysical(graphics, bounds, physical); }
+		if(!placeholder){context.hint(bounds,identity.balanceItemId,physicalQuantity,quantity);}
 	}
 
 	public void clearCache() { context.physicalQuantities(false); identities.clear(); physicalFailed = false; }
@@ -224,6 +232,7 @@ public final class VirtualBankOverlay extends Overlay
 	interface Context
 	{
 		default void physicalQuantities(boolean enabled) { }
+		default void hint(Rectangle bounds,int id,int physical,long available) { }
 		String characterKey();
 		boolean bankVisible();
 		boolean placeholder(int itemId);

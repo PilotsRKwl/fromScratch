@@ -1,11 +1,9 @@
 [CmdletBinding()]
-param([switch]$ImageOnly)
+param([switch]$ImageOnly,[switch]$ConfigurationOnly)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $project=Split-Path $PSScriptRoot
-$build=Get-Content -LiteralPath (Join-Path $project 'build/native-installer/latest-build.json') -Raw|ConvertFrom-Json
-$test=Join-Path $project ('build/native-installer/tests/'+[Guid]::NewGuid().ToString('N')+' paths with spaces')
-[void][IO.Directory]::CreateDirectory($test)
+$pin=Get-Content -LiteralPath (Join-Path $project 'beta/windows-native/toolchain.json') -Raw|ConvertFrom-Json
 $passed=0
 function Assert-Native([bool]$Condition,[string]$Message){if(!$Condition){throw $Message}}
 function Pass-Native([string]$Name){$script:passed++;Write-Host ('PASS '+$Name)}
@@ -20,16 +18,28 @@ function Run-Native([string]$File,[string]$Arguments,[int]$Timeout=60000,[bool]$
     } finally {$env:JAVA_HOME=$savedHome;$env:PATH=$savedPath;$env:JAVA_TOOL_OPTIONS=$savedOptions}
 }
 function Gui-Executable([string]$File){$bytes=[IO.File]::ReadAllBytes($File);$pe=[BitConverter]::ToInt32($bytes,0x3c);return [BitConverter]::ToUInt16($bytes,$pe+24+68) -eq 2}
+function Windows-Version([string]$File){$v=[Diagnostics.FileVersionInfo]::GetVersionInfo($File);return [Version]::new($v.FileMajorPart,$v.FileMinorPart,$v.FileBuildPart,$v.FilePrivatePart)}
 function Latest-LauncherLog([string]$Root){return Get-ChildItem -LiteralPath (Join-Path $Root 'verification-data/FromScratchBeta/logs') -Filter '*.log'|Sort-Object LastWriteTime -Descending|Select-Object -First 1}
 
 foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1'){$tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors);Assert-Native ($errors.Count -eq 0) ('Script syntax: '+$file.Name)}
 Pass-Native 'PowerShell packaging syntax'
+Assert-Native ($pin.format -eq 1 -and $pin.releaseVersion -cmatch '^v\d+\.\d+\.\d+-[a-z0-9-]+$' -and $pin.packageVersion -cmatch '^\d+\.\d+\.\d+-beta\.\d+$' -and $pin.windowsVersion -match '^\d+\.\d+\.\d+\.\d+$') 'Invalid pinned release/package/Windows version.'
+$baseVersion=($pin.packageVersion -split '-')[0]
+Assert-Native ($pin.releaseVersion.StartsWith('v'+$baseVersion+'-') -and $pin.windowsVersion.StartsWith($baseVersion+'.')) 'Pinned release, package and Windows versions disagree.'
+Assert-Native ($pin.runtime.sha256 -cmatch '^[a-f0-9]{64}$' -and $pin.inno.sha256 -cmatch '^[a-f0-9]{64}$') 'Pinned toolchain checksums are invalid.'
+Assert-Native ($pin.runtime.url.StartsWith('https://github.com/adoptium/temurin11-binaries/releases/download/') -and $pin.inno.url.StartsWith('https://github.com/jrsoftware/issrc/releases/download/')) 'Pinned toolchain sources are not the official release repositories.'
+Pass-Native ('Pinned configuration: '+$pin.releaseVersion+' / '+$pin.packageVersion+' / '+$pin.windowsVersion)
+if($ConfigurationOnly){Write-Host 'Configuration checks only. No application was built, installed or launched.';return}
+$build=Get-Content -LiteralPath (Join-Path $project 'build/native-installer/latest-build.json') -Raw|ConvertFrom-Json
+Assert-Native ($build.releaseVersion -eq $pin.releaseVersion -and $build.packageVersion -eq $pin.packageVersion -and $build.runtimeVersion -eq $pin.runtime.version -and $build.runtimeSha256 -eq $pin.runtime.sha256) 'Latest build differs from the pinned current release/toolchain. Rebuild it before testing.'
+$test=Join-Path $project ('build/native-installer/tests/'+[Guid]::NewGuid().ToString('N')+' paths with spaces')
+[void][IO.Directory]::CreateDirectory($test)
 $release=Get-Content -LiteralPath (Join-Path $build.image 'release.json') -Raw|ConvertFrom-Json
 $payload=Join-Path $build.image $release.payload
 $manifestPath=Join-Path $payload 'payload.json'
 Assert-Native ((Get-FileHash $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -eq $release.manifestSha256) 'Payload manifest hash differs.'
 $manifest=Get-Content -LiteralPath $manifestPath -Raw|ConvertFrom-Json
-Assert-Native ($release.releaseVersion -eq 'v0.10.6-friends-installer' -and $manifest.sourceRevision -eq $build.sourceRevision) 'Release/source metadata differs.'
+Assert-Native ($release.releaseVersion -eq $pin.releaseVersion -and $manifest.releaseVersion -eq $pin.releaseVersion -and $release.packageVersion -eq $pin.packageVersion -and $manifest.packageVersion -eq $pin.packageVersion -and $release.sourceRevision -eq $build.sourceRevision -and $manifest.sourceRevision -eq $build.sourceRevision) 'Release/package/source metadata differs from the pinned current release.'
 foreach($entry in $manifest.files){$path=Join-Path $payload $entry.path;Assert-Native ((Get-Item -LiteralPath $path).Length -eq $entry.bytes -and (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -eq $entry.sha256) ('Payload differs: '+$entry.path)}
 $private=@($manifest.files|Where-Object{$_.path -match '(?i)(^|/)(credentials\.properties|jagex-accounts\.dat|\.env|current\.json|[^/]+\.fsp|[^/]+\.log|bank-(ledger|checkpoint|pending)-[^/]+\.json)$'})
 Assert-Native ($private.Count -eq 0) 'Private/test data entered the image.'
@@ -41,11 +51,13 @@ $sizes=@();for($i=0;$i -lt 5;$i++){$n=[int]$icon[6+16*$i];$sizes+= $(if($n -eq 0
 Assert-Native (($sizes -join ',') -eq '16,32,48,64,256') 'Required icon sizes missing.'
 Pass-Native 'Original-brand ICO has 16/32/48/64/256 frames'
 $launcher=Join-Path $build.image 'FromScratchBeta.exe';Assert-Native (Gui-Executable $launcher) 'Launcher has a console subsystem.'
+Assert-Native ((Windows-Version $launcher) -eq [Version]$pin.windowsVersion) 'Launcher file version differs from the pinned current Windows version.'
 Add-Type -AssemblyName System.Drawing
 $embedded=[Drawing.Icon]::ExtractAssociatedIcon($launcher);try{Assert-Native ($null -ne $embedded) 'Launcher has no embedded icon.'}finally{$embedded.Dispose()}
 Pass-Native 'Native Windows GUI executable and embedded icon'
 $runtimeRelease=[IO.File]::ReadAllText((Join-Path $payload 'runtime/release'))
-Assert-Native ($runtimeRelease -match 'JAVA_VERSION="11\.0\.32\.1"' -and (Test-Path -LiteralPath (Join-Path $payload 'runtime/legal/java.base/LICENSE'))) 'Wrong private runtime or missing licenses.'
+$runtimeVersion=($pin.runtime.version -split '\+')[0]
+Assert-Native ($runtimeRelease.Contains('JAVA_VERSION="'+$runtimeVersion+'"') -and (Test-Path -LiteralPath (Join-Path $payload 'runtime/legal/java.base/LICENSE'))) 'Wrong private runtime or missing licenses.'
 Pass-Native 'Pinned private Temurin 11 runtime and retained legal notices'
 $copy=Join-Path $test 'Launcher from Downloads';Copy-Item -LiteralPath $build.image -Destination $copy -Recurse
 Assert-Native ((Run-Native (Join-Path $copy 'FromScratchBeta.exe') '--verify-only' 45000 $true) -eq 0) 'Private-runtime verification failed with system Java unavailable.'
@@ -65,6 +77,7 @@ Pass-Native 'Unexpected classpath additions are rejected'
 if(!$ImageOnly){
     Assert-Native ($build.installer -and (Test-Path -LiteralPath $build.installer)) 'Setup EXE is missing.'
     Assert-Native (Gui-Executable $build.installer) 'Setup is not a GUI executable.'
+    Assert-Native ((Windows-Version $build.installer) -eq [Version]$pin.windowsVersion) 'Setup file version differs from the pinned current Windows version.'
     Assert-Native ((Get-FileHash -LiteralPath $build.installer -Algorithm SHA256).Hash.ToLowerInvariant() -eq $build.sha256) 'Setup checksum differs.'
     $setupIcon=[Drawing.Icon]::ExtractAssociatedIcon($build.installer);$appIcon=[Drawing.Icon]::ExtractAssociatedIcon($launcher)
     try{
@@ -109,7 +122,7 @@ if(!$ImageOnly){
     $keys=@(Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall|Where-Object{$_.PSChildName -like 'FromScratchBeta-InstallerTest-*'}|Where-Object{(Get-ItemProperty $_.PSPath).InstallLocation.TrimEnd('\') -eq $installed})
     Assert-Native ($keys.Count -eq 1) 'Windows Installed apps registration missing or duplicated.'
     $uninstallKey=$keys[0].PSPath
-    Assert-Native ((Get-ItemProperty $uninstallKey).DisplayVersion -eq '0.10.6') 'Upgrade did not update Installed apps version.'
+    Assert-Native ((Get-ItemProperty $uninstallKey).DisplayVersion -eq $baseVersion) 'Upgrade did not update Installed apps to the pinned current version.'
     Pass-Native 'Desktop/Start Menu native shortcuts, icon references and Installed apps entry'
     Assert-Native ((Run-Native $setup $args 60000) -eq 0) 'Reinstall failed.'
     Assert-Native (([IO.File]::ReadAllText($sentinel)) -eq 'preserve progression fixture') 'Reinstall changed progression fixture.'

@@ -33,9 +33,13 @@ public final class BankPanel extends PluginPanel
 	};
 	private final JLabel notice = new JLabel();
 	private final JCheckBox attested = new BankAttestation();
+	private final JLabel bankStep=setupCopy("3. Open your bank.");
 	private final JButton start = new BankPrimaryButton("Start From Scratch"), corrections = new JButton(), reset = new BankDangerButton("Reset Progress"), retry = new JButton("Retry Loading"), anchor = new JButton("Review Bank Anchor");
 	private final JPanel upgrade = vertical();
 	private final JPanel stats = tileRow(0, 98);
+	private final OutstandingPanel outstanding;
+	private final BankIcons icons;
+	private final PotionSetupPanel potionSetup=new PotionSetupPanel(this::updateControls);
 	private final BankTile unlocked;
 	private final BankTile duration;
 	private final BankTile gained;
@@ -60,6 +64,7 @@ public final class BankPanel extends PluginPanel
 	BankPanel(BankIcons icons, Confirmation confirmation) { this(icons); this.confirmation = confirmation; }
 	public BankPanel(BankIcons icons)
 	{
+		this.icons=icons;outstanding=new OutstandingPanel(icons);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); setBackground(BACKGROUND); body.setOpaque(false); stats.setOpaque(false); stats.setAlignmentX(LEFT_ALIGNMENT);
 		for (JButton button : new JButton[]{retry, anchor}) { button.setAlignmentX(LEFT_ALIGNMENT); button.setBackground(new Color(55, 46, 63)); button.setForeground(new Color(235, 220, 190)); button.setOpaque(true); button.setContentAreaFilled(false); }
 		JLabel title = new JLabel("From Scratch"); title.setFont(FontManager.getRunescapeBoldFont()); title.setForeground(new Color(0xFFD54F));
@@ -67,12 +72,10 @@ public final class BankPanel extends PluginPanel
 		JButton files=new JButton("⋮");files.setToolTipText("Progress files");files.getAccessibleContext().setAccessibleName("Progress files");files.setMargin(new Insets(0,6,0,6));files.addActionListener(e->ProgressDialogs.menu(this,()->actions,()->view).show(files,0,files.getHeight()));header.add(files,BorderLayout.EAST);header.setMaximumSize(new Dimension(Integer.MAX_VALUE,header.getPreferredSize().height));add(header);
 		notice.setForeground(new Color(0xFFD54F)); notice.setVisible(false); add(notice); retry.setVisible(false); add(retry);
 		JPanel setup = vertical(); setup.setName("setupPanel"); setup.add(heading("Before Starting"));
-		JLabel intro = setupCopy("1. Bank everything from your inventory.\n2. Unequip and bank all gear."); intro.setName("setupInstructions"); intro.setBorder(BorderFactory.createEmptyBorder(0, 0, 3, 0)); setup.add(intro);
-		setup.add(attested);
-		JLabel bankStep = setupCopy("3. Open your bank, then start your run."); bankStep.setName("setupBankStep"); setup.add(bankStep);
+		JLabel intro = setupCopy("1. Bank everything from your inventory.\n2. Unequip and bank all your gear."); intro.setName("setupInstructions"); intro.setBorder(BorderFactory.createEmptyBorder(0, 0, 3, 0)); setup.add(intro);
+		attested.setName("setupBankingConfirmation");setup.add(attested);
+		bankStep.setName("setupBankStep");setup.add(bankStep);setup.add(potionSetup);
 		JPanel startRow = centeredAction(start); startRow.setName("startActionRow"); startRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0)); setup.add(startRow);
-		JLabel storageNote = setupCopy("Items in Grand Exchange offers or other storage aren't included. Collect them into your bank first if you want them treated as legacy.");
-		storageNote.setName("setupStorageNote"); storageNote.setFont(new Font(Font.DIALOG, Font.PLAIN, 11)); storageNote.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0)); setup.add(storageNote);
 		body.add(setup, "setup");
 		JPanel active = vertical();
 		stats.setName("statisticTiles");
@@ -83,7 +86,7 @@ public final class BankPanel extends PluginPanel
 		duration = new BankTile("Time Played", "Time Played", ItemID.GIANT_STOPWATCH, icons); stats.add(duration);
 		lost=new BankTile("Total Value Lost / Spent", "Total Value<br>Lost / Spent", ItemID.ASHES, icons);stats.add(lost);
 		lost.onActivate(this::recordExpense);
-		active.add(stats);
+		active.add(outstanding);active.add(stats);
 		upgrade.add(heading("Finish Bank Upgrade")); upgrade.add(description("Open your bank and confirm its comparison point. Your previous save and history are archived.")); upgrade.add(anchor); active.add(upgrade);
 		active.add(heading("Legacy Buybacks")); JPanel buybacks=tileRow(1,90);buybacks.setName("legacyBuybackTiles");
 		buybacks.add(historyTile("Buyback Shop",ItemID.TZHAAR_CAPE_FIRE,new JLabel("Legacy unlocks",SwingConstants.CENTER),icons,()->openBuybacks(false,icons)));
@@ -103,18 +106,23 @@ public final class BankPanel extends PluginPanel
 		JPanel danger = vertical(); danger.setName("resetDangerArea"); danger.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(18, 0, 0, 0), BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(121, 55, 55)), BorderFactory.createEmptyBorder(8, 8, 8, 8))));
 		JLabel dangerTitle = heading("Reset Progress"); dangerTitle.setForeground(new Color(235, 116, 116)); danger.add(dangerTitle); danger.add(description("Permanently restart your From Scratch challenge.")); Dimension resetSize=reset.getPreferredSize(); reset.setPreferredSize(new Dimension(Math.max(170,resetSize.width),resetSize.height)); danger.add(centeredAction(reset)); active.add(danger);
 		body.add(active, "active"); body.setAlignmentX(LEFT_ALIGNMENT); add(body);
-		attested.addActionListener(e -> updateControls());
-		start.addActionListener(e -> { if (actions != null && confirmation.show(this, "Start From Scratch?", START_WARNING, "Start Run", false)) { start.setEnabled(false); actions.startRun(attested.isSelected()); } });
-		corrections.addActionListener(e -> { if (correctionsNavigation != null) { correctionsNavigation.run(); } else if (view != null && actions != null) { BankCorrectionDialog.show(this, view, actions); } });
-		reset.addActionListener(e -> { BankView captured = view; if (actions != null && captured != null && captured.getRun() != null && confirmation.show(this, "Reset Progress", "This ends your current challenge and clears its active progress. A recovery archive will be kept. Your real OSRS items are untouched.", "Reset Progress", true)) { reset.setEnabled(false); actions.reset(captured.getRun().getRevision()); } });
+		attested.addActionListener(e -> {if(actions!=null&&view!=null&&view.getSetup()!=null){actions.setupAttested(view.getSetup().getAttempt(),attested.isSelected());}updateControls();});
+		start.addActionListener(e -> { if (actions != null && potionSetup.ready() && confirmation.show(this, "Start From Scratch?", START_WARNING, "Start Run", false)) { start.setEnabled(false); actions.startRun(attested.isSelected(),potionSetup.selectedCapture(),potionSetup.notUnlocked()); } });
+		corrections.addActionListener(e -> { if (correctionsNavigation != null) { correctionsNavigation.run(); } else if (view != null && actions != null) { BankCorrectionDialog.show(this, view, actions,icons); } });
+		reset.addActionListener(e -> { BankView captured = view; if (actions != null && captured != null && captured.getRun() != null && confirmation.show(this, "Reset Progress", "This ends your current challenge and clears its active progress. A recovery archive will be kept. Your real OSRS items are untouched.", "Reset Progress", true)) { reset.setEnabled(false);notice.setText("Resetting progress...");notice.setVisible(true); actions.reset(captured.getRun().getRevision()); } });
 		retry.addActionListener(e -> { if (actions != null) { actions.retry(); } }); anchor.addActionListener(e -> anchor());
 	}
 	public void render(BankView updated, BankActions actions)
 	{
-		if (updated.getObservation() == null || (view != null && view.getRun() != null && view.getRun().isActive() && (updated.getRun() == null || !updated.getRun().isActive()))) { attested.setSelected(false); }
+		if(updated.getSetup()!=null){attested.setSelected(updated.getSetup().isAttested());}
+		else if(view!=null&&view.getRun()!=null&&view.getRun().isActive()&&(updated.getRun()==null||!updated.getRun().isActive())){attested.setSelected(false);}
 		this.view = updated; this.actions = actions; BankRun run = updated.getRun(); boolean active = run != null && run.isActive();
+		attested.setEnabled(!updated.isBusy()&&!updated.isError()&&(updated.getSetup()==null||updated.getSetup().getCharacter()!=null));
+		outstanding.render(updated,actions);potionSetup.render(updated,actions);
+		boolean recorded=updated.getSetup()==null?updated.getObservation()!=null&&updated.getObservation().isReady():updated.getSetup().getBank()!=null;
+		bankStep.setText(setupCopy(recorded?"3. Bank recorded.":"3. Open your bank.").getText());
 		String wanted = active ? "active" : "setup"; if (!wanted.equals(card)) { cards.show(body, wanted); card = wanted; body.revalidate(); invalidate(); revalidate(); }
-		String message = updated.getMessage(); boolean important = updated.isError() || (!active && !updated.ready()) || (active && !updated.isBusy() && !message.equals("Bank progress saved.") && !message.equals("Bank progress updates automatically.") && run.isAnchored());
+		String message = updated.getMessage(); boolean important = message.equals("Resetting progress...") || message.startsWith("Progress reset.") || updated.isError() || (!active && !updated.ready()) || (active && !updated.isBusy() && !message.equals("Bank progress saved.") && !message.equals("Bank progress updates automatically.") && run.isAnchored());
 		notice.setVisible(important); notice.setText(important ? "<html>" + escape(message) + "</html>" : ""); retry.setVisible(updated.isError());
 		if (active)
 		{
@@ -136,7 +144,7 @@ public final class BankPanel extends PluginPanel
 	private void updateControls()
 	{
 		if (view == null) { return; } boolean usable = !view.isBusy() && !view.isError();
-		start.setEnabled(view.ready() && attested.isSelected()); corrections.setEnabled(usable && view.getRun() != null && view.getRun().isAnchored()); reset.setEnabled(usable && view.getRun() != null && view.getRun().isActive()); anchor.setEnabled(view.ready());
+		start.setEnabled(view.setupBankReady() && attested.isSelected() && potionSetup.ready()); corrections.setEnabled(usable && view.getRun() != null && view.getRun().isAnchored()); reset.setEnabled(usable && view.getRun() != null && view.getRun().isActive()); anchor.setEnabled(view.ready());
 	}
 	private void openHistory(boolean manual) { if (historyNavigation != null) { historyNavigation.accept(manual); } else if (actions != null) { BankHistoryDialog.show(this, actions, manual); } }
 	private void openExchange(boolean buy,BankIcons icons){if(exchangeNavigation!=null){exchangeNavigation.accept(buy);}else if(actions!=null){com.fromscratch.ge.GeHistoryDialog.show(this,actions,buy,icons);}}
@@ -146,6 +154,7 @@ public final class BankPanel extends PluginPanel
 		if(view!=null&&actions!=null&&!view.isBusy()&&!view.isError()&&view.getRun()!=null&&view.getRun().isAnchored()){BankExpenseDialog.show(this,view,actions);}
 	}
 	public void playtime(PlaytimeTracker.View time) { playtime=time;refreshDuration(); }
+	void negativeColor(Color color){outstanding.color(color);if(view!=null){outstanding.render(view,actions);}}
 	private void refreshDuration()
 	{
 		if(view==null||view.getRun()==null||!view.getRun().isActive()) { return; }
@@ -160,7 +169,7 @@ public final class BankPanel extends PluginPanel
 		if (excess) { text.append("Bank missing copies first, or approve the listed reductions."); }
 		if (BankDialogs.confirm(this, excess ? "Approve listed reductions and anchor?" : "Confirm bank anchor?", text.toString(), "Confirm Anchor", false)) { actions.anchor(captured.getRun().getRevision(), captured.getObservation().getBank(), excess); }
 	}
-	private static long count(BankRun run, boolean manual) { return run.getRecent().stream().filter(a -> manual ? a.getKind() == BankAudit.Kind.CORRECTION || a.getKind() == BankAudit.Kind.ANCHOR : a.getKind() == BankAudit.Kind.AUTOMATIC).mapToLong(a -> a.getBalanceChanges().size()).sum(); }
+	private static long count(BankRun run, boolean manual) { return run.getRecent().stream().filter(a -> manual ? a.getKind() == BankAudit.Kind.CORRECTION || a.getKind() == BankAudit.Kind.ANCHOR || a.getKind() == BankAudit.Kind.STORAGE_REVIEW : a.getKind() == BankAudit.Kind.AUTOMATIC).mapToLong(a -> a.getKind()==BankAudit.Kind.STORAGE_REVIEW?1:a.getBalanceChanges().size()).sum(); }
 	private static JPanel tileRow(int rows,int height)
 	{
 		JPanel panel=new JPanel(new GridLayout(rows,2,6,6))

@@ -99,7 +99,7 @@ public final class ProgressBackup
 			}
 			if(manifest==null){throw new SaveException("Backup manifest is missing.");}
 			BankRunCodec.keys(manifest,"character","run","revision","schema","exportedAt","files");
-			if(!character.equals(BankRunCodec.str(manifest,"character"))||BankRunCodec.number(manifest.get("schema"))!=BankRunCodec.FORMAT){throw new SaveException("Backup belongs to another character or uses an incompatible schema.");}
+			long schema=BankRunCodec.number(manifest.get("schema"));if(!character.equals(BankRunCodec.str(manifest,"character"))||schema<9||schema>BankRunCodec.FORMAT){throw new SaveException("Backup belongs to another character or uses an incompatible schema.");}
 			JsonObject declared=manifest.getAsJsonObject("files");if(declared.size()!=hashes.size()||!hashes.containsKey("current.json")){throw new SaveException("Backup is incomplete.");}
 			for(Map.Entry<String,String> entry:hashes.entrySet()){if(!declared.has(entry.getKey())||!entry.getValue().equals(declared.get(entry.getKey()).getAsString())){throw new SaveException("Backup checksum failed.");}}
 			BankRun run=repository.load(staging,character).orElseThrow(()->new SaveException("Backup has no run."));

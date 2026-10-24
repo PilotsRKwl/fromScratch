@@ -48,6 +48,7 @@ public class BankOverlayStateTest
 		FromScratchConfig config = new FromScratchConfig() { };
 		assertTrue(config.bankVirtualQuantities()); assertTrue(config.lockedBankItems());
 		assertEquals(new Color(0x1DFF00), config.virtualQuantityColor());
+		assertEquals(new Color(0xFF4040),config.negativeVirtualQuantityColor());BankOverlayState state=new BankOverlayState();state.configure(config);assertEquals(config.negativeVirtualQuantityColor(),state.getSettings().quantityColor(-1));assertEquals(config.virtualQuantityColor(),state.getSettings().quantityColor(0));
 	}
 	@Test public void configurationChangesReplaceSettingsWithoutReloadingOwnership()
 	{

@@ -17,6 +17,13 @@ import static org.junit.Assert.*;
 /** Real Java2D painting against synthetic pixels; no game client, item sprite or account. */
 public class BankItemPainterTest
 {
+	@Test public void fullBankNegativeTextUsesConfiguredRedWhilePhysicalCounterStaysGray()
+	{
+		for(Color negative:new Color[]{new Color(0xFF4040),Color.MAGENTA})
+		{
+			BufferedImage image=new BufferedImage(50,50,BufferedImage.TYPE_INT_ARGB);Graphics2D g=image.createGraphics();try{BankOverlayState.Settings settings=new BankOverlayState.Settings(true,true,Color.GREEN,new Color(0x333333),50,negative);BankItemPainter.paint(g,new Rectangle(4,4,40,36),-3,"-3",settings);BankItemPainter.paintPhysical(g,new Rectangle(4,4,40,36),"17");boolean signed=false,physical=false;for(int x=0;x<50;x++){for(int y=0;y<50;y++){signed|=image.getRGB(x,y)==negative.getRGB();physical|=image.getRGB(x,y)==BankItemPainter.PHYSICAL_COLOR.getRGB();}}assertTrue(signed);assertTrue(physical);assertEquals(Color.GREEN,settings.quantityColor(0));assertEquals(Color.GREEN,settings.quantityColor(3));}finally{g.dispose();}
+		}
+	}
 	private BufferedImage image;
 	private Graphics2D graphics;
 	private final Rectangle item = new Rectangle(20, 20, 36, 32);
@@ -27,6 +34,126 @@ public class BankItemPainterTest
 		graphics.setColor(Color.WHITE); graphics.fillRect(0, 0, 160, 160);
 	}
 	@After public void tearDown() { graphics.dispose(); }
+	@Test public void physicalCounterKeepsTheCompleteGlyphAndShadowInsideTheTopLeftInset()
+	{
+		BufferedImage actual = new BufferedImage(80, 70, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage reference = new BufferedImage(80, 70, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D a = actual.createGraphics(), r = reference.createGraphics();
+		try
+		{
+			BankItemPainter.paintPhysical(a, item, "17");
+			// Unclipped reference glyphs: the inset is measured from the font ascent,
+			// not the old nine-pixel baseline that cut off the tops of native digits.
+			r.setFont(FontManager.getRunescapeSmallFont());
+			int baseline = item.y + 2 + r.getFontMetrics().getAscent();
+			r.setColor(Color.BLACK); r.drawString("17", item.x + 3, baseline + 1);
+			r.setColor(BankItemPainter.PHYSICAL_COLOR); r.drawString("17", item.x + 2, baseline);
+			assertArrayEquals(reference.getRGB(0, 0, 80, 70, null, 0, 80), actual.getRGB(0, 0, 80, 70, null, 0, 80));
+		}
+		finally { a.dispose(); r.dispose(); }
+	}
+	@Test public void physicalNativeStackLabelsAndShadowsFitWithoutLosingTheirRightEdge()
+	{
+		for (String label : new String[]{"0", "110", "9999", "99999", "100K", "9999K", "10M", "2147M"})
+		{
+			BufferedImage actual = new BufferedImage(80, 70, BufferedImage.TYPE_INT_ARGB);
+			BufferedImage reference = new BufferedImage(80, 70, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D a = actual.createGraphics(), r = reference.createGraphics();
+			try
+			{
+				BankItemPainter.paintPhysical(a, item, label);
+				r.setFont(FontManager.getRunescapeSmallFont());
+				int ascent = r.getFontMetrics().getAscent(), width = r.getFontMetrics().stringWidth(label);
+				r.translate(item.x + 2, item.y + 2 + ascent);
+				r.scale(Math.min(1d, 32d / (width + 1d)), 1d);
+				r.setColor(Color.BLACK); r.drawString(label, 1, 1);
+				r.setColor(BankItemPainter.PHYSICAL_COLOR); r.drawString(label, 0, 0);
+				// The unclipped reference includes the final digit/suffix and its shadow.
+				assertArrayEquals(label, reference.getRGB(0, 0, 80, 70, null, 0, 80), actual.getRGB(0, 0, 80, 70, null, 0, 80));
+				assertPhysicalInkInside(actual, new Rectangle(item.x + 2, item.y + 2, 32, 28));
+			}
+			finally { a.dispose(); r.dispose(); }
+		}
+	}
+	@Test public void physicalInsetSurvivesInterfaceScalingAndMovedTabBounds()
+	{
+		for (double scale : new double[]{1d, 1.25d, 1.5d, 2d})
+		{
+			BufferedImage scaled = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = scaled.createGraphics();
+			try
+			{
+				g.scale(scale, scale);
+				Rectangle moved = new Rectangle(65, 45, 36, 32);
+				BankItemPainter.paintPhysical(g, moved, "99999");
+				int left = (int) Math.floor((moved.x + 2) * scale), top = (int) Math.floor((moved.y + 2) * scale);
+				int right = (int) Math.ceil((moved.x + moved.width - 2) * scale), bottom = (int) Math.ceil((moved.y + moved.height - 2) * scale);
+				assertPhysicalInkInside(scaled, new Rectangle(left, top, right - left, bottom - top));
+			}
+			finally { g.dispose(); }
+		}
+	}
+	@Test public void scrollingClipsPhysicalGlyphsAtBothViewportEdgesWithoutReanchoringThem()
+	{
+		BufferedImage full = new BufferedImage(80, 70, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D f = full.createGraphics();
+		try { BankItemPainter.paintPhysical(f, item, "99999"); } finally { f.dispose(); }
+		for (Rectangle viewport : new Rectangle[]{new Rectangle(20, 27, 36, 25), new Rectangle(20, 20, 36, 8)})
+		{
+			BufferedImage clipped = new BufferedImage(80, 70, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = clipped.createGraphics();
+			try
+			{
+				g.setClip(viewport); BankItemPainter.paintPhysical(g, item, "99999");
+				assertEquals(viewport, g.getClipBounds());
+				for (int y = 0; y < 70; y++) { for (int x = 0; x < 80; x++) { assertEquals(viewport.contains(x, y) ? full.getRGB(x, y) : 0, clipped.getRGB(x, y)); } }
+			}
+			finally { g.dispose(); }
+		}
+	}
+	@Test public void physicalInsetDoesNotMoveVirtualTextOrChangeLockedShading()
+	{
+		for (long balance : new long[]{-3, 0, 7})
+		{
+			BankItemPainter.paint(graphics, item, balance, Long.toString(balance), new BankOverlayState.Settings(true, true, Color.GREEN));
+			int[] before = image.getRGB(0, 0, 160, 160, null, 0, 160);
+			BankItemPainter.paintPhysical(graphics, item, "99999");
+			int gray = 0;
+			for (int y = 0; y < 160; y++)
+			{
+				for (int x = 0; x < 160; x++)
+				{
+					if (x < item.x + 2 || x >= item.x + item.width - 2 || y < item.y + 2 || y >= item.y + 15) { assertEquals(before[y * 160 + x], image.getRGB(x, y)); }
+					if (image.getRGB(x, y) == BankItemPainter.PHYSICAL_COLOR.getRGB()) { gray++; }
+				}
+			}
+			assertTrue(gray > 0);
+		}
+	}
+	@Test public void physicalPaintingRestoresTheCallersFontPaintClipAndTransform()
+	{
+		Font originalFont = new Font(Font.SANS_SERIF, Font.BOLD, 18);
+		graphics.setFont(originalFont); graphics.setPaint(Color.BLUE);
+		Rectangle viewport = new Rectangle(10, 15, 80, 70); graphics.setClip(viewport);
+		java.awt.geom.AffineTransform transform = graphics.getTransform();
+		BankItemPainter.paintPhysical(graphics, item, "99999");
+		assertEquals(originalFont, graphics.getFont()); assertEquals(Color.BLUE, graphics.getPaint());
+		assertEquals(viewport, graphics.getClipBounds()); assertEquals(transform, graphics.getTransform());
+	}
+	private static void assertPhysicalInkInside(BufferedImage image, Rectangle allowed)
+	{
+		int ink = 0, gray = 0;
+		for (int y = 0; y < image.getHeight(); y++)
+		{
+			for (int x = 0; x < image.getWidth(); x++)
+			{
+				if ((image.getRGB(x, y) >>> 24) == 0) { continue; }
+				assertTrue("Physical glyph/shadow outside inset at " + x + "," + y, allowed.contains(x, y)); ink++;
+				if (image.getRGB(x, y) == BankItemPainter.PHYSICAL_COLOR.getRGB()) { gray++; }
+			}
+		}
+		assertTrue(ink > 0); assertTrue(gray > 0);
+	}
 	private void paint(long quantity, boolean numbers, boolean dim, Color color)
 	{
 		BankItemPainter.paint(graphics, item, quantity, VirtualQuantityFormatter.format(quantity), new BankOverlayState.Settings(numbers, dim, color));

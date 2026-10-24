@@ -16,9 +16,9 @@ public final class BankOverlayRegistration
 	private volatile boolean registered;
 
 	@Inject
-	public BankOverlayRegistration(OverlayManager manager, VirtualBankOverlay overlay, BankOverlayState state, ClientThread clientThread)
+	public BankOverlayRegistration(OverlayManager manager, VirtualBankOverlay overlay, PotionStorageOverlay potions, BankOverlayState state, ClientThread clientThread)
 	{
-		this(() -> manager.add(overlay), () -> { manager.remove(overlay); clientThread.invoke(overlay::clearCache); }, overlay::preparePhysicalQuantities, state);
+		this(() -> {manager.add(overlay);manager.add(potions);}, () -> { manager.remove(overlay);manager.remove(potions); clientThread.invoke(overlay::clearCache); }, overlay::preparePhysicalQuantities, state);
 	}
 	BankOverlayRegistration(Runnable add, Runnable remove, BankOverlayState state)
 	{ this(add, remove, () -> {}, state); }

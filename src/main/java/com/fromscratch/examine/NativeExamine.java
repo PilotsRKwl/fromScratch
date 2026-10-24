@@ -26,6 +26,7 @@ public final class NativeExamine
 	private final PriceService prices;
 	private final java.util.function.Consumer<String> output;
 	private final Supplier<java.awt.Color> color;
+	private final Supplier<java.awt.Color> negativeColor;
 	private Supplier<BankRun> current = () -> null;
 	private final java.util.Deque<Request> pending = new ArrayDeque<>();
 	@Inject public NativeExamine(Client client, PriceService prices, ChatMessageManager chat,FromScratchConfig config)
@@ -41,10 +42,12 @@ public final class NativeExamine
 			}
 			public int highAlchemy(int id) { return client.getItemDefinition(id).getHaPrice(); }
 			public String name(int id) { return client.getItemDefinition(id).getMembersName(); }
-		},prices,message->chat.queue(QueuedMessage.builder().type(ChatMessageType.GAMEMESSAGE).runeLiteFormattedMessage(message).build()),config::virtualQuantityColor);
+		},prices,message->chat.queue(QueuedMessage.builder().type(ChatMessageType.GAMEMESSAGE).runeLiteFormattedMessage(message).build()),config::virtualQuantityColor,config::negativeVirtualQuantityColor);
 	}
 	NativeExamine(Items items,PriceService prices,java.util.function.Consumer<String> output,Supplier<java.awt.Color> color)
-	{ this.items=items;this.prices=prices;this.output=output;this.color=color; }
+	{ this(items,prices,output,color,()->com.fromscratch.overlay.BankOverlayState.DEFAULT_NEGATIVE_COLOR); }
+	NativeExamine(Items items,PriceService prices,java.util.function.Consumer<String> output,Supplier<java.awt.Color> color,Supplier<java.awt.Color> negativeColor)
+	{ this.items=items;this.prices=prices;this.output=output;this.color=color;this.negativeColor=negativeColor; }
 	public void start(Supplier<BankRun> current) { clear(); this.current=current; }
 	public void stop() { clear(); current=()->null; }
 	public void clear() { pending.clear(); }
@@ -86,7 +89,7 @@ public final class NativeExamine
 			BankRun run=current.get(); if(run==null) { return; }
 			long quantity=BuybackEngine.balances(run).getOrDefault(id,0L);
 			// GAMEMESSAGE prevents recursion. Queueing leaves the already received native line untouched.
-			output.accept(ExamineFormatter.format(run,id,items.name(id),quantity,prices.snapshot(Collections.singleton(id)).get(id),items.highAlchemy(id),color.get()));
+			output.accept(ExamineFormatter.format(run,id,items.name(id),quantity,prices.snapshot(Collections.singleton(id)).get(id),items.highAlchemy(id),color.get(),negativeColor.get()));
 		}
 		catch(RuntimeException ex) { /* Missing definitions are an unsupported context, never a guessed item. */ }
 	}

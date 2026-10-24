@@ -4,6 +4,7 @@ import com.fromscratch.model.ContainerSnapshot;
 import java.time.Instant;
 import java.util.*;
 import com.fromscratch.wealth.*;
+import com.fromscratch.potion.*;
 
 /** Pure checked bank arithmetic and quoted high-water valuation; no acquisition provenance or personal-container inference. */
 public final class BankEngine
@@ -20,25 +21,32 @@ public final class BankEngine
 	public static BankRun observe(BankRun old, ContainerSnapshot bank, UUID session, Instant at, BankTimings.Trace trace)
 	{ return observe(old,bank,session,at,trace,Collections.emptyMap()); }
 	public static BankRun observe(BankRun old, ContainerSnapshot bank, UUID session, Instant at, BankTimings.Trace trace, Map<Integer,PriceQuote> prices)
+	{return observe(old,bank,session,at,trace,prices,null);}
+	public static BankRun observe(BankRun old, ContainerSnapshot bank, UUID session, Instant at, BankTimings.Trace trace, Map<Integer,PriceQuote> prices,PotionObservation storage)
 	{
 		requireAnchored(old);
 		Map<Integer, Long> delta = differences(old.getPhysical(), bank.getQuantities());
 		BankTimings.mark(trace, BankTimings.Phase.DIFFERENCE);
 		boolean first = old.getHostSummary() == null || !old.getHostSummary().getSession().equals(session);
-		if (delta.isEmpty() && !first) { return old; }
 		Map<Integer, Long> balances = new TreeMap<>(old.getBalances());
 		Map<Integer,Long> held=com.fromscratch.pouch.PouchEngine.transfers(old.getBuybacks().getPouch(),delta);
 		// P always advances by the full observed delta. Only B/financial attribution
 		// exclude the explicit one-time legacy-source reservation, in this same commit.
-		Map<Integer,Long> progress=new TreeMap<>(delta);held.forEach((id,n)->progress.put(id,Math.subtractExact(progress.get(id),n)));progress.values().removeIf(n->n==0);
-		progress.forEach((id, n) -> balances.put(id, Math.addExact(old.balance(id), n)));
-		BankAudit change = audit(session, at, delta.isEmpty() ? BankAudit.Kind.SESSION_CHECK : BankAudit.Kind.AUTOMATIC, delta, progress,
+		Map<Integer,Long> progress=new TreeMap<>(delta);for(Map.Entry<Integer,Long> e:held.entrySet()){progress.put(e.getKey(),Math.subtractExact(progress.get(e.getKey()),e.getValue()));}progress.values().removeIf(n->n==0);
+		for(Map.Entry<Integer,Long> e:progress.entrySet()){balances.put(e.getKey(),Math.addExact(old.balance(e.getKey()),e.getValue()));}
+		PotionUpdate input=storage!=null?new PotionUpdate(storage,null):null;
+		PotionEngine.Result potions=PotionEngine.apply(old,bank.getQuantities(),balances,input,session);balances=new TreeMap<>(potions.getBank());
+		if(delta.isEmpty()&&!first&&old.getPotions().equals(potions.getState())){return old;}
+		progress=differences(old.getBalances(),balances);
+		BankAudit change = audit(session, at, delta.isEmpty() ? (old.getPotions().equals(potions.getState())?BankAudit.Kind.SESSION_CHECK:BankAudit.Kind.STORAGE) : BankAudit.Kind.AUTOMATIC, delta, progress,
 			first ? "Bank changes detected on return to this PC." : "Bank quantities updated.");
 		if(!delta.isEmpty())
 		{
 			com.fromscratch.ge.GeUpdate attribution=com.fromscratch.ge.GeEngine.bank(old.getExchange(),change.getId(),progress,at).getEvidence();
-			change=new BankAudit(change.getId(),session,at,change.getKind(),delta,progress,change.getReason(),FinancialEngine.recognize(old.getFinancial(),balances,change.getId(),prices,at,attribution.getGainExclusions()),attribution,null,null,held);
+			Map<Integer,Long> exclusions=new TreeMap<>(attribution.getGainExclusions());potions.getExclusions().forEach((id,q)->exclusions.merge(id,q,Math::addExact));
+			change=new BankAudit(change.getId(),session,at,change.getKind(),delta,progress,change.getReason(),FinancialEngine.recognize(old.getFinancial(),balances,change.getId(),prices,at,exclusions),attribution,null,null,held,input==null?null:new PotionUpdate(storage,null,potions.getExclusions()));
 		}
+		else if(input!=null){change=new BankAudit(change.getId(),session,at,change.getKind(),delta,progress,"Potion Storage observation recorded.",Collections.emptyList(),com.fromscratch.ge.GeUpdate.empty(),null,null,Collections.emptyMap(),new PotionUpdate(storage,null,potions.getExclusions()));}
 		BankRun next = next(old, bank.getQuantities(), balances, true, change, first ? change : old.getHostSummary());
 		BankTimings.mark(trace, BankTimings.Phase.PREPARED); return next;
 	}
@@ -91,12 +99,40 @@ public final class BankEngine
 		recent.add(0, change); if (recent.size() > 30) { recent.remove(30); }
 		return new BankRun(old.getCharacter(), old.getRunId(), old.getPreviousRunId(), old.getStartedAt(), change.getId(), Math.incrementExact(old.getSequence()), old.getInitialBank(), physical, balances, anchored,
 			old.getLegacyDocument(), old.getMigrationArchive(), recent, summary(summary),FinancialEngine.advance(old.getFinancial(),balances,change),exchange,
-			(change.getBuyback()==null?com.fromscratch.buyback.BuybackEngine.progress(old.getBuybacks(),balances):com.fromscratch.buyback.BuybackEngine.purchase(old,change.getBuyback())).withPouch(pouch));
+			(change.getBuyback()==null?com.fromscratch.buyback.BuybackEngine.progress(old.getBuybacks(),balances):com.fromscratch.buyback.BuybackEngine.purchase(old,change.getBuyback())).withPouch(pouch),change.getPotion()==null?(change.getKind()==BankAudit.Kind.CORRECTION?old.getPotions().corrected(change.getBalanceChanges().keySet()):old.getPotions()):PotionEngine.apply(old,physical,balances,change.getPotion(),change.getSession()).getState());
 	}
 	private static BankAudit summary(BankAudit audit)
 	{
 		return audit!=null&&audit.getKind()==BankAudit.Kind.AUTOMATIC&&!audit.getValuations().isEmpty()
-			?new BankAudit(audit.getId(),audit.getSession(),audit.getAt(),audit.getKind(),audit.getPhysicalChanges(),audit.getBalanceChanges(),audit.getReason(),Collections.emptyList(),audit.getExchange(),null,null,audit.getPouchTransfers()):audit;
+			?new BankAudit(audit.getId(),audit.getSession(),audit.getAt(),audit.getKind(),audit.getPhysicalChanges(),audit.getBalanceChanges(),audit.getReason(),Collections.emptyList(),audit.getExchange(),null,null,audit.getPouchTransfers(),audit.getPotion()):audit;
+	}
+	public static BankRun start(String character,UUID previous,ContainerSnapshot bank,boolean attested,UUID session,Instant at,PotionObservation storage)
+	{return start(character,previous,bank,attested,session,at,storage,"Verified Potion Storage legacy baseline.");}
+	public static BankRun start(String character,UUID previous,ContainerSnapshot bank,boolean attested,UUID session,Instant at,PotionObservation storage,String proof)
+	{
+		BankRun run=start(character,previous,bank,attested,session,at);PotionState state=PotionState.baseline(storage,session);
+		BankAudit audit=new BankAudit(run.getRevision(),session,at,BankAudit.Kind.START,Collections.emptyMap(),Collections.emptyMap(),"Bank-only run started; initial progress is zero. "+proof);
+		return new BankRun(run.getCharacter(),run.getRunId(),run.getPreviousRunId(),run.getStartedAt(),run.getRevision(),run.getSequence(),run.getInitialBank(),run.getPhysical(),run.getBalances(),true,null,null,Collections.singletonList(audit),null,run.getFinancial(),run.getExchange(),run.getBuybacks(),state);
+	}
+	public static BankRun reviewStorage(BankRun old,PotionObservation seen,Map<Integer,Long> reviewed,UUID session,Instant at)
+	{return reviewStorage(old,seen,reviewed,session,at,"Player reviewed Potion Storage ownership; original bank baseline retained.");}
+	private static BankRun reviewStorage(BankRun old,PotionObservation seen,Map<Integer,Long> reviewed,UUID session,Instant at,String reason)
+	{
+		requireAnchored(old);if(!seen.isVerified()){throw new IllegalArgumentException("Open Potion Storage to review verified quantities.");}
+		reviewed.forEach((id,value)->Math.subtractExact(value,old.getPotions().balance(id)));
+		PotionUpdate input=new PotionUpdate(seen,reviewed);PotionEngine.Result result=PotionEngine.apply(old,old.getPhysical(),old.getBalances(),input,session);
+		BankAudit audit=new BankAudit(UUID.randomUUID(),session,at,BankAudit.Kind.STORAGE_REVIEW,Collections.emptyMap(),Collections.emptyMap(),reason,Collections.emptyList(),com.fromscratch.ge.GeUpdate.empty(),null,null,Collections.emptyMap(),input);
+		return next(old,old.getPhysical(),result.getBank(),true,audit,old.getHostSummary());
+	}
+	public static BankRun correctStorage(BankRun old,int id,long desired,Instant at)
+	{
+		PotionState state=old.getPotions();PotionType type=state.getTypes().get(id);
+		if(type==null||!state.isReviewed()||state.getObservedAt()==null){throw new IllegalArgumentException("Review the verified Potion Storage baseline before individual corrections.");}
+		long delta=Math.subtractExact(desired,state.balance(id));
+		Map<Integer,Long> values=new TreeMap<>(state.getBalances());values.put(id,desired);
+		PotionObservation seen=new PotionObservation(true,state.getTypes(),state.getPhysical(),state.getObservedAt());
+		String reason="Manual Potion Storage correction: "+type.getName()+"; "+state.balance(id)+" -> "+desired+" "+type.unit()+"; adjustment "+delta+". Last verified physical observation and original baseline retained.";
+		return reviewStorage(old,seen,values,state.getSession(),at,reason);
 	}
 	/** GE changes are observational audit operations; P/B and the immutable initial bank stay unchanged. */
 	public static BankRun exchange(BankRun old,com.fromscratch.ge.GeObservation observation)

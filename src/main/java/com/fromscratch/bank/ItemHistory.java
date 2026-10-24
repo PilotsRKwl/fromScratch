@@ -21,6 +21,7 @@ public final class ItemHistory
 	public static List<Row> rows(BankAudit audit,int id)
 	{
 		List<Row> rows=new ArrayList<>();
+		if(audit.getPotion()!=null){for(com.fromscratch.potion.PotionType type:audit.getPotion().getObservation().getTypes().values()){if(type.getItems().containsKey(id)){boolean review=audit.getPotion().getReview()!=null;long units=review?audit.getPotion().getReview().getOrDefault(type.getId(),0L):audit.getPotion().getObservation().getQuantities().getOrDefault(type.getId(),0L);rows.add(new Row(audit.getAt(),review?"Potion Storage manual review/correction":"Potion Storage observation",units,(review?"Recorded virtual ":"Verified physical ")+type.unit()+"; absolute amount, not additional income. "+(review?audit.getReason():"")));}}}
 		Long physical=audit.getPhysicalChanges().get(id),balance=audit.getBalanceChanges().get(id);
 		if(physical!=null&&physical!=0)
 		{

@@ -24,6 +24,19 @@ public class BankPerformanceTest
 	{
 		Item[] items = new Item[1200]; for (int i = 0; i < items.length; i++) { items[i] = new Item(100000 + i, i == 0 ? first : 1); } return BankItems.aggregate(items, id -> false);
 	}
+	@Test public void resetLargeHistoryReportsDurationAndKeepsRecovery() throws Exception
+	{
+		for(int entries:new int[]{8,240,1200}){resetHistory(entries);}
+	}
+	private void resetHistory(int entries) throws Exception
+	{
+		Filepath benchmark=root().joinSegment("reset-"+entries);
+		BankRepository repository=new BankRepository(codec(),SnapshotFixtures.codec());UUID session=UUID.randomUUID();BankRun run=BankEngine.start(SnapshotFixtures.CHARACTER_A,null,bank(1),true,session,SnapshotFixtures.TIME);repository.save(benchmark,null,run);
+		for(int i=0;i<entries;i++){BankRun next=BankEngine.observe(run,bank(i+2),session,SnapshotFixtures.TIME.plusSeconds(i));repository.save(benchmark,run,next);run=next;}
+		Filepath d=benchmark.join("characters",run.getCharacter());long files,bytes=0;try(java.util.stream.Stream<Filepath> walk=d.walk(1)){java.util.List<Filepath> all=walk.filter(f->f.getFileName().endsWith(".json")).collect(java.util.stream.Collectors.toList());files=all.size();for(Filepath f:all){bytes+=f.size();}}
+		long started=System.nanoTime();BankRun candidate=BankEngine.reset(run,UUID.randomUUID(),SnapshotFixtures.TIME);long prepared=System.nanoTime();BankRun saved=repository.save(benchmark,run,candidate);long finished=System.nanoTime();assertFalse(saved.isActive());assertTrue(saved.getBalances().isEmpty());assertTrue(saved.getPotions().getTypes().isEmpty());assertEquals(saved,repository.load(benchmark,run.getCharacter()).get());
+		System.out.printf(Locale.ROOT,"RESET_BENCH entries=%d bank_types=1200 json_files=%d bytes=%d prepare_ms=%.3f durable_ms=%.3f total_ms=%.3f%n",entries,files,bytes,(prepared-started)/1e6,(finished-prepared)/1e6,(finished-started)/1e6);
+	}
 	@Test public void fullBankAggregationAndLargeHistoryOrdinaryWritesAreBounded() throws Exception
 	{
 		long begin = System.nanoTime(); for (int i = 0; i < 100; i++) { assertEquals(1200, bank(1).getQuantities().size()); }
@@ -50,7 +63,7 @@ public class BankPerformanceTest
 		List<BankView> views = new ArrayList<>(); ExecutorService worker = Executors.newSingleThreadExecutor(r -> new Thread(r,"bank-test-storage")); BankController controller = new BankController(source,repository,callbacks::add,views::add);
 		try
 		{
-			controller.start(() -> {assertNotEquals(clientId,Thread.currentThread().getId()); return root();},worker); pump(worker,callbacks,5); fixture.observer.tick(); controller.tick(); controller.startRun(true); pump(worker,callbacks,5); fixture.observer.tick(); controller.tick(); pump(worker,callbacks,5);
+			controller.start(() -> {assertNotEquals(clientId,Thread.currentThread().getId()); return root();},worker); pump(worker,callbacks,5); fixture.observer.tick(); controller.tick(); controller.startRun(true,null,true); pump(worker,callbacks,5); fixture.observer.tick(); controller.tick(); pump(worker,callbacks,5);
 			long sequence = views.get(views.size()-1).getRun().getSequence();
 			for(int i=0;i<100;i++){fixture.items[0]=new Item(100000,i<50?i+2:100-i);fixture.observer.changed();fixture.observer.tick();controller.tick();}
 			pump(worker,callbacks,110); BankRun saved=repository.load(root(),SnapshotFixtures.CHARACTER_A).get(); assertEquals(0,saved.balance(100000)); assertEquals(sequence+100,saved.getSequence()); assertTrue(diskThreads.stream().allMatch("bank-test-storage"::equals));

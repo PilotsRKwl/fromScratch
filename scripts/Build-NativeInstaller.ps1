@@ -1,5 +1,9 @@
 [CmdletBinding()]
-param([string]$InnoCompiler = '', [switch]$ImageOnly)
+param([string]$InnoCompiler = '', [switch]$ImageOnly,
+    [ValidatePattern('^\d+\.\d+\.\d+-beta\.\d+$')][string]$PackageVersion = '',
+    [ValidatePattern('^v\d+\.\d+\.\d+-[a-z0-9-]+$')][string]$ReleaseVersion = '',
+    [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')][string]$WindowsVersion = '',
+    [switch]$LocalTestCandidate,[switch]$Offline)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $project = Split-Path $PSScriptRoot
@@ -16,7 +20,14 @@ function Invoke-Bounded([string]$File,[string]$Arguments) {
 Push-Location $project
 try {
     $pin=Get-Content -LiteralPath beta/windows-native/toolchain.json -Raw|ConvertFrom-Json
+    if($PackageVersion -or $ReleaseVersion -or $WindowsVersion){
+        if(!$PackageVersion -or !$ReleaseVersion -or !$WindowsVersion){throw 'Specify package, release and Windows versions together.'}
+        $pin.packageVersion=$PackageVersion;$pin.releaseVersion=$ReleaseVersion;$pin.windowsVersion=$WindowsVersion
+    }
     if($pin.windowsVersion -notmatch '^\d+\.\d+\.\d+\.\d+$' -or $pin.releaseVersion -notmatch '^v\d+\.\d+\.\d+-[a-z0-9-]+$'){throw 'Invalid pinned Windows/release version.'}
+    # Preserve every earlier local candidate while keeping the pinned release/package versions.
+    $output=Join-Path $project ('build/distributions/'+$pin.releaseVersion+$(if($LocalTestCandidate){'/local-test-'+$pin.packageVersion+'-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff')}else{''}))
+    if(Test-Path -LiteralPath (Join-Path $output 'FromScratch-Beta-Setup.exe')){throw 'A candidate already exists for this version. Preserve it and choose a new unique beta version.'}
     $build=Join-Path $project 'build/native-installer';$downloads=Join-Path $build 'downloads'
     [void][IO.Directory]::CreateDirectory($downloads)
     $archive=Join-Path $downloads $pin.runtime.name
@@ -27,7 +38,7 @@ try {
     }
     if((Digest $archive) -ne $pin.runtime.sha256){throw 'Temurin runtime checksum differs. It will not be executed or packaged.'}
     # Reuse the existing beta build, bootstrap and unmodified upstream libraries. No old ZIP is replaced.
-    & (Join-Path $PSScriptRoot 'Build-Beta.ps1') -PackageVersion $pin.packageVersion -ReleaseVersion $pin.releaseVersion -StageOnly
+    & (Join-Path $PSScriptRoot 'Build-Beta.ps1') -PackageVersion $pin.packageVersion -ReleaseVersion $pin.releaseVersion -StageOnly -LocalTestCandidate:$LocalTestCandidate -Offline:$Offline
     if(!$?){throw 'Existing beta staging failed.'}
     $stage=Join-Path $project 'build/beta/stage'
     . (Join-Path $stage 'Common.ps1')
@@ -61,7 +72,7 @@ try {
     if(!(Test-Path -LiteralPath (Join-Path $runtime 'legal/java.base/LICENSE'))){throw 'Temurin legal notices are missing.'}
     if(@(Get-ChildItem -LiteralPath $payload -Force -Recurse|Where-Object {$_.Attributes -band [IO.FileAttributes]::ReparsePoint}).Count){throw 'Linked files cannot enter the installer.'}
     $packagingInputs=@(Get-Item -LiteralPath 'scripts/Build-NativeInstaller.ps1','scripts/Build-Beta.ps1','scripts/Prepare-WindowsIcon.ps1','gradle/beta.gradle';Get-ChildItem -LiteralPath beta/windows-native -File)|Sort-Object FullName|ForEach-Object{[ordered]@{path=$_.FullName.Substring($project.Length+1).Replace('\','/');sha256=(Digest $_.FullName)}}
-    Write-Json (Join-Path $payload 'native-build.json') ([ordered]@{format=1;releaseVersion=$pin.releaseVersion;packageVersion=$pin.packageVersion;sourceRevision=$beta.sourceRevision;gameplayTree=$beta.gameplayTree;packagingWorktreeDirty=((& git status --porcelain|Out-String).Trim().Length -gt 0);runtime=$pin.runtime;compilerVersion=([Diagnostics.FileVersionInfo]::GetVersionInfo($compiler).FileVersion);compilerSha256=(Digest $compiler);launcherSource='beta/windows-native/Launcher.cs';packagingInputs=@($packagingInputs);status='unpublished-manual-acceptance-pending'})
+    Write-Json (Join-Path $payload 'native-build.json') ([ordered]@{format=1;releaseVersion=$pin.releaseVersion;packageVersion=$pin.packageVersion;sourceRevision=$beta.sourceRevision;gameplayTree=$beta.gameplayTree;packagingWorktreeDirty=((& git status --porcelain|Out-String).Trim().Length -gt 0);localTestCandidate=[bool]$LocalTestCandidate;runtime=$pin.runtime;compilerVersion=([Diagnostics.FileVersionInfo]::GetVersionInfo($compiler).FileVersion);compilerSha256=(Digest $compiler);launcherSource='beta/windows-native/Launcher.cs';packagingInputs=@($packagingInputs);status=$(if($LocalTestCandidate){'unpublished-local-test-candidate-not-for-distribution'}else{'unpublished-manual-acceptance-pending'})})
     $files=@(Get-ChildItem -LiteralPath $payload -File -Recurse|Sort-Object FullName|ForEach-Object{[ordered]@{path=$_.FullName.Substring($payload.Length+1).Replace('\','/');bytes=$_.Length;sha256=(Digest $_.FullName)}})
     Write-Json (Join-Path $payload 'payload.json') ([ordered]@{format=1;releaseVersion=$pin.releaseVersion;packageVersion=$pin.packageVersion;sourceRevision=$beta.sourceRevision;mainClass=$beta.mainClass;files=$files})
     $manifestHash=Digest (Join-Path $payload 'payload.json')
@@ -69,10 +80,10 @@ try {
     $destination=Join-Path $image $relative;[void][IO.Directory]::CreateDirectory((Split-Path $destination))
     Move-Item -LiteralPath $payload -Destination $destination
     Write-Json (Join-Path $image 'release.json') ([ordered]@{format=1;releaseVersion=$pin.releaseVersion;packageVersion=$pin.packageVersion;sourceRevision=$beta.sourceRevision;payload=$relative;manifestSha256=$manifestHash})
-    $output=Join-Path $project ('build/distributions/'+$pin.releaseVersion);[void][IO.Directory]::CreateDirectory($output)
+    [void][IO.Directory]::CreateDirectory($output)
     $imageManifest=@(Get-ChildItem -LiteralPath $image -File -Recurse|Sort-Object FullName|ForEach-Object{[ordered]@{path=$_.FullName.Substring($image.Length+1).Replace('\','/');bytes=$_.Length;sha256=(Digest $_.FullName)}})
     Write-Json (Join-Path $output 'installer-files.json') $imageManifest
-    $result=[ordered]@{releaseVersion=$pin.releaseVersion;sourceRevision=$beta.sourceRevision;image=$image;payload=$relative;output=$output;runtimeVersion=$pin.runtime.version;runtimeSha256=$pin.runtime.sha256;files=$imageManifest.Count;installer=$null}
+    $result=[ordered]@{releaseVersion=$pin.releaseVersion;packageVersion=$pin.packageVersion;sourceRevision=$beta.sourceRevision;localTestCandidate=[bool]$LocalTestCandidate;sourceWorktreeDirty=((& git status --porcelain|Out-String).Trim().Length -gt 0);image=$image;payload=$relative;output=$output;runtimeVersion=$pin.runtime.version;runtimeSha256=$pin.runtime.sha256;files=$imageManifest.Count;installer=$null}
     Write-Json (Join-Path $build 'latest-build.json') $result
     if($ImageOnly){Write-Host ('Native image prepared: '+$image);return}
     if(!$InnoCompiler){$candidates=@((Join-Path $build 'tools/inno/ISCC.exe'),(Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'),(Join-Path $env:LOCALAPPDATA 'Programs/Inno Setup 6/ISCC.exe'));$InnoCompiler=$candidates|Where-Object{Test-Path -LiteralPath $_}|Select-Object -First 1}

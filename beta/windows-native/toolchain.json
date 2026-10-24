@@ -1,8 +1,8 @@
 {
   "format": 1,
-  "releaseVersion": "v0.10.6-friends-installer",
-  "packageVersion": "0.10.6-beta.1",
-  "windowsVersion": "0.10.6.0",
+  "releaseVersion": "v0.10.7-potion-storage-overdraft",
+  "packageVersion": "0.10.7-beta.1",
+  "windowsVersion": "0.10.7.0",
   "runtime": {
     "version": "11.0.32.1+1",
     "name": "OpenJDK11U-jre_x64_windows_hotspot_11.0.32.1_1.zip",

@@ -6,10 +6,15 @@ import java.util.UUID;
 public interface BankActions
 {
 	void startRun(boolean attested);
+	default void setupAttested(UUID attempt,boolean value) { }
+	default void setupStorageAnswer(UUID attempt,Boolean unlocked) { }
+	default void startRun(boolean attested,com.fromscratch.potion.PotionCapture captured,boolean notUnlocked){startRun(attested);}
 	void anchor(UUID revision, com.fromscratch.model.ContainerSnapshot reviewedBank, boolean approveReductions);
 	void correct(UUID revision, int itemId, long desired);
 	void reset(UUID revision);
 	void retry();
+	default void reviewStorage(UUID revision,java.util.Map<Integer,Long> quantities){throw new UnsupportedOperationException("Storage review unavailable");}
+	default void correctStorage(UUID revision,int type,long desired){throw new UnsupportedOperationException("Storage correction unavailable");}
 	default void exportProgress(net.runelite.client.util.Filepath file,java.util.function.Consumer<String> result){result.accept("Export is unavailable.");}
 	default void previewImport(net.runelite.client.util.Filepath file,java.util.function.Consumer<com.fromscratch.persistence.ProgressBackup.Candidate> result,java.util.function.Consumer<String> failure){failure.accept("Import is unavailable.");}
 	default void importProgress(com.fromscratch.persistence.ProgressBackup.Candidate candidate,java.util.function.Consumer<String> result){result.accept("Import is unavailable.");}

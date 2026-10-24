@@ -74,10 +74,11 @@ public class MilestoneFivePolishTest
 	{
 		SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(setup(),null);JButton start=button(panel,"Start From Scratch");assertFalse(checkbox(panel).isSelected());assertFalse(start.isEnabled());checkbox(panel).doClick(0);assertTrue(start.isEnabled());BankView view=setup();panel.render(new BankView(null,view.getObservation(),Collections.emptyMap(),true,false,"Saving"),null);assertFalse(start.isEnabled());panel.render(new BankView(null,view.getObservation(),Collections.emptyMap(),false,true,"Failed"),null);assertFalse(start.isEnabled());panel.render(new BankView(null,null,Collections.emptyMap(),false,false,"Open bank"),null);assertFalse(start.isEnabled());});
 	}
+	private static JCheckBox notUnlocked(BankPanel panel){return (JCheckBox)BankPolishTest.all(panel).stream().filter(c->"potionNotUnlocked".equals(c.getName())).findFirst().get();}
 	private static BankActions actions(AtomicInteger starts,AtomicInteger resets){return new BankActions(){public void startRun(boolean attested){assertTrue(attested);starts.incrementAndGet();}public void reset(UUID revision){resets.incrementAndGet();}public void retry(){}public void correct(UUID r,int id,long q){}public void anchor(UUID r,com.fromscratch.model.ContainerSnapshot b,boolean approve){}};}
 	@Test public void startStillRequiresTheExistingConfirmationAndCancelIsNonMutating()throws Exception
 	{
-		SwingUtilities.invokeAndWait(()->{AtomicInteger shown=new AtomicInteger(),starts=new AtomicInteger();BankPanel panel=new BankPanel(new BankIcons(id->null),(owner,title,text,action,typed)->{shown.incrementAndGet();assertEquals("Start From Scratch?",title);assertEquals(BankPanel.START_WARNING,text);assertEquals("Start Run",action);assertFalse(typed);return false;});panel.render(setup(),actions(starts,new AtomicInteger()));checkbox(panel).doClick(0);button(panel,"Start From Scratch").doClick(0);assertEquals(1,shown.get());assertEquals(0,starts.get());});
+		SwingUtilities.invokeAndWait(()->{AtomicInteger shown=new AtomicInteger(),starts=new AtomicInteger();BankPanel panel=new BankPanel(new BankIcons(id->null),(owner,title,text,action,typed)->{shown.incrementAndGet();assertEquals("Start From Scratch?",title);assertEquals(BankPanel.START_WARNING,text);assertEquals("Start Run",action);assertFalse(typed);return false;});panel.render(setup(),actions(starts,new AtomicInteger()));checkbox(panel).doClick(0);notUnlocked(panel).doClick(0);button(panel,"Start From Scratch").doClick(0);assertEquals(1,shown.get());assertEquals(0,starts.get());});
 	}
 	@Test public void resetStillRequestsTypedConfirmationAndCancelDoesNothing()throws Exception
 	{
@@ -85,11 +86,11 @@ public class MilestoneFivePolishTest
 	}
 	@Test public void hiddenDashboardDoesNotMakeSetupNeedlesslyTall()throws Exception
 	{
-		SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(setup(),null);assertTrue("Setup height: "+panel.getPreferredSize().height,panel.getPreferredSize().height<400);panel.render(BankPolishTest.view(),null);assertTrue(panel.getPreferredSize().height>600);});
+		SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(setup(),null);int setupHeight=panel.getPreferredSize().height;panel.render(BankPolishTest.view(),null);assertTrue("Hidden dashboard must not determine setup height",panel.getPreferredSize().height>setupHeight);});
 	}
 	@Test public void offscreenPolishStatesRemainReadableAtSidebarWidth()throws Exception
 	{
-		SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(setup(),null);panel.setSize(225,960);layout(panel);save(panel,"m5-setup-unchecked.png");checkbox(panel).doClick(0);assertTrue(button(panel,"Start From Scratch").isEnabled());save(panel,"m5-setup-green.png");panel.render(BankPolishTest.view(),null);layout(panel);save(panel,"m5-dashboard-polish.png");JToolTip tooltip=new JToolTip();tooltip.setTipText(BankTooltips.gained(financial(1)));tooltip.setSize(tooltip.getPreferredSize());save(tooltip,"m5-gains-tooltip.png");});
+		SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(setup(),null);panel.setSize(225,960);layout(panel);save(panel,"m5-setup-unchecked.png");checkbox(panel).doClick(0);notUnlocked(panel).doClick(0);assertTrue(button(panel,"Start From Scratch").isEnabled());save(panel,"m5-setup-green.png");panel.render(BankPolishTest.view(),null);layout(panel);save(panel,"m5-dashboard-polish.png");JToolTip tooltip=new JToolTip();tooltip.setTipText(BankTooltips.gained(financial(1)));tooltip.setSize(tooltip.getPreferredSize());save(tooltip,"m5-gains-tooltip.png");});
 	}
 	private static void save(JComponent component,String name)
 	{

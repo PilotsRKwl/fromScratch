@@ -1,12 +1,14 @@
 # Validation plan
 
-Gameplay is frozen at owner-accepted Milestone 9.2. Current beta and documentation evidence is in [MILESTONE_10.md](../MILESTONE_10.md); older test results and milestone checklists remain in the [archive](../history/TEST_PLAN_PRE_M10.md).
+Milestone 10.7: Potion Storage and Overdraft Protection is an authorized gameplay extension awaiting owner acceptance. Earlier beta/distribution evidence remains in [MILESTONE_10.md](../MILESTONE_10.md); historical results stay in the [archive](../history/TEST_PLAN_PRE_M10.md).
 
 ## Current verified baseline
 
-GitHub Actions [run 39868207087](https://github.com/PilotsRKwl/fromScratch/actions/runs/39868207087) at `2bb5dbd4cb7973a05b9f449be70e5adcc0101d06` passed both `windows-latest` and `ubuntu-latest`. The former stale UI assertions and font-sensitive Ubuntu assertion were corrected before this task. No frozen production source has changed since that passing run.
+GitHub Actions [run 39868207087](https://github.com/PilotsRKwl/fromScratch/actions/runs/39868207087) at `2bb5dbd4cb7973a05b9f449be70e5adcc0101d06` passed both `windows-latest` and `ubuntu-latest` for the earlier baseline. This is historical evidence, not hosted validation of the new 10.7 source.
 
 Documentation, screenshot and isolated preview-tool changes do not justify another full gameplay regression. Compile the preview source and execute its explicit capture task; run documentation/asset checks and the isolated beta integration script. Do not interact with RuneScape through automation or touch actual progression during tests.
+
+For 10.7, `bank/PotionStorageTest` exercises supported observation freshness, dose identity, unfinished units, simultaneous/delayed transfers, unknown stock, positive/zero/negative overdrafts, dose remainders, repayments, failed saves, persistent sidebar entries and actual export/reload. Existing bank, overlay, buyback, GE, wealth and persistence fixtures remain in use. Historical schema-generating fixtures explicitly remove the new field before backdating their envelope, keeping strict production decoding. The initial implementation already had its single complete checkpoint. This UI overhaul uses focused setup/storage/overlay/correction and affected pipeline tests; it retains format 10. Do not repeat the full suite for this pass. [Current results and manual steps](../MILESTONE_10_7.md).
 
 ## Maintainer checks
 

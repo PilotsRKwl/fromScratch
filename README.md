@@ -85,6 +85,8 @@ Review what you bought or sold, how much traded and the reported GP. You can als
 
 ### Keep Your Adventure Going
 
+Potion Storage keeps track of your challenge potions in doses. If you withdraw more items or doses than you have earned, From Scratch warns you and keeps the outstanding amount visible until you return or replace it. See the [feature guide](docs/FEATURES.md#outstanding-legacy-items) for setup and limits.
+
 Your challenge saves on this computer and returns when you reopen RuneLite. Each character keeps its own progress.
 
 Use **Export Progress** to make a private backup. **Import Progress** lets you restore that backup for the same character, including when moving to another computer.

@@ -17,6 +17,7 @@ public final class BankSidebar
 	private BankActions actions;
 	private BankIcons icons;
 	private com.fromscratch.playtime.PlaytimeTracker.View playtime;
+	private java.awt.Color negativeColor=com.fromscratch.overlay.BankOverlayState.DEFAULT_NEGATIVE_COLOR;
 	private final java.util.concurrent.atomic.AtomicReference<BankView> latest = new java.util.concurrent.atomic.AtomicReference<>();
 	private final java.util.concurrent.atomic.AtomicBoolean scheduled = new java.util.concurrent.atomic.AtomicBoolean();
 	private BankView view = new BankView(null, null, java.util.Collections.emptyMap(), false, false, "Log in to load local progress.");
@@ -26,7 +27,7 @@ public final class BankSidebar
 	public void show()
 	{
 		if (navigation != null) { return; }
-		panel = icons == null ? new BankPanel() : new BankPanel(icons); panel.render(view, actions);panel.playtime(playtime);
+		panel = icons == null ? new BankPanel() : new BankPanel(icons);panel.negativeColor(negativeColor); panel.render(view, actions);panel.playtime(playtime);
 		navigation = NavigationButton.builder().tooltip("From Scratch").icon(ImageUtil.loadImageResource(FromScratchPlugin.class, "icon.png")).priority(6).panel(panel).build(); add.accept(navigation);
 	}
 	public void update(BankView view)
@@ -44,5 +45,7 @@ public final class BankSidebar
 	}
 	public void playtime(com.fromscratch.playtime.PlaytimeTracker.View time)
 	{ SwingUtilities.invokeLater(()->{playtime=time;if(panel!=null) { panel.playtime(time); }}); }
+	public void negativeColor(java.awt.Color color)
+	{SwingUtilities.invokeLater(()->{negativeColor=color;if(panel!=null){panel.negativeColor(color);}});}
 	public void hide() { latest.set(null);playtime=null; if (navigation != null) { remove.accept(navigation); navigation = null; panel = null; } view = new BankView(null, null, java.util.Collections.emptyMap(), false, false, "Log in to load local progress."); }
 }

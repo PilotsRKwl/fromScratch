@@ -10,13 +10,13 @@
   #error OutputDir must be specified.
 #endif
 #ifndef PackageVersion
-  #define PackageVersion "0.10.6"
+  #error PackageVersion must be supplied from the pinned release configuration.
 #endif
 #ifndef WindowsVersion
-  #define WindowsVersion "0.10.6.0"
+  #error WindowsVersion must be supplied from the pinned release configuration.
 #endif
 #ifndef ReleaseVersion
-  #define ReleaseVersion "v0.10.6-friends-installer"
+  #error ReleaseVersion must be supplied from the pinned release configuration.
 #endif
 #define Product "From Scratch Beta"
 

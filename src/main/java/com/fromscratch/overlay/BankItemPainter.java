@@ -22,6 +22,7 @@ public final class BankItemPainter
 	// Do not redraw a generated item sprite: it can cover those glyphs or mismatch the
 	// client's shadow/drag appearance. This fallback needs neither sprite copies nor a cache.
 	private static final Font FONT = FontManager.getRunescapeSmallFont();
+	private static final int PHYSICAL_INSET = 2;
 	public static final Color PHYSICAL_COLOR = new Color(0xA0A0A0);
 	private BankItemPainter() { }
 
@@ -34,12 +35,34 @@ public final class BankItemPainter
 	/** Draw after the tint, only when the native counter was suppressed before rendering. No mask. */
 	static void paintPhysical(Graphics2D graphics, Rectangle bounds, String label)
 	{
+		if (bounds.width <= PHYSICAL_INSET * 2 || bounds.height <= PHYSICAL_INSET * 2) { return; }
 		Shape clip = graphics.getClip(); Font font = graphics.getFont(); Paint paint = graphics.getPaint();
 		try
 		{
-			graphics.clip(bounds); graphics.setFont(FONT);
-			graphics.setColor(Color.BLACK); graphics.drawString(label, bounds.x + 1, bounds.y + 10);
-			graphics.setColor(PHYSICAL_COLOR); graphics.drawString(label, bounds.x, bounds.y + 9);
+			graphics.clipRect(bounds.x + PHYSICAL_INSET, bounds.y + PHYSICAL_INSET,
+				bounds.width - PHYSICAL_INSET * 2, bounds.height - PHYSICAL_INSET * 2);
+			graphics.setFont(FONT);
+			FontMetrics metrics = graphics.getFontMetrics();
+			int x = bounds.x + PHYSICAL_INSET, y = bounds.y + PHYSICAL_INSET + metrics.getAscent();
+			// Reserve both insets and the one-pixel shadow. Native five-digit stacks can
+			// otherwise reach the next slot even though their compact formatting is valid.
+			double scale = Math.min(1d, (bounds.width - PHYSICAL_INSET * 2d) / Math.max(1d, metrics.stringWidth(label) + 1d));
+			if (scale < 1d)
+			{
+				Graphics2D fitted = (Graphics2D) graphics.create();
+				try
+				{
+					fitted.translate(x, y); fitted.scale(scale, 1d);
+					fitted.setColor(Color.BLACK); fitted.drawString(label, 1, 1);
+					fitted.setColor(PHYSICAL_COLOR); fitted.drawString(label, 0, 0);
+				}
+				finally { fitted.dispose(); }
+			}
+			else
+			{
+				graphics.setColor(Color.BLACK); graphics.drawString(label, x + 1, y + 1);
+				graphics.setColor(PHYSICAL_COLOR); graphics.drawString(label, x, y);
+			}
 		}
 		finally { graphics.setClip(clip); graphics.setFont(font); graphics.setPaint(paint); }
 	}
@@ -99,7 +122,7 @@ public final class BankItemPainter
 						fitted.translate(bounds.x + bounds.width - 2, textY(bounds, metrics)); fitted.scale(scale, 1d);
 						int left = -metrics.stringWidth(label);
 						fitted.setColor(Color.BLACK); fitted.drawString(label, left + 1, 1);
-						fitted.setColor(settings.getColor()); fitted.drawString(label, left, 0);
+						fitted.setColor(settings.quantityColor(quantity)); fitted.drawString(label, left, 0);
 					}
 					finally { fitted.dispose(); }
 					return;
@@ -108,7 +131,7 @@ public final class BankItemPainter
 				int y = textY(bounds, metrics);
 				graphics.setColor(Color.BLACK);
 				graphics.drawString(label, x + 1, y + 1);
-				graphics.setColor(settings.getColor());
+				graphics.setColor(settings.quantityColor(quantity));
 				graphics.drawString(label, x, y);
 			}
 		}

@@ -23,7 +23,7 @@ public class WealthPipelineTest
 	@Before public void setup()
 	{
 		root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());repository=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());source=new Source();
-		prices=new PriceService(()->{requests.incrementAndGet();return Collections.singletonMap(SHIELD,price.get());},()->SnapshotFixtures.TIME);prices.refresh();overlay.enable();launch();settle();controller.startRun(true);worker.runAll();settle();
+		prices=new PriceService(()->{requests.incrementAndGet();return Collections.singletonMap(SHIELD,price.get());},()->SnapshotFixtures.TIME);prices.refresh();overlay.enable();launch();settle();controller.startRun(true,null,true);worker.runAll();settle();
 	}
 	@After public void stop(){controller.stop();}
 	private void launch(){worker=new Worker();controller=new BankController(source,repository,Runnable::run,v->{views.add(v);overlay.updateBank(v);},prices);controller.start(()->root,worker);worker.runAll();}
@@ -37,7 +37,7 @@ public class WealthPipelineTest
 	@Test public void finalWithdrawalKeepsNegativeMarketValueAcrossPlaceholderAndRestart()throws Exception
 	{
 		// A second synthetic run establishes four legacy copies, without resetting any real save.
-		controller.stop(); source.character=SnapshotFixtures.CHARACTER_B; source.quantity(4); source.observer.reset(); launch(); settle(); controller.startRun(true); worker.runAll(); settle();
+		controller.stop(); source.character=SnapshotFixtures.CHARACTER_B; source.quantity(4); source.observer.reset(); launch(); settle(); controller.startRun(true,null,true); worker.runAll(); settle();
 		source.quantity(1); settle(); assertEquals(Long.valueOf(-300),view().getValuation().getSubtotalGp());
 		source.placeholders.add(net.runelite.api.gameval.ItemID.Placeholder.WOODEN_SHIELD);
 		source.items=new net.runelite.api.Item[]{new net.runelite.api.Item(net.runelite.api.gameval.ItemID.Placeholder.WOODEN_SHIELD,0)};source.observer.changed();settle();
@@ -60,7 +60,7 @@ public class WealthPipelineTest
 	@Test public void characterSwitchDoesNotMixFinancialState()throws Exception{change(2);source.character=SnapshotFixtures.CHARACTER_B;source.observer.reset();controller.tick();worker.runAll();settle();assertNull(view().getRun());assertNull(overlay.getProjection());assertEquals(100,repository.load(root,SnapshotFixtures.CHARACTER_A).get().getFinancial().getGainedGp());}
 	@Test public void dashboardShowsCommittedWealthAndManualCorrectionPurpose()throws Exception
 	{
-		change(3);BankView committed=view();SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(committed,controller);JPanel grid=(JPanel)BankPolishTest.all(panel).stream().filter(c->"statisticTiles".equals(c.getName())).findFirst().get();assertEquals(2,((java.awt.GridLayout)grid.getLayout()).getColumns());assertEquals(6,grid.getComponentCount());java.util.List<String> labels=new ArrayList<>();for(java.awt.Component c:BankPolishTest.all(panel)){if(c instanceof JLabel){labels.add(((JLabel)c).getText());}}String text=String.join(" ",labels);assertTrue(text.contains("200 GP"));assertTrue(text.contains("Bank GP"));assertTrue(text.contains("0 GP"));assertFalse(text.contains("Coming soon"));assertTrue(text.contains("Manual<br>Bank<br>Corrections"));assertTrue(text.contains("Fix an incorrect"));assertEquals("Use this only if From Scratch recorded an incorrect bank quantity.",BankCorrectionDialog.PURPOSE);});
+		change(3);BankView committed=view();SwingUtilities.invokeAndWait(()->{BankPanel panel=new BankPanel();panel.render(committed,controller);JPanel grid=(JPanel)BankPolishTest.all(panel).stream().filter(c->"statisticTiles".equals(c.getName())).findFirst().get();assertEquals(2,((java.awt.GridLayout)grid.getLayout()).getColumns());assertEquals(6,grid.getComponentCount());java.util.List<String> labels=new ArrayList<>();for(java.awt.Component c:BankPolishTest.all(panel)){if(c instanceof JLabel){labels.add(((JLabel)c).getText());}}String text=String.join(" ",labels);assertTrue(text.contains("200 GP"));assertTrue(text.contains("Bank GP"));assertTrue(text.contains("0 GP"));assertFalse(text.contains("Coming soon"));assertTrue(text.contains("Manual<br>Bank<br>Corrections"));assertTrue(text.contains("Fix an incorrect"));assertEquals("Correct an incorrectly recorded virtual balance.",BankCorrectionDialog.PURPOSE);});
 	}
 	@Test public void pricedSubtotalFitsNarrowTilesAndExplainsUnknowns()throws Exception
 	{

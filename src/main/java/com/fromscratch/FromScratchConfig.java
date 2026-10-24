@@ -37,13 +37,17 @@ public interface FromScratchConfig extends Config
 		description = "Color of virtual bank quantities and From Scratch Examine numbers", position = 3)
 	default Color virtualQuantityColor() { return new Color(0x1DFF00); }
 
+	@ConfigItem(keyName = "negativeVirtualQuantityColor", name = "Negative Virtual Quantity Color",
+		description = "Color of negative virtual quantities and outstanding amounts", position = 4)
+	default Color negativeVirtualQuantityColor() { return new Color(0xFF4040); }
+
 	@ConfigItem(keyName = "lockedItemBackgroundColor", name = "Locked Item Background Color",
-		description = "Neutral tint behind locked bank counters; independent of quantity text", position = 4)
+		description = "Neutral tint behind locked bank counters; independent of quantity text", position = 5)
 	default Color lockedItemBackgroundColor() { return new Color(0x333333); }
 
 	@Range(min = 0, max = 100)
 	@ConfigItem(keyName = "lockedItemBackgroundOpacity", name = "Locked Item Background Opacity",
-		description = "Locked bank tint opacity as a percentage", position = 5)
+		description = "Locked bank tint opacity as a percentage", position = 6)
 	default int lockedItemBackgroundOpacity() { return 50; }
 
 	@ConfigItem(keyName = "virtualBankView", name = "Enable Virtual Bank View",

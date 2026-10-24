@@ -37,6 +37,7 @@ def gitText = { List<String> arguments ->
 	providers.exec { commandLine(['git'] + arguments) }.standardOutput.asText.get().trim()
 }
 def betaStage = layout.buildDirectory.dir('beta/stage')
+def localTestCandidate = providers.gradleProperty('betaLocalTestCandidate').getOrElse('false') == 'true'
 tasks.register('betaJar', Jar) {
 	dependsOn tasks.named('betaClasses')
 	from sourceSets.beta.output
@@ -57,7 +58,7 @@ tasks.register('betaStage', Sync) {
 	outputs.upToDateWhen { false }
 	doLast {
 		def changed = providers.exec { commandLine 'git', 'diff', '--quiet', 'HEAD', '--', 'src/main'; ignoreExitValue = true }.result.get().exitValue
-		if (changed != 0) throw new GradleException('Frozen src/main differs from HEAD. Review gameplay changes before packaging.')
+		if (changed != 0 && !localTestCandidate) throw new GradleException('Frozen src/main differs from HEAD. Review gameplay changes before packaging. Use betaLocalTestCandidate only for an explicitly authorized unpublished test build.')
 		File root = betaStage.get().asFile
 		def artifacts = configurations.betaRuntimeClasspath.resolvedConfiguration.resolvedArtifacts
 		def client = artifacts.find { it.moduleVersion.id.group == 'net.runelite' && it.name == 'client' }
@@ -68,8 +69,9 @@ tasks.register('betaStage', Sync) {
 		if (names.toSet().size() != names.size()) throw new GradleException('Dependency filenames collide; refusing to overwrite a JAR.')
 		def dependencies = artifacts.collect { a -> [coordinate: "${a.moduleVersion.id.group}:${a.name}:${a.moduleVersion.id.version}${a.classifier ? ':' + a.classifier : ''}", path: "lib/${a.file.name}", sha256: digest(a.file)] }.sort { it.coordinate }
 		new File(root, 'DEPENDENCIES.json').text = JsonOutput.prettyPrint(JsonOutput.toJson([note: 'Unmodified upstream JARs. Their embedded licenses/notices remain intact; see THIRD_PARTY_NOTICES.txt.', artifacts: dependencies])) + '\n'
-		def inputs = files('build.gradle', 'gradle/beta.gradle', 'gradle/previews.gradle', 'runelite-plugin.properties', fileTree('src/beta')).files.sort { it.path }.collect { f -> [path: rootProject.projectDir.toPath().relativize(f.toPath()).toString().replace('\\', '/'), sha256: digest(f)] }
-		new File(root, 'SOURCE.json').text = JsonOutput.prettyPrint(JsonOutput.toJson([revision: gitText(['rev-parse', 'HEAD']), releaseVersion: releaseVersion, gameplayTree: gitText(['rev-parse', 'HEAD:src/main']), releaseWorktreeDirty: !gitText(['status', '--porcelain']).isEmpty(), inputs: inputs])) + '\n'
+		def inputs = files('build.gradle', 'gradle/beta.gradle', 'gradle/previews.gradle', 'runelite-plugin.properties', fileTree('src/beta'),fileTree('src/main')).files.sort { it.path }.collect { f -> [path: rootProject.projectDir.toPath().relativize(f.toPath()).toString().replace('\\', '/'), sha256: digest(f)] }
+		def dirty = !gitText(['status', '--porcelain']).isEmpty()
+		new File(root, 'SOURCE.json').text = JsonOutput.prettyPrint(JsonOutput.toJson([revision: gitText(['rev-parse', 'HEAD']), releaseVersion: releaseVersion, gameplayTree: gitText(['rev-parse', 'HEAD:src/main']), gameplayTreeMeaning: 'Base committed tree; inputs record the actual compiled working files.', releaseWorktreeDirty: dirty, localTestCandidate: localTestCandidate, status: localTestCandidate ? 'unpublished-local-test-candidate-not-for-distribution' : 'unpublished-owner-review', inputs: inputs])) + '\n'
 		def entries = fileTree(root).files.sort { it.path }.collect { f -> [path: root.toPath().relativize(f.toPath()).toString().replace('\\', '/'), bytes: f.length(), sha256: digest(f)] }
 		new File(root, 'package.json').text = JsonOutput.prettyPrint(JsonOutput.toJson([format: 1, version: project.version.toString(), releaseVersion: releaseVersion, sourceRevision: gitText(['rev-parse', 'HEAD']), gameplayTree: gitText(['rev-parse', 'HEAD:src/main']), runeLiteVersion: client.moduleVersion.id.version, javaMajor: 11, status: 'unpublished-owner-review', mainClass: 'com.fromscratch.beta.BetaLauncher', pluginJar: 'lib/' + tasks.jar.archiveFileName.get(), files: entries])) + '\n'
 	}

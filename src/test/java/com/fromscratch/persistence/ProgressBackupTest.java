@@ -32,6 +32,10 @@ public class ProgressBackupTest
 	private BankRun load()throws Exception{return repository.load(root,CHARACTER_A).get();}
 	private Filepath base(){return root.join("characters",CHARACTER_A);}
 	private void exported(BankRun run)throws Exception{repository.backups().exportProgress(root,run,export);}
+	@Test public void resetPreservesExportOtherCharacterAndHistoricalPlaytime() throws Exception
+	{
+		BankRun run=run(),other=BankEngine.start(CHARACTER_B,null,BankFixtures.bank(8),true,UUID.randomUUID(),TIME);repository.save(root,null,other);PlaytimeRepository timer=new PlaytimeRepository(codec);Playtime old=timer.load(root,CHARACTER_A,run.getRunId());timer.add(root,old,900,UUID.randomUUID());exported(run);byte[] original;try(InputStream in=export.openInputStream()){original=in.readAllBytes();}BankRun reset=repository.save(root,run,BankEngine.reset(run,UUID.randomUUID(),TIME));assertFalse(reset.isActive());assertEquals(other,repository.load(root,CHARACTER_B).get());try(InputStream in=export.openInputStream()){assertArrayEquals(original,in.readAllBytes());}assertEquals(900,timer.load(root,CHARACTER_A,run.getRunId()).getTicks());assertEquals(0,timer.load(root,CHARACTER_A,UUID.randomUUID()).getTicks());
+	}
 	@Test public void completePortableRoundTripPreservesPurchaseOffsetsFinancesHistoryAndPlaytime()throws Exception
 	{
 		Map<Integer,Long> initial=Collections.singletonMap(ItemID.BH_RUNE_POUCH,1L);

@@ -8,7 +8,8 @@ import lombok.Value;
 @Value
 public class BagObservation
 {
-	public static final String INSTRUCTION="No current Looting Bag contents were received. With your bank open, withdraw the bag and choose View, then return the bag and retry. Keep the bank open; do not empty its contents before buying back.";
+	public static final String INSTRUCTION="Looting Bag contents are not verified. Withdraw your bag and choose View, then return it to the bank and retry within two minutes. Do not change its contents before confirming.";
+	public enum State { UNKNOWN, VERIFIED_EMPTY, VERIFIED_NONEMPTY }
 	int itemId; Map<Integer,Long> quantities; Map<Integer,String> names; Instant at;
 	public BagObservation(int itemId,Map<Integer,Long> quantities,Map<Integer,String> names,Instant at)
 	{
@@ -17,6 +18,7 @@ public class BagObservation
 		if(itemId==-1&&!this.quantities.isEmpty()){throw new IllegalArgumentException("Unknown bag contents");}
 	}
 	public boolean fresh(Instant now){return itemId>0&&!at.isAfter(now)&&now.isBefore(at.plusSeconds(120));}
+	public State getState(){return itemId<0?State.UNKNOWN:quantities.isEmpty()?State.VERIFIED_EMPTY:State.VERIFIED_NONEMPTY;}
 	public static BagObservation unknown(){return new BagObservation(-1,Collections.emptyMap(),Collections.emptyMap(),Instant.now());}
 	public static Map<Integer,Long> quantities(Map<Integer,Long> values)
 	{

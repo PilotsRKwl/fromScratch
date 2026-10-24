@@ -1,6 +1,6 @@
 # From Scratch — feature guide
 
-Gameplay is frozen at Milestone 9.2. Milestone 10 adds beta distribution and documentation only. The plugin is a voluntary challenge, not an official account mode.
+Milestone 10.7 adds Potion Storage and Overdraft Protection to the accepted challenge. This update awaits live acceptance. The plugin is a voluntary challenge, not an official account mode.
 
 ## Start with the character you already have
 
@@ -18,6 +18,22 @@ Signed progress follows `B' = B + (P' - P)`, where P is the complete physical ba
 - Normal item Examine keeps native/core messages, then adds one From Scratch line with exact signed bank quantities, cached values and entitlement status. It adds no menu option.
 
 ## Progress dashboard
+
+### Outstanding legacy items
+
+An excessive confirmed withdrawal produces a red local chat warning and a RuneLite notification where enabled. The amber warning near the top of the sidebar lists outstanding items even when their bank slots disappear or Virtual Bank is disabled. Potion debts use doses, grouped by potion type. Return or replace items to reduce the signed debt; an entry opens recorded item history. Warnings do not block any native withdrawal. Mixed-stack tooltips explain that Withdraw All takes the full physical stack.
+
+### Potion Storage
+
+Open Mixology Potion Storage to see a compact **FS:** amount beside each native physical amount. It uses your virtual quantity color; outstanding amounts use Negative Virtual Quantity Color (red by default). Dose-based potions show doses. Unfinished and single-unit entries show items. Large values use compact bank notation where needed. A narrow row can show **FS** with the exact amount on hover. Unverified ownership shows **FS: ?**. Empty vials are excluded. The native quantities and controls stay unchanged.
+
+Before a new challenge, bank your inventory and gear, confirm those steps, then open your bank. If Potion Storage is unlocked, open it next and review the captured amounts if needed. Once both are recorded, you can start directly from Potion Storage while the bank capture remains valid. A character without the unlock skips that step. Only an unknown unlock state needs your explicit answer. Both legacy snapshots save together before Virtual Bank activates; your banking confirmation stays checked while switching interfaces.
+
+Existing challenges keep their original snapshots and earned balances. Use **Manual Corrections → Potion Storage** to review unresolved stock or edit a known virtual balance. The searchable list combines bottle sizes into one potion type and includes outstanding amounts even when physical stock is zero. Closed storage shows its last verified amounts as cached. Signed edits are confirmed, limited by verified physical stock and recorded in history. They change virtual ownership, never real potions. Old stock is never automatically awarded as earned. The main sidebar keeps outstanding warnings, without a separate storage list.
+
+Observed bank/storage transfers preserve ownership across dose sizes. Read storage before transferring after login. Same-session withdrawal budgets prevent delayed returns or conversions from creating new ownership. If both containers are possible sources, the plugin requests review instead of guessing. Storage is never represented by fabricated native bank slots. Verified pooled potion doses contribute once to current wealth and reliable peak checkpoints, using an estimated per-dose guide price.
+
+### Wealth and time
 
 Exactly six primary statistics: Peak Progress Value, Current Bank Net Worth, Bank GP, Items Unlocked, Time Played, Total Value Lost / Spent. Prices are cached GE-guide estimates; unknown/stale prices are disclosed. Signed deficits subtract value. Bank GP is raw signed coins minus cumulative committed buyback payments, counted once. Untradeable buyback prices are not market values.
 
@@ -54,7 +70,7 @@ Bank History and item-specific history retain recorded deposits, withdrawals, ma
 
 ## Boundaries
 
-- Bank-only quantities; no continuous inventory/equipment ownership or outside-bank wallet.
+- Complete bank quantities plus verified Potion Storage; no continuous inventory/equipment ownership or outside-bank wallet. Other storage remains excluded except for the existing on-demand buyback contents proofs.
 - Local-only, character-specific host storage. Other-device returns reconcile the next complete bank's net change, not unseen transaction details or mobile playtime.
 - Unobserved offers completed/removed while away may have no reconstructable trade history. Unknown origin/tax/profit stays uncertain.
 - No gameplay automation, synthetic actions, withdrawal blocking, server ownership changes or packet manipulation.

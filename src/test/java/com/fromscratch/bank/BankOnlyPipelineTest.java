@@ -35,9 +35,63 @@ public class BankOnlyPipelineTest
 	private void settle() { tick(); tick(); tick(); tick(); }
 	private BankView view() { return views.get(views.size() - 1); }
 	private BankRun saved() throws Exception { return repository.load(root, source.character).get(); }
-	private void start() { controller.startRun(true); worker.runAll(); settle(); assertTrue(view().getRun().isActive()); }
+	private void start() { controller.startRun(true,null,true); worker.runAll(); settle(); assertTrue(view().getRun().isActive()); }
 	private void change(long n) { source.quantity(n); settle(); }
 	private void label(String expected) { assertEquals(expected, overlay.getProjection().label(SHIELD)); }
+	@Test public void setupConfirmationAndBankCaptureSurviveStorageAndStartThereAtomically() throws Exception
+	{
+		int item=ItemID._4DOSEPRAYERRESTORE;com.fromscratch.potion.PotionType type=new com.fromscratch.potion.PotionType(1,"Prayer potion",false,Collections.singletonMap(item,4));source.storage=new com.fromscratch.potion.PotionObservation(false,Collections.singletonMap(1,type),Collections.emptyMap(),java.time.Instant.EPOCH);tick();UUID attempt=view().getSetup().getAttempt();BankObservation captured=view().getSetup().getBank();List<Overdrafts.Warning> alerts=new ArrayList<>();controller.overdrafts(alerts::addAll);
+		BankPanel[] panel={null};javax.swing.SwingUtilities.invokeAndWait(()->{panel[0]=new BankPanel();panel[0].render(view(),controller);((javax.swing.JCheckBox)BankPolishTest.all(panel[0]).stream().filter(c->"setupBankingConfirmation".equals(c.getName())).findFirst().get()).doClick(0);});assertTrue(view().getSetup().isAttested());
+		source.fullBank=false;source.storageOpen=true;source.items=null;source.observer.changed();tick();assertEquals(captured,view().getSetup().getBank());assertFalse(view().setupBankReady());assertTrue(view().getSetup().isAttested());
+		source.items=new Item[]{new Item(SHIELD,1)};source.storage=new com.fromscratch.potion.PotionObservation(true,Collections.singletonMap(1,type),Collections.singletonMap(1,1045L),SnapshotFixtures.TIME);tick();assertEquals(attempt,view().getSetup().getAttempt());assertEquals(captured,view().getSetup().getBank());assertTrue(view().setupBankReady());assertNotNull(view().getCapture());
+		javax.swing.SwingUtilities.invokeAndWait(()->{panel[0].render(view(),controller);assertTrue(((javax.swing.JCheckBox)BankPolishTest.all(panel[0]).stream().filter(c->"setupBankingConfirmation".equals(c.getName())).findFirst().get()).isSelected());assertTrue(BankPolishTest.all(panel[0]).stream().anyMatch(c->c instanceof javax.swing.JButton&&"Start From Scratch".equals(((javax.swing.JButton)c).getText())&&c.isEnabled()));});
+		controller.startRun(true,view().getCapture(),false);assertFalse(repository.load(root,source.character).isPresent());worker.runAll();BankRun saved=saved();assertEquals(captured.getBank(),saved.getInitialBank());assertEquals(1045L,(long)saved.getPotions().getInitial().get(1));assertTrue(saved.getBalances().isEmpty());assertEquals(0,saved.getPotions().balance(1));assertTrue(alerts.isEmpty());
+	}
+	@Test public void changedBankInvalidatesPendingCaptureAndCannotStartFromStaleStorage() throws Exception
+	{
+		UUID attempt=view().getSetup().getAttempt();controller.setupAttested(attempt,true);source.fullBank=false;source.storageOpen=true;source.quantity(5);controller.startRun(true);worker.runAll();assertFalse(repository.load(root,source.character).isPresent());tick();assertNull(view().getSetup().getBank());assertTrue(view().getSetup().isAttested());controller.startRun(true);worker.runAll();assertFalse(repository.load(root,source.character).isPresent());source.storageOpen=false;source.fullBank=true;tick();assertEquals(5,view().getSetup().getBank().getBank().quantity(SHIELD));controller.startRun(true);worker.runAll();assertEquals(5,saved().getInitialBank().quantity(SHIELD));
+	}
+	@Test public void setupAnswersAndProofAreAttemptScopedAcrossLogoutAndCharacters() throws Exception
+	{
+		source.unlockKnown=false;source.storage=com.fromscratch.potion.PotionObservation.unknown();controller.stop();launch();settle();UUID attempt=view().getSetup().getAttempt();controller.setupAttested(attempt,true);controller.setupStorageAnswer(attempt,false);tick();assertEquals(Boolean.FALSE,view().getSetup().getStorageAnswer());source.open(false);tick();assertTrue(view().getSetup().isAttested());assertNotNull(view().getSetup().getBank());source.open(true);settle();controller.startRun(true);worker.runAll();assertTrue(saved().getRecent().get(0).getReason().contains("Player attested"));
+		controller.reset(saved().getRevision());worker.runAll();assertNotEquals(attempt,view().getSetup().getAttempt());assertFalse(view().getSetup().isAttested());assertNull(view().getSetup().getBank());assertNull(view().getSetup().getStorageAnswer());controller.setupAttested(attempt,true);assertFalse(view().getSetup().isAttested());source.character=null;controller.tick();worker.runAll();assertNull(view().getSetup().getCharacter());source.character=SnapshotFixtures.CHARACTER_B;source.observer.reset();controller.tick();worker.runAll();settle();assertEquals(SnapshotFixtures.CHARACTER_B,view().getSetup().getCharacter());assertFalse(view().getSetup().isAttested());assertNull(view().getCapture());assertFalse(repository.load(root,source.character).isPresent());
+	}
+	@Test public void resetAcknowledgesImmediatelyRejectsDuplicatesAndPublishesOnlyAfterDisk() throws Exception
+	{
+		start();change(0);BankRun before=saved();List<Overdrafts.Warning> alerts=new ArrayList<>();controller.overdrafts(alerts::addAll);int shown=views.size();controller.reset(before.getRevision());assertTrue(view().isBusy());assertEquals("Resetting progress...",view().getMessage());assertEquals(before,saved());int queued=worker.tasks.size();controller.reset(before.getRevision());assertEquals(queued,worker.tasks.size());controller.startRun(true,null,true);assertEquals(queued,worker.tasks.size());worker.runAll();assertFalse(saved().isActive());assertTrue(Overdrafts.outstanding(view()).isEmpty());assertNull(overlay.getProjection());assertEquals(shown+2,views.size());assertTrue(view().getMessage().startsWith("Progress reset."));assertTrue(alerts.isEmpty());UUID previous=before.getRunId();settle();controller.startRun(true,null,true);worker.runAll();assertTrue(saved().isActive());assertNotEquals(previous,saved().getRunId());assertTrue(saved().getBalances().isEmpty());
+	}
+	@Test public void resetStorageFailureLeavesOldRunAndReportsFailure() throws Exception
+	{
+		start();BankRun before=saved();controller.stop();worker=new Worker();boolean[] fail={false};controller=new BankController(source,repository,Runnable::run,views::add);controller.start(()->{if(fail[0]){throw new java.io.IOException("Synthetic reset failure");}return root;},worker);worker.runAll();settle();fail[0]=true;controller.reset(before.getRevision());assertTrue(view().isBusy());worker.runAll();assertTrue(view().isError());assertFalse(view().isBusy());assertEquals(before,saved());assertFalse(view().getMessage().startsWith("Progress reset."));controller.startRun(true,null,true);assertEquals(before,saved());
+	}
+	@Test public void resetInFlightCannotPublishIntoAnotherCharacter() throws Exception
+	{
+		start(); change(0); BankRun before = saved();
+		BankRun other = BankEngine.start(SnapshotFixtures.CHARACTER_B, null, bank(1), true, UUID.randomUUID(), SnapshotFixtures.TIME);
+		repository.save(root, null, other);
+		controller.reset(before.getRevision()); assertTrue(view().isBusy());
+		source.open(false); source.character = SnapshotFixtures.CHARACTER_B; source.observer.reset(); controller.tick(); worker.runAll(); settle();
+		assertEquals(other.getRunId(), view().getRun().getRunId()); assertEquals(other, saved());
+		BankRun reset = repository.load(root, before.getCharacter()).get(); assertFalse(reset.isActive());
+		source.character = before.getCharacter(); source.observer.reset(); controller.tick(); worker.runAll(); settle();
+		assertFalse(view().getRun().isActive()); assertTrue(view().getRun().getBalances().isEmpty());
+	}
+	@Test public void resetDurableBeforeLogoutIgnoresItsLateCompletionAndReloadsTombstone() throws Exception
+	{
+		start(); BankRun before = saved(); controller.stop();
+		Queue<Runnable> callbacks = new ArrayDeque<>(); worker = new Worker();
+		controller = new BankController(source, repository, callbacks::add, views::add);
+		controller.start(() -> root, worker);
+		while (!callbacks.isEmpty() || !worker.tasks.isEmpty()) { while (!callbacks.isEmpty()) { callbacks.remove().run(); } worker.runAll(); }
+		controller.reset(before.getRevision()); callbacks.remove().run(); assertTrue(view().isBusy());
+		worker.runAll(); assertFalse(saved().isActive()); // Durable, but UI acknowledgment is still queued.
+		controller.stop(); while (!callbacks.isEmpty()) { callbacks.remove().run(); }
+		assertTrue(view().isBusy()); // A disabled lifecycle must not publish that callback.
+		source.character = null; source.observer.reset(); launch();
+		source.character = before.getCharacter(); controller.tick(); worker.runAll(); settle();
+		assertFalse(view().getRun().isActive()); assertTrue(view().getRun().getBalances().isEmpty());
+		assertTrue(view().getRun().getPotions().getTypes().isEmpty());
+	}
 
 	private void fullWithdrawal(boolean placeholders, boolean stackable) throws Exception
 	{
@@ -80,7 +134,7 @@ public class BankOnlyPipelineTest
 	@Test public void finalStackableWithdrawalWithoutPlaceholderRetainsDeficit() throws Exception { fullWithdrawal(false, true); }
 	@Test public void finalStackableWithdrawalWithNativePlaceholderRendersOriginalDeficit() throws Exception { fullWithdrawal(true, true); }
 	@Test public void bankOnlySetupNeedsNoPersonalContainers() throws Exception { start(); assertEquals(0, saved().balance(SHIELD)); assertEquals(1, saved().getInitialBank().quantity(SHIELD)); }
-	@Test public void attestationRequired() { controller.startRun(false); worker.runAll(); assertNull(view().getRun()); assertTrue(view().getMessage().contains("Confirm")); }
+	@Test public void attestationRequired() { controller.startRun(false,null,true); worker.runAll(); assertNull(view().getRun()); assertTrue(view().getMessage().contains("Confirm")); }
 	@Test public void completeEmptyBankCanStart() throws Exception { change(0); start(); assertTrue(saved().getInitialBank().getQuantities().isEmpty()); }
 	@Test public void legacyWithdrawalAndReturnAreMinusOneAndZero() throws Exception { start(); change(0); label("-1"); assertEquals(-1, saved().balance(SHIELD)); change(1); label("0"); }
 	@Test public void successiveNewDepositsAndWithdrawal() throws Exception { change(0); start(); change(1); label("1"); change(2); label("2"); change(1); label("1"); assertEquals(1, saved().unlocked()); }
@@ -90,7 +144,7 @@ public class BankOnlyPipelineTest
 	@Test public void reorderingTabsAndSearchDoNotChangeAggregate() throws Exception { source.items = new Item[]{new Item(SHIELD, 1), new Item(OTHER, 2)}; source.observer.changed(); settle(); start(); BankRun before = saved(); source.items = new Item[]{new Item(OTHER, 2), new Item(SHIELD, 1)}; source.observer.changed(); settle(); assertEquals(before, saved()); }
 	@Test public void unavailableBankIsNotDeletion() throws Exception { start(); BankRun before = saved(); source.items = null; source.observer.changed(); settle(); assertFalse(view().ready()); assertEquals(before, saved()); label("0"); }
 	@Test public void nullSlotIsIncompleteNotEmpty() throws Exception { start(); BankRun before = saved(); source.items = new Item[]{null}; source.observer.changed(); settle(); assertFalse(view().ready()); assertEquals(before, saved()); }
-	@Test public void pinDoesNotAcceptCachedBank() { source.pin = true; source.observer.changed(); settle(); controller.startRun(true); worker.runAll(); assertNull(view().getRun()); }
+	@Test public void pinDoesNotAcceptCachedBank() { source.pin = true; source.observer.changed(); settle(); controller.startRun(true,null,true); worker.runAll(); assertNull(view().getRun()); }
 	@Test public void widgetOpenBeforeContainerWaitsThenRecovers() { source.items = null; source.open(true); settle(); assertFalse(view().ready()); source.quantity(1); settle(); start(); label("0"); }
 	@Test public void alreadyOpenBankDoesNotNeedContainerChangedEvent() { start(); label("0"); }
 	@Test public void sameTickIntermediateUpdatesAreCombined() throws Exception { start(); source.quantity(2); controller.tick(); source.quantity(3); controller.tick(); assertEquals(0, saved().balance(SHIELD)); settle(); label("2"); }
@@ -110,14 +164,14 @@ public class BankOnlyPipelineTest
 	@Test public void disableRemovesAllProjectionAndReenableRestoresSavedRun() { start(); controller.stop(); overlay.disable(); assertNull(overlay.getProjection()); overlay.enable(); source.observer.reset(); launch(); settle(); label("0"); }
 	@Test public void verifiedIdentitySeparatesCharacters() throws Exception { start(); change(2); source.character = SnapshotFixtures.CHARACTER_B; source.observer.reset(); controller.tick(); worker.runAll(); settle(); assertNull(view().getRun()); assertEquals(1, repository.load(root, SnapshotFixtures.CHARACTER_A).get().balance(SHIELD)); }
 	@Test public void placeholdersFillersAndVariantsUseExactIds() throws Exception { int variant = SHIELD + 1; source.items = new Item[]{new Item(SHIELD, 1), new Item(variant, 1), new Item(ItemID.BANK_FILLER, 1), new Item(ItemID.BLANKOBJECT, 1)}; source.placeholders.add(variant); source.observer.changed(); settle(); start(); assertEquals(Collections.singletonMap(SHIELD, 1L), saved().getPhysical()); source.placeholders.clear(); source.observer.changed(); settle(); assertEquals(1, saved().balance(variant)); assertEquals(0, saved().balance(SHIELD)); }
-	@Test public void duplicateInitializationCannotReplaceOriginalRun() throws Exception { start(); BankRun before = saved(); controller.startRun(true); worker.runAll(); assertEquals(before, saved()); }
-	@Test public void resetArchivesThenRequiresFreshAttestationAndBank() throws Exception { start(); controller.reset(saved().getRevision()); worker.runAll(); assertFalse(saved().isActive()); settle(); controller.startRun(false); worker.runAll(); assertFalse(saved().isActive()); controller.startRun(true); worker.runAll(); assertTrue(saved().isActive()); }
+	@Test public void duplicateInitializationCannotReplaceOriginalRun() throws Exception { start(); BankRun before = saved(); controller.startRun(true,null,true); worker.runAll(); assertEquals(before, saved()); }
+	@Test public void resetArchivesThenRequiresFreshAttestationAndBank() throws Exception { start(); controller.reset(saved().getRevision()); worker.runAll(); assertFalse(saved().isActive()); settle(); controller.startRun(false,null,true); worker.runAll(); assertFalse(saved().isActive()); controller.startRun(true,null,true); worker.runAll(); assertTrue(saved().isActive()); }
 	@Test public void controllerStorageFailureDoesNotPublishOrAdvanceAnchor() throws Exception
 	{
 		start(); BankRun before = saved(); controller.stop(); worker = new Worker(); java.util.concurrent.atomic.AtomicBoolean fail = new java.util.concurrent.atomic.AtomicBoolean();
 		controller = new BankController(source, repository, Runnable::run, v -> { views.add(v); overlay.updateBank(v); });
 		controller.start(() -> { if (fail.get()) { throw new java.io.IOException("Synthetic unavailable storage"); } return root; }, worker); worker.runAll(); settle();
-		before = saved(); fail.set(true); change(2); assertTrue(view().isError()); assertEquals(before, saved()); assertNull(overlay.getProjection());
+		before = saved(); fail.set(true); change(2); assertTrue(view().isError()); assertEquals(before, saved());assertEquals(before,controller.currentRun());assertNotNull(overlay.getProjection());assertEquals(before.balance(SHIELD),overlay.getProjection().balance(SHIELD,false));assertFalse(overlay.isPotionCurrent());
 		fail.set(false); controller.retry(); worker.runAll(); settle(); label("1"); assertEquals(1, saved().balance(SHIELD));
 	}
 	@Test public void migrationRequiresOnlyOneBankAnchorThenNormalChangesAreAutomatic() throws Exception

@@ -35,7 +35,7 @@ public class BuybackPersistenceTest
 		old=repository.save(root,old,BankEngine.exchange(old,new com.fromscratch.ge.GeObservation(UUID.randomUUID(),geSession,SnapshotFixtures.TIME,0,ItemID.WOODEN_SHIELD,"Wooden shield",net.runelite.api.GrandExchangeOfferState.SELLING,10,0,100,0,false)));
 		old=repository.save(root,old,BankEngine.exchange(old,new com.fromscratch.ge.GeObservation(UUID.randomUUID(),geSession,SnapshotFixtures.TIME,0,ItemID.WOODEN_SHIELD,"Wooden shield",net.runelite.api.GrandExchangeOfferState.SELLING,10,3,100,300,false)));
 		List<Filepath> files;try(Stream<Filepath> walk=d.walk(1)){files=walk.filter(f->f.getFileName().endsWith(".json")).collect(Collectors.toList());}
-		for(Filepath file:files){if(!file.getFileName().startsWith("bank-ledger-")){JsonObject p=codec.payload(BankStorageFiles.readText(file),BankRunCodec.FORMAT);p.remove("buybacks");file.write(codec.envelope(p,7));}}
+		for(Filepath file:files){if(!file.getFileName().startsWith("bank-ledger-")){JsonObject p=codec.payload(BankStorageFiles.readText(file),BankRunCodec.FORMAT);p.remove("potions");p.remove("buybacks");file.write(codec.envelope(p,7));}}
 		for(Filepath file:files){if(file.getFileName().startsWith("bank-ledger-")){JsonObject p=codec.payload(BankStorageFiles.readText(file),1);String id=file.getFileName().substring(12,file.getFileName().length()-5);p.addProperty("result",SaveIntegrity.sha256(BankStorageFiles.readText(d.joinSegment("bank-checkpoint-"+id+".json"))));file.write(codec.envelope(p,1));}}
 		Map<String,String> originals=new TreeMap<>();for(Filepath file:files){originals.put(file.getFileName(),BankStorageFiles.readText(file));}return originals;
 	}

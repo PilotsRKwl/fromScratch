@@ -24,15 +24,17 @@ public class BankValuation
 	{
 		// Effective coins already subtract committed buybacks. Never deduct them a second time.
 		BigInteger total=BigInteger.ZERO;int missing=0,stale=0,priced=0;Instant oldest=null;
+		Set<Integer> pooled=com.fromscratch.potion.PotionWealth.pooledItems(run);
 		for(Map.Entry<Integer,Long> entry:com.fromscratch.buyback.BuybackEngine.balances(run).entrySet())
 		{
-			if(entry.getValue()==0){continue;}PriceQuote quote=prices.get(entry.getKey());
+			if(entry.getValue()==0||pooled.contains(entry.getKey())){continue;}PriceQuote quote=prices.get(entry.getKey());
 			if(entry.getKey()==net.runelite.api.gameval.ItemID.COINS){quote=PriceQuote.coins(Instant.EPOCH);}
 			if(quote==null||quote.getUnitGp()==null){missing++;continue;}
 			priced++;
 			if(quote.isStale()){stale++;}if(quote.getSource()!=PriceQuote.Source.COINS&&(oldest==null||quote.getReceivedAt().isBefore(oldest))){oldest=quote.getReceivedAt();}
 			total=total.add(BigInteger.valueOf(entry.getValue()).multiply(BigInteger.valueOf(quote.getUnitGp())));
 		}
+		com.fromscratch.potion.PotionWealth.Value potions=com.fromscratch.potion.PotionWealth.calculate(run,prices);total=total.add(potions.getGp());missing+=potions.getMissing();stale+=potions.getStale();priced+=potions.getPriced();if(potions.getOldest()!=null&&(oldest==null||potions.getOldest().isBefore(oldest))){oldest=potions.getOldest();}
 		Long value;try{value=total.longValueExact();}catch(ArithmeticException ex){value=null;}
 		return new BankValuation(run.getRevision(),value,missing,stale,oldest,priced);
 	}

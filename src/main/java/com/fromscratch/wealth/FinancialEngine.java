@@ -33,7 +33,8 @@ public final class FinancialEngine
 	{
 		if(audit.getKind()!=BankAudit.Kind.AUTOMATIC&&!audit.getExchange().getGainExclusions().isEmpty()){throw new IllegalArgumentException("Conversion exclusion outside bank movement");}
 		boolean restored=audit.getPouch()!=null&&audit.getPouch().getKind()==com.fromscratch.pouch.PouchAction.Kind.RESTORE_EARNED;
-		Map<Integer,Long> required=audit.getKind()==BankAudit.Kind.AUTOMATIC||restored?eligibleGains(before,balances,audit.getExchange().getGainExclusions()):Collections.emptyMap();
+		Map<Integer,Long> exclusions=new TreeMap<>(audit.getExchange().getGainExclusions());if(audit.getPotion()!=null){audit.getPotion().getExclusions().forEach((id,q)->exclusions.merge(id,q,Math::addExact));}
+		Map<Integer,Long> required=audit.getKind()==BankAudit.Kind.AUTOMATIC||restored?eligibleGains(before,balances,exclusions):Collections.emptyMap();
 		Map<Integer,Long> actual=new TreeMap<>(),unknown=new TreeMap<>(before.getUnpricedGains()),high=new TreeMap<>(before.getHighWater());
 		long gained=before.getGainedGp(),expense=before.getExpenseGp(),records=before.getExpenseRecords(),count=before.getEventCount();Set<UUID> ids=new HashSet<>();
 		for(ValuationEvent e:audit.getValuations())

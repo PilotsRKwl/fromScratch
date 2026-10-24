@@ -16,6 +16,7 @@ The [homepage](../README.md) introduces the challenge. Start here for help, or u
 - [Plugin Hub review map](PLUGIN_HUB_REVIEW.md): source paths, supported APIs and review-sensitive behavior.
 - [Milestone 10 release candidate](MILESTONE_10.md): current evidence and owner acceptance gates.
 - [Milestone 10.6 native installer](MILESTONE_10_6.md): private runtime, Windows launcher, wizard and focused acceptance.
+- [Milestone 10.7: Potion Storage and Overdraft Protection](MILESTONE_10_7.md): dose accounting, warnings, compatible saves and manual acceptance.
 - [Publication checklist](PUBLICATION.md), [release draft](RELEASE_DRAFT.md) and [repository metadata](REPOSITORY_METADATA.md).
 - [Artwork and screenshot provenance](ARTWORK.md), [contributing](../CONTRIBUTING.md) and [changelog](../CHANGELOG.md).
 

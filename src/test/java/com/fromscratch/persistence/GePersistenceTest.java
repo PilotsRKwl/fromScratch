@@ -30,7 +30,7 @@ public class GePersistenceTest
 	{
 		BankRun before=active();BankRun gained=BankEngine.observe(before,bank(6),UUID.randomUUID(),Instant.now(),null,Collections.singletonMap(SHIELD,new PriceQuote(SHIELD,100L,Instant.now(),PriceQuote.Source.RUNELITE_GE_GUIDE,false)));repository.save(root,before,gained);
 		List<Filepath> files;try(Stream<Filepath> walk=directory.walk(1)){files=walk.filter(f->f.getFileName().endsWith(".json")).collect(Collectors.toList());}
-		for(Filepath file:files){if(!file.getFileName().startsWith("bank-ledger-")){JsonObject p=codec.payload(BankStorageFiles.readText(file),BankRunCodec.FORMAT);p.remove("exchange");p.remove("buybacks");file.write(codec.envelope(p,6));}}
+		for(Filepath file:files){if(!file.getFileName().startsWith("bank-ledger-")){JsonObject p=codec.payload(BankStorageFiles.readText(file),BankRunCodec.FORMAT);p.remove("potions");p.remove("exchange");p.remove("buybacks");file.write(codec.envelope(p,6));}}
 		for(Filepath file:files){if(file.getFileName().startsWith("bank-ledger-")){JsonObject p=codec.payload(BankStorageFiles.readText(file),1);String id=file.getFileName().substring("bank-ledger-".length(),file.getFileName().length()-5);p.addProperty("result",SaveIntegrity.sha256(BankStorageFiles.readText(directory.joinSegment("bank-checkpoint-"+id+".json"))));file.write(codec.envelope(p,1));}}
 		Map<String,String> originals=new TreeMap<>();for(Filepath file:files){originals.put(file.getFileName(),BankStorageFiles.readText(file));}return originals;
 	}
@@ -46,7 +46,7 @@ public class GePersistenceTest
 	@Test public void brokenM5HistoryIsPreservedAndNotMigrated()throws Exception
 	{Map<String,String> originals=m5();BankRun old=codec.decode(originals.get("current.json"),SnapshotFixtures.CHARACTER_A);directory.joinSegment("bank-ledger-"+old.getRevision()+".json").write("damaged");try{load();fail();}catch(SaveException expected){}assertEquals(originals.get("current.json"),BankStorageFiles.readText(current));}
 	@Test public void missingGePayloadNeverDefaultsToEmpty()throws Exception
-	{saveOffer(active(),0,0);JsonObject p=codec.payload(BankStorageFiles.readText(current),BankRunCodec.FORMAT);p.remove("exchange");p.remove("buybacks");String bad=codec.envelope(p,BankRunCodec.FORMAT);current.write(bad);try{load();fail();}catch(SaveException expected){}assertEquals(bad,BankStorageFiles.readText(current));}
+	{saveOffer(active(),0,0);JsonObject p=codec.payload(BankStorageFiles.readText(current),BankRunCodec.FORMAT);p.remove("potions");p.remove("exchange");p.remove("buybacks");String bad=codec.envelope(p,BankRunCodec.FORMAT);current.write(bad);try{load();fail();}catch(SaveException expected){}assertEquals(bad,BankStorageFiles.readText(current));}
 	@Test public void failedOfferSaveDoesNotPublishAndRetryIsIdempotent()throws Exception
 	{BankRun old=saveOffer(active(),0,0),next=BankEngine.exchange(old,offer(3,300));BankRepository failing=new BankRepository(codec,SnapshotFixtures.codec(),(a,b)->{throw new IOException("Interrupted publication");});try{failing.save(root,old,next);fail();}catch(SaveException expected){}assertEquals(old,load());repository.save(root,old,next);repository.save(root,old,next);assertEquals(6,load().getExchange().getEstimatedTaxGp());assertEquals(next,load());}
 	@Test public void lostAcknowledgmentRestoresCommittedFillExactlyOnce()throws Exception
