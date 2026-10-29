@@ -25,10 +25,14 @@ public class FoundationResourcesTest
 		assertEquals("Pilots r kwl", metadata.getProperty("author"));
 		assertEquals(FromScratchPlugin.class.getName(), metadata.getProperty("plugins"));
 		assertEquals("standard", metadata.getProperty("build"));
-		try (java.io.Reader toolchain=new java.io.InputStreamReader(net.runelite.client.util.Filepath.Unchecked.getRooted(java.nio.file.Paths.get("").toAbsolutePath()).join("beta","windows-native","toolchain.json").openInputStream(),java.nio.charset.StandardCharsets.UTF_8))
-		{
-			assertEquals(new com.google.gson.JsonParser().parse(toolchain).getAsJsonObject().get("packageVersion").getAsString(), metadata.getProperty("version"));
-		}
+		// Hub derives standard-build versions from the source commit. The optional
+		// beta installer independently uses Gradle/toolchain package versions.
+		assertNull(metadata.getProperty("version"));
+		net.runelite.client.plugins.PluginDescriptor descriptor = FromScratchPlugin.class.getAnnotation(net.runelite.client.plugins.PluginDescriptor.class);
+		assertEquals(descriptor.name(), metadata.getProperty("displayName"));
+		assertEquals(descriptor.description(), metadata.getProperty("description"));
+		assertArrayEquals(descriptor.tags(), metadata.getProperty("tags").split(","));
+		for (String tag : descriptor.tags()) { assertTrue("Invalid discovery tag: " + tag, tag.matches("[a-z0-9-]+")); }
 	}
 
 	@Test

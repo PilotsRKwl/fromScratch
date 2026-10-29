@@ -7,7 +7,8 @@ import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.widgets.Widget;
 
-/** Supported read-only enum/CS2 queries used by core Bank Tags. Never sends an action. */
+/** Native enum/CS2 quantity queries also used by core Bank Tags.
+ * Script execution changes interpreter stacks; no gameplay action is sent. */
 @lombok.extern.slf4j.Slf4j
 public final class RuneLitePotionSource
 {

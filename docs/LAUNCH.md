@@ -10,7 +10,7 @@ From Scratch's first official Plugin Hub release is being prepared. The latest s
 4. Run relevant focused checks and official standard-build compatibility, commit/push the final source, then require Windows and Ubuntu CI success on that exact full SHA. Compilation/headless fixtures do not prove in-game behavior. The owner reports the current beta gameplay works; material production changes need their own owner checks.
 5. Check for an existing name/manifest/submission. Use one dedicated branch in a fork of `runelite/plugin-hub`; keep the upstream change limited to the required manifest and anything its current instructions explicitly require.
 
-The manifest normally lives at `plugins/from_scratch` and contains the canonical repository URL plus the **actual verified 40-character source SHA**. Never fill it with a guessed future commit. Follow current upstream instructions and required AI-assistance attribution honestly. Official submission is authorized for this milestone once these gates are satisfied; human approval and merge remain outside our control.
+The intended manifest is `plugins/from-scratch` and contains the canonical repository URL plus the **actual verified 40-character source SHA**. The current packager rejects underscores and requires a matching descriptor. Submission remains blocked while the descriptor preserves the beta storage name; see the [migration gate](PLUGIN_HUB_REVIEW.md#identifier-and-migration-gate-blocked). Never fill the manifest with a guessed future commit. Follow current upstream instructions and required AI-assistance attribution honestly. This hardening pass prepares the submission only; it does not open a PR. Human approval and merge remain outside our control.
 
 ## During review
 

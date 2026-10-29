@@ -13,7 +13,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Test-StandardBui
 git diff --check
 ```
 
-`Test-StandardBuild.ps1` obtains the current official Plugin Hub build/settings template and Hub client version, compiles only `src/main`, and records tooling/template evidence under ignored `build/standard-check`. Inspect the resulting JAR for resources and beta/preview/test isolation. This is build compatibility, not policy approval or live testing.
+`Test-StandardBuild.ps1` obtains the current official Plugin Hub build/settings template and Hub client version, compiles only `src/main`, and records evidence under ignored `build/standard-check`. It also extracts the current packager identifier rule, checks the compiled descriptor against `from-scratch`, checks metadata/Java bytecode and inspects JAR resources and development-class isolation. It fails when compilation succeeds but identifier compatibility does not. This local preflight does not execute the hosted packager or establish security/policy approval or live testing. The existing underscore descriptor intentionally keeps this gate blocked until safe beta storage migration is resolved.
 
 ## Focused coverage
 
@@ -24,6 +24,7 @@ git diff --check
 | Historical saves | `ExpandedBuybackPersistenceTest`, `SelectedBuybackPersistenceTest`, `StorageBuybackPersistenceTest` and existing repository/backup fixtures retain 10.7 format-10 purchases, 10.8 selected-copy evidence and 10.8.1 declarations, without rewriting original bytes on load. Exercise continuation, failed publication/retry, restart and isolated export/import. |
 | Buybacks | Model, pipeline and UI fixtures cover exact fixed prices, natural versus paid copies, complete sets, approved variants, GP limits, UUID duplication, quiver upgrades, declaration/native evidence, cancellation and failed saves. |
 | Resources | `FoundationResourcesTest` verifies classpath PNG loading, dimensions, metadata and branding. Standard artifact inspection excludes beta/preview/bootstrap/tests and Plugin service registration. |
+| Directory capability boundary | `PluginDirectoryCapabilityTest` verifies that scoped roots cannot access their parent/sibling and the legacy migration API rejects the nested beta path. These are blocker-evidence tests, not successful directory-migration tests. No migrator is implemented or claimed passing. |
 | Broader progression | Final CI retains bank/potion signed deltas and doses, overlays/counters, overdrafts, GE attribution/history, corrections, wealth/time, migrations, backups/reset and character isolation tests. |
 
 Fixtures use disposable synthetic characters and Filepath roots. Never substitute real profiles, progression or backup paths. Preserve migration fixtures even when historical production controllers are no longer used.

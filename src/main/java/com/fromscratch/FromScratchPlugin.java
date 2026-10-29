@@ -38,7 +38,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 	internalName = "from_scratch",
 	configName = FromScratchConfig.GROUP,
 	description = "Restart item progression on your existing character with a Virtual Bank and legacy gear buybacks.",
-	tags = {"bank", "virtual", "progression", "challenge", "fresh start", "legacy", "solo", "friends", "wealth"}
+	tags = {"bank", "virtual", "progression", "challenge", "fresh", "start", "legacy", "solo", "friends", "wealth"}
 )
 public class FromScratchPlugin extends Plugin
 {

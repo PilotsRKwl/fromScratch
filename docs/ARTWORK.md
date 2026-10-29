@@ -20,7 +20,7 @@ The former code-generated title banner and its generator have been retired. Git 
 
 The PNG panel previews in `docs/media` were rendered from production Swing components using clearly synthetic sample progress and an isolated empty home. They are not live gameplay captures or a real account. Source: `src/preview/java/com/fromscratch/preview/InterfacePreviews.java`; reproduction: `scripts/Prepare-UiPreviews.ps1`. The dashboard overview is a crop of the full dashboard panel.
 
-The existing buyback images predate the 10.8.1 category reorganization and catalog expansion. They remain identified as earlier-beta panel illustrations in [SCREENSHOTS](SCREENSHOTS.md), not evidence of the current menu order or complete item list.
+The setup and buyback previews were refreshed from the current production components during Plugin Hub preparation. They use synthetic state, including sample GP and availability; the buyback catalog shows the current category order. [SCREENSHOTS](SCREENSHOTS.md) records the capture boundaries and missing live views.
 
 Item sprites used inside those panels come from RuneLite's official `https://static.runelite.net/cache/item/icon/<itemId>.png` service, cached only under ignored `build/marketing/icons`. Those OSRS game assets belong to Jagex and are not relicensed as original From Scratch art. RuneLite fonts/look and feel retain their respective authors' rights. Runtime item icons use RuneLite's supported sprite API; no preview downloader or generation helper enters the production plugin.
 

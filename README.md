@@ -2,6 +2,14 @@
 
 **A fresh start without a fresh account.**
 
+<p align="center"><img src="docs/media/dashboard-overview.png" alt="From Scratch sidebar overview with six progression statistics using synthetic example data" width="260" /></p>
+
+*Actual sidebar interface with synthetic example progress, not a live RuneScape screenshot.*
+
+From Scratch is independently developed by Pilots r kwl and is not affiliated with or endorsed by Jagex or RuneLite. It is currently in Friends Beta and is being prepared for official RuneLite Plugin Hub submission. It has not yet received Plugin Hub approval.
+
+**Author: Pilots r kwl**
+
 You've spent years building your Old School RuneScape account. Your bank is packed with equipment, supplies and wealth, but sometimes you want the excitement of starting over without making another character.
 
 From Scratch lets you do exactly that. Keep your levels, quests, achievements, account unlocks and every item you've already earned. When you begin a challenge, your existing bank becomes your **legacy collection**: the items remain physically yours, but you set them aside under the challenge rules.
@@ -34,11 +42,30 @@ The installer is unsigned. Local Windows Application Control blocked installer e
 
 ## See your fresh start grow
 
-<p align="center"><img src="docs/media/dashboard-overview.png" alt="From Scratch dashboard with six progress tiles rendered using synthetic sample values" width="360" /></p>
+The gallery shows actual plugin panels rendered with **synthetic example data**. These are interface previews, not live RuneScape screenshots or personal progression.
 
-*The actual dashboard rendered with synthetic sample progress. This is an interface preview, not a live RuneScape screenshot.*
+**Prepare your challenge**
 
-Genuine gameplay captures are still needed to show the native bank, mixed item quantities and Virtual Bank in action. The [capture checklist](docs/GAMEPLAY.md#screenshots-and-captures) describes exactly what the owner can provide without exposing private account information.
+<p align="center"><a href="docs/media/setup.png"><img src="docs/media/setup.png" alt="Before Starting sidebar with banking instructions and the start confirmation, using synthetic example state" width="260" /></a></p>
+
+*Setup explains what to bank and asks you to confirm before starting. The overview above follows your bank value, GP, unlocks and Time Played.*
+
+**Reclaim useful legacy gear**
+
+<p align="center"><a href="docs/media/legacy-buybacks.png"><img src="docs/media/legacy-buybacks.png" alt="Example legacy buyback tiles showing virtual GP prices and purchase availability" width="640" /></a></p>
+
+*Browse tile-based buybacks and check prices and availability. Open an image for a closer view.*
+
+**Follow your progress and trades**
+
+| Bank progression | Grand Exchange purchases |
+|---|---|
+| <a href="docs/media/bank-history.png"><img src="docs/media/bank-history.png" alt="Example bank history with signed item changes and a legacy Rune Pouch offset" width="320" /></a> | <a href="docs/media/ge-purchases.png"><img src="docs/media/ge-purchases.png" alt="Example completed and partial Grand Exchange purchases with quantities and reported GP" width="320" /></a> |
+| Review deposits, withdrawals and accounted legacy contents. | Review observed trades, including completed partial purchases. |
+
+See [individual item history](docs/media/item-history.png), [GE sales](docs/media/ge-sales.png) and [all interface previews](docs/SCREENSHOTS.md) for more examples.
+
+Genuine gameplay captures are still needed for Virtual Bank filtering, gray physical and signed virtual quantities, and RuneLite's plugin-options panel. The [capture checklist](docs/SCREENSHOTS.md#owner-gameplay-capture-checklist) describes the safe owner captures; these views are not fabricated here.
 
 ## Build a bank worth using again
 
