@@ -8,8 +8,9 @@ Use [CONTRIBUTING](../CONTRIBUTING.md) for development changes and [the validati
 - `src/test` contains headless behavior, persistence and historical migration fixtures. Old models remain test-only where those fixtures need them.
 - `src/beta` and `beta/windows-native` are owner-side standalone distribution tools.
 - `src/preview` renders actual Swing components with synthetic progress and an isolated empty home. It never starts RuneScape or reads a player profile.
+- `src/migration` is a separately executed, Java-standard-library offline transfer utility. Its disposable tests live in `src/migrationTest`; neither source set enters the standard plugin or beta launcher artifact.
 
-`gradle/beta.gradle` stages `beta/windows`; its `Common.ps1` is also consumed by the native build. The script install/launch/uninstall helpers still have packaging and integration-test consumers. Do not delete them merely because the native EXE is now the player download. Neither optional source set enters the production plugin JAR.
+`gradle/beta.gradle` stages `beta/windows`; its `Common.ps1` is also consumed by the native build. The script install/launch/uninstall helpers still have packaging and integration-test consumers. Do not delete them merely because the native EXE is now the player download. None of the optional source sets enters the production plugin JAR.
 
 Keep Java 11 compatibility, existing RuneLite-provided dependency boundaries, `build=standard`, package/config/storage identifiers and BSD-2-Clause notices. Build output, downloaded tools, runtimes, logs, sample homes and test progression stay under ignored `build/`.
 
@@ -26,6 +27,30 @@ git diff --check
 ```
 
 The focused test above is an example for search changes, not a required unrelated test on every edit. `Test-StandardBuild.ps1` obtains the official standard template and current Hub client version, compiles only production source and records tooling/template evidence under `build/standard-check`. It does not submit or establish policy approval. Detailed logs belong under ignored build directories.
+
+## Offline progression migration
+
+The utility prepares a future transition from `.runelite/plugin-data/from_scratch/` to `.runelite/plugin-data/from-scratch/`. **The current plugin descriptor still uses the old directory. Do not migrate real progression yet:** the later production startup/cutover gate must be implemented and validated before players switch. Running the current beta after a transfer continues writing the preserved old tree; those later changes do not synchronize into the destination.
+
+Build and test only the standalone utility:
+
+```powershell
+.\gradlew.bat migrationTest migrationJar --console=plain
+java -jar build/libs/from-scratch-migration.jar --dry-run
+java -jar build/libs/from-scratch-migration.jar
+```
+
+Java 11 or later is required. The default base is the current user's `.runelite/plugin-data` directory. An alternate RuneLite home can be selected explicitly with `--plugin-data <directory>`; the source and destination remain the two fixed child names. The utility has no network or telemetry and does not request account credentials or authenticate. Process metadata is inspected locally only to refuse active clients; process arguments are not recorded or transmitted.
+
+Close **all RuneLite and From Scratch clients** before either command, and leave them closed until the utility exits. Normal execution asks for the exact confirmation `MIGRATE FROM SCRATCH`; there is no unattended `--yes` option. A dry run inventories and checks the proposed transfer without creating destination, staging or completion data. Process inspection is an additional safeguard, not a substitute for the offline confirmation; unavailable or ambiguous inspection can require stopping and checking the local environment.
+
+Migration copies opaque file contents and the complete directory structure, including every character's journals, histories, archives, backups, incomplete recovery/import evidence and playtime. It does not repair or reinterpret save schemas. SHA-256 checks verify copies before completion. Existing identical destination files can be retained; conflicting files are refused rather than overwritten. Empty operational `run.lock` and `playtime.lock` files are held as locks where present and omitted from the copy; nonempty reserved lock files are refused. Original file bytes and modification times are not intentionally changed or deleted; operating-system last-access timestamps can change when files are read.
+
+The sibling `.from-scratch-migration` staging directory and its manifest support interrupted-transfer retries. Preserve them after a failure, resolve the reported cause, then rerun the same command. Verified staged files and the completion receipt are published through atomic, no-clobber hard links on the same volume. Hard-link support is required, as on ordinary Windows NTFS and Linux filesystems; an unsupported filesystem fails safely without claiming completion. Staging is retained transaction evidence and can share file contents with the destination; it is **not an independent backup**. The utility does not hard-link migrated files to the original beta files.
+
+The sibling `.from-scratch-migration-complete` receipt records successful cutover. After completion the destination is authoritative: subsequent execution must not reimport stale beta files, repair canonical data from staging or replace newer canonical progress with the original snapshot. Keep the original directory and independent private backups. Do not post manifests, saves or detailed local paths in public issues.
+
+Symlinks, junctions/reparse points and unsupported filesystem objects are rejected, including existing ancestors of the selected location. Java provider behavior differs across platforms; headless disposable tests do not establish native link behavior on every filesystem or prove safety against an actively hostile process modifying paths concurrently. The utility requires an offline, locally controlled tree. No real-player migration, authentication, installation or in-game acceptance is implied by automated tests.
 
 ## Standalone beta distribution
 

@@ -87,3 +87,4 @@ tasks.register('shadowJar', Jar) {
 // Owner-side distribution only. The Plugin Hub standard build replaces this build file.
 apply from: 'gradle/beta.gradle'
 apply from: 'gradle/previews.gradle'
+apply from: 'gradle/migration.gradle'
