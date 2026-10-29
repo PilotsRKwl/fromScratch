@@ -1,6 +1,19 @@
 # Changelog
 
-Current status: gameplay through Milestone 9.2 is owner-accepted and frozen. Milestone 10 prepares an unpublished beta. Older entries preserve development chronology, including superseded experiments; use [current documentation](docs/README.md) for behavior and installation.
+Current status: Friends Beta 10.7 is published. Milestone 10.8 adds the three requested fixes and buybacks; official RuneLite Plugin Hub submission remains Milestone 11. Historical entries below retain their original development context.
+
+## Milestone 10.8: Bug Fixes & Buyback Additions
+
+- Native bank search intersects its results with Virtual Bank ownership while retaining the preference and native input. Independent Bank Tags and Full Bank choices keep their existing behavior.
+- Black Masks (all charges and supported imbues) and Slayer Helmets (including current cosmetics) cost 1M virtual GP for one exact selected copy. A tile chooser handles multiple banked variants; duplicates require separate payments.
+- Elite Black Full Helm, Platebody and Platelegs each cost 30K per exact copy. Elite Void prices and upgrades are unchanged.
+- Format 11 records selected-copy identity and quantity in existing buyback receipts. Formats 5 through 10 remain readable, with historical family receipts unchanged; exports retain full payment and journal evidence. Back up before updating and do not load newer saves in an older beta.
+- Windows x64 version 0.10.8.0 / package 0.10.8-beta.1, private pinned Java 11 and existing per-user installer. See [Milestone 10.8](docs/MILESTONE_10_8.md) for evidence and remaining live checks.
+
+## Milestone 10.7: Potion Storage and Overdraft Protection
+
+- Published [Friends Beta 10.7](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft), based on source 92d055a0c4d7bf3fb2104734e3c0d976827c789b, following owner gameplay acceptance and passing Windows/Ubuntu CI.
+- Potion Storage doses, native quantities, setup verification, manual corrections, synchronized bank transfers and persistent overdraft warnings. Safe reset, empty Looting Bag attestation and existing buybacks retained.
 
 ## Milestone 10 — Windows beta and publication preparation (owner review pending)
 

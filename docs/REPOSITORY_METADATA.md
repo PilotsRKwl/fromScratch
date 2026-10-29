@@ -1,6 +1,6 @@
 # GitHub presentation recommendations
 
-Prepared locally; no remote repository settings, visibility, release, topics or social preview have been changed.
+Presentation recommendations. Friends Beta 10.7 is published; 10.8 uses the release title and notes below. Repository settings, topics and social preview remain unchanged.
 
 | Setting | Proposed value |
 | --- | --- |
@@ -8,7 +8,7 @@ Prepared locally; no remote repository settings, visibility, release, topics or 
 | Website | Leave blank for now; README is the homepage. Use a verified public beta/Plugin Hub link only after it exists. |
 | Topics | `runelite-plugin`, `old-school-runescape`, `osrs`, `runelite`, `challenge`, `bank`, `progression`, `java` |
 | Social preview | `docs/media/from-scratch-hero.png` — original 1280×640 artwork, also used in README. Not a gameplay screenshot. |
-| Release title | From Scratch — Windows Beta 0.10.0-beta.1 |
+| Release title | From Scratch \| Friends Beta 10.8: Bug Fixes & Buyback Additions |
 | Release body | Adapt [RELEASE_DRAFT.md](RELEASE_DRAFT.md); replace repository-relative documentation links with absolute canonical links when pasting into a GitHub Release. Keep beta/unreviewed and actual validation status. |
 | Issues | Keep the existing redaction-focused bug template. Do not request saves/authentication data in public. |
 

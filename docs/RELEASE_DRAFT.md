@@ -1,3 +1,29 @@
+# Friends Beta 10.8 release notes
+
+Publication source for v0.10.8-bug-fixes-buybacks. Final publication is gated on the validation in [Milestone 10.8](MILESTONE_10_8.md).
+
+## Your bank is full. Your adventure starts at zero.
+
+**Friends Beta 10.8 is here.**
+
+Your next adventure just got smoother.
+
+- **Search your Virtual Bank** without losing your From Scratch view.
+- **Choose your Slayer gear.** Unlock one exact Black Mask or Slayer Helmet copy for 1M virtual GP, including supported cosmetic and imbued versions. Each additional copy requires its own purchase.
+- **Reclaim your Elite Black Knight armour** with individual 30K GP buybacks for each helm, body or pair of legs.
+
+Your skills, quests and achievements remain yours. Your item progression starts fresh.
+
+**Download FromScratch-Beta-Setup.exe below and continue your adventure.** Windows 64-bit. Java is included.
+
+Existing local progression is preserved when upgrading. Export a backup before updating; older betas cannot read the newer save format.
+
+From Scratch is a Friends Beta and is not yet available on the official RuneLite Plugin Hub. The installer is unsigned. Authentication uses RuneLite's official sign-in flow.
+
+---
+
+## Historical 10.6 draft
+
 # From Scratch: Windows beta v0.10.6-friends-installer
 
 **LOCAL DRAFT — not published, distributed or Plugin Hub approved.** Upload only after the owner's consolidated acceptance. The actual future release URL is not known yet.

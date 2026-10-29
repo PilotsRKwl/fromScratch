@@ -121,7 +121,7 @@ public final class RuneLiteBankSource implements BankSource
 		try
 		{
 			ItemComposition item=client.getItemDefinition(id);
-			return item!=null&&!item.isTradeable()&&!item.isGeTradeable()&&item.getNote()==-1&&item.getPlaceholderTemplateId()==-1;
+			return item!=null&&((!item.isTradeable()&&!item.isGeTradeable())||com.fromscratch.buyback.SelectedBuybacks.tradeableException(id))&&item.getNote()==-1&&item.getPlaceholderTemplateId()==-1;
 		}
 		catch(RuntimeException ex){return false;}
 	}

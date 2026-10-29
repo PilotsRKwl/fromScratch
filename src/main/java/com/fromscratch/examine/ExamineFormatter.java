@@ -80,6 +80,8 @@ final class ExamineFormatter
 	{ text.append(" (");number(text,color,QuantityFormatter.formatNumber(unit));text.append("ea)"); }
 	private static Buyback buyback(BankRun run,int id)
 	{
+		String selected= com.fromscratch.buyback.SelectedBuybacks.catalog(id);
+		if(selected!=null){boolean paid=run.getBuybacks().getPurchases().stream().anyMatch(p->p.getSelectedItemId()==id);return new Buyback(paid,BuybackCatalog.entry(selected).getPrice(),false);}
 		for(BuybackEntry entry:BuybackCatalog.entries())
 		{
 			if(entry.getRoles().entrySet().stream().noneMatch(role->Objects.equals(BuybackCatalog.variants(role.getKey()).get(id),role.getValue()))) { continue; }

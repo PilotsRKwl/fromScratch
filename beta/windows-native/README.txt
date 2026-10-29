@@ -1,6 +1,6 @@
 FROM SCRATCH BETA
 
-This is an unpublished test build, not an approved RuneLite Plugin Hub release.
+Friends Beta 10.8. This is not an approved RuneLite Plugin Hub release.
 
 INSTALL
 Double-click FromScratch-Beta-Setup.exe and follow the wizard.

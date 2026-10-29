@@ -1,6 +1,6 @@
 # Bank accounting policy
 
-Accepted rules with the authorized Milestone 10.7 Potion Storage extension, pending owner acceptance. Earlier equations, migrations and superseded experiments are preserved in [ACCOUNTING_PRE_M10.md](../history/ACCOUNTING_PRE_M10.md). [Architecture](ARCHITECTURE.md) and the [reviewer source map](../PLUGIN_HUB_REVIEW.md) provide implementation pointers.
+Accepted rules plus the explicitly authorized Milestone 10.8 selected-copy extension. Historical equations and migrations remain in [ACCOUNTING_PRE_M10.md](../history/ACCOUNTING_PRE_M10.md).
 
 ## Signed bank progress
 
@@ -71,3 +71,13 @@ Forced journals/checkpoints, atomic replacement, CAS and guarded callbacks prote
 Manual Bank Corrections remain explicit signed-balance corrections. Export/import replaces a verified same-character run after preview/confirmation and backs up existing progression; it never merges divergent histories. All records are local to the designated host. Time Played is an independent logged-in host-tick counter, not a financial input.
 
 Storage-only observations must persist the same calculated gain exclusions as ordinary-bank observations. Exclusion replay is verified before commit, even when physical bank deltas are zero and a transfer resolves prior signed debt. Missing or incorrect evidence is rejected without advancing the durable head. Incomplete native storage builds are unavailable rather than zero; last acknowledged balances are retained and the storage display becomes unverified. This correction adds no save fields or migration.
+
+## Milestone 10.8 selected-copy accounting
+
+The existing buyback transaction, GP commitments and projection are extended, not replaced. Historical role levels still grant one shared copy (including pouch/bag and Void tiers). New catalog entries explicitly use exact-ID roles `copy_<item ID>` whose integer entitlement is the receipt-derived count, not an upgrade level. Their encoded level is always 1 and quantity is the paid copy count. Each receipt has a dedicated `selected: {item, quantity: 1}` object; pouch/bag evidence is never reused. Constructors validate the allowlisted catalog/ID, one-copy quantity, complete floor keys, total GP, duplicate UUIDs and receipt-derived counts. The existing ledger is bounded at 4,096 purchases; reaching that limit rejects a purchase without spending.
+
+One exact copy costs 1M for Slayer gear or 30K for each Elite Black Knight piece. Only the eleven explicit ordinary Black Mask charge IDs bypass the tradeability exclusion; notes/placeholders and arbitrary tradeables remain rejected. The reviewed 104 Slayer IDs include 44 mask IDs and 60 helmet IDs. Native item definitions remain required at confirmation.
+
+Per-ID bank floors follow the existing signed return-protection rule. At first payment floor = min(0, raw balance); repeated payments add one paid copy without moving the floor. Returns may raise the floor to zero, never lower it. Available physical copies are the natural signed bank progression plus the paid allowance, capped by physical stock. No new gain, physical mutation or raw bank credit is fabricated. A withdrawn paid copy must return before another payment for that same ID; this prevents reanchoring debt or refilling an out-of-bank copy. Other IDs never receive that allowance. Observed transformations use normal exact-ID bank deltas, without inferring inventory conversions or moving an entitlement across variants.
+
+BankRun format 11 adds this evidence. Formats 5 through 10 remain readable; loading 10.7 format-10 bytes does not rewrite them. The next acknowledged transaction writes 11 while retaining journals and previous checkpoints. Historical receipt JSON stays unchanged. Older formats cannot contain selected-copy evidence. Backups/imports retain the same checksums, CAS, character/run isolation and atomic replacement. An older client must not load a format-11 save.

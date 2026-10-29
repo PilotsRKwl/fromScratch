@@ -92,9 +92,9 @@ if(!$ImageOnly){
     $setup=Join-Path $downloads 'FromScratch-Beta-Setup.exe'
     [IO.File]::WriteAllText((Join-Path $test '.from-scratch-installer-test'),'Isolated From Scratch installer test')
     # Compile only an older installer-version fixture. It uses this exact candidate payload,
-    # a distinct test AppId and isolated paths; the real v0.10.5 release is never touched.
+    # a distinct test AppId and isolated paths; the real v0.10.7 release is never touched.
     $inno=Join-Path $project 'build/native-installer/tools/inno/ISCC.exe'
-    & $inno '/Q' ('/DImageDir='+$build.image) ('/DOutputDir='+$downloads) '/DPackageVersion=0.10.5' '/DWindowsVersion=0.10.5.0' '/DReleaseVersion=v0.10.5-upgrade-fixture' (Join-Path $project 'beta/windows-native/FromScratch.iss')
+    & $inno '/Q' ('/DImageDir='+$build.image) ('/DOutputDir='+$downloads) '/DPackageVersion=0.10.7' '/DWindowsVersion=0.10.7.0' '/DReleaseVersion=v0.10.7-upgrade-fixture' (Join-Path $project 'beta/windows-native/FromScratch.iss')
     Assert-Native ($LASTEXITCODE -eq 0) 'Older installer-version fixture compilation failed.'
     $sentinel=Join-Path $test 'User/.runelite/plugin-data/from_scratch/progression-fixture.txt';[void][IO.Directory]::CreateDirectory((Split-Path $sentinel));[IO.File]::WriteAllText($sentinel,'preserve progression fixture')
     $settings=Join-Path $test 'User/.runelite/settings.properties';[IO.File]::WriteAllText($settings,'synthetic settings, preserve unchanged')

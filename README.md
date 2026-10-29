@@ -12,18 +12,18 @@ Bank your loot after each trip and watch your new collection grow. That first us
 
 ## How to Play
 
-**[Download the From Scratch Friends Beta](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft).**
+**[Download the From Scratch Friends Beta](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks).**
 
 We're preparing From Scratch for publication on the RuneLite Plugin Hub. It has not been submitted or approved yet.
 
 Requires Windows 64-bit. Java is included.
 
-1. **Download From Scratch.** Get [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.7-potion-storage-overdraft/FromScratch-Beta-Setup.exe).
+1. **Download From Scratch.** Get [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8-bug-fixes-buybacks/FromScratch-Beta-Setup.exe).
 2. **Install From Scratch.** Double-click the file and follow the installation wizard. A **From Scratch Beta** shortcut appears on your desktop.
 3. **Open From Scratch.** Double-click the shortcut and follow RuneLite's sign-in instructions.
 4. **Start your challenge.** Enable From Scratch in RuneLite, open its purple coin panel, and follow the setup instructions.
 
-[Release notes](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft) · [Installation help](docs/INSTALLATION.md)
+[Release notes](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks) · [Installation help](docs/INSTALLATION.md)
 
 ## The Challenge
 
@@ -44,6 +44,8 @@ A few law runes can mean your next teleport. A weapon drop can unlock your next 
 Bank what you earn and see your challenge balance update automatically.
 
 ### Your Own Fresh Bank
+
+Native bank search keeps your Virtual Bank view.
 
 **Virtual Bank** shows the item types available in your challenge, with your normal bank tabs and banking controls. Turn off **Enable Virtual Bank View** in From Scratch's settings whenever you want to see your full bank.
 
@@ -72,6 +74,8 @@ Buybacks spend your challenge GP and leave your real coins and equipment untouch
 ![The current Legacy Buybacks catalog showing combat gear, prices and availability with sample progress](docs/media/legacy-buybacks.png)
 
 *Browse your next goal. This interface preview uses sample progress.*
+
+Choose the exact Black Mask or Slayer Helmet copy to reclaim for 1M virtual GP. Elite Black Knight armour pieces cost 30K each.
 
 ### Trade, Earn, and Explore
 

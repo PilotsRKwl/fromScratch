@@ -3,7 +3,7 @@ package com.fromscratch.buyback;
 import java.util.*;
 import net.runelite.api.gameval.ItemID;
 
-/** Explicit RuneLite 1.13.3 gameval allowlist. Names never determine runtime eligibility. */
+/** Explicit gameval allowlist; selected-copy additions are reviewed against RuneLite 1.13.4. Names never determine runtime eligibility. */
 public final class BuybackCatalog
 {
  public static final int VERSION=1;
@@ -59,6 +59,10 @@ public final class BuybackCatalog
   role("farmer_top",1,ItemID.TITHE_REWARD_TORSO_MALE,ItemID.TITHE_REWARD_TORSO_FEMALE);
   role("farmer_legs",1,ItemID.TITHE_REWARD_LEGS_MALE,ItemID.TITHE_REWARD_LEGS_FEMALE);
   role("farmer_boots",1,ItemID.TITHE_REWARD_FEET_MALE,ItemID.TITHE_REWARD_FEET_FEMALE);
+  ENTRIES.put("slayer_gear",new BuybackEntry("slayer_gear","Slayer Helmet / Black Mask","Combat & Utility",ItemID.SLAYER_HELM_I,1000000,Collections.emptyMap()));
+  ENTRIES.put("elite_black_helm",new BuybackEntry("elite_black_helm","Elite Black Full Helm","Combat & Utility",ItemID.ELITE_BLACK_FULL_HELM,30000,Collections.emptyMap()));
+  ENTRIES.put("elite_black_body",new BuybackEntry("elite_black_body","Elite Black Platebody","Combat & Utility",ItemID.ELITE_BLACK_PLATEBODY,30000,Collections.emptyMap()));
+  ENTRIES.put("elite_black_legs",new BuybackEntry("elite_black_legs","Elite Black Platelegs","Combat & Utility",ItemID.ELITE_BLACK_PLATELEGS,30000,Collections.emptyMap()));
   single("fire_cape","Fire Cape",1000000,"fire_cape");
   single("infernal_cape","Infernal Cape",15000000,"infernal_cape");
   single("saradomin_cape","Imbued Saradomin Cape",750000,"saradomin_cape");
@@ -95,7 +99,7 @@ public final class BuybackCatalog
  private static void add(String id,String name,String category,long gp,Map<String,Integer> roles){String first=roles.keySet().iterator().next();int level=roles.get(first);int icon=ROLES.get(first).entrySet().stream().filter(e->e.getValue()==level).findFirst().get().getKey();ENTRIES.put(id,new BuybackEntry(id,name,category,icon,gp,roles));}
  public static BuybackEntry entry(String id){BuybackEntry e=ENTRIES.get(id);if(e==null){throw new IllegalArgumentException("This item is not approved for buyback.");}return e;}
  public static Collection<BuybackEntry> entries(){return Collections.unmodifiableCollection(ENTRIES.values());}
- public static Map<Integer,Integer> variants(String role){Map<Integer,Integer> ids=ROLES.get(role);if(ids==null){throw new IllegalArgumentException("Unknown entitlement role");}return Collections.unmodifiableMap(ids);}
+ public static Map<Integer,Integer> variants(String role){if(SelectedBuybacks.copyRole(role)){return Collections.singletonMap(SelectedBuybacks.item(role),1);}Map<Integer,Integer> ids=ROLES.get(role);if(ids==null){throw new IllegalArgumentException("Unknown entitlement role");}return Collections.unmodifiableMap(ids);}
  public static long cost(BuybackEntry entry,Map<String,Integer> owned){if(entry.getId().startsWith("elite_void_")&&owned.getOrDefault(entry.getRoles().keySet().iterator().next(),0)>=1){return 1000000;}return entry.getPrice();}
  public static List<BuybackEntry> search(String text){String query=text.toLowerCase(Locale.ROOT).trim();List<BuybackEntry> result=new ArrayList<>();for(BuybackEntry entry:ENTRIES.values()){if(entry.getName().toLowerCase(Locale.ROOT).contains(query)){result.add(entry);}}return result;}
 }

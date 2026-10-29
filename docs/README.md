@@ -4,7 +4,7 @@ The [homepage](../README.md) introduces the challenge. Start here for help, or u
 
 ## For players
 
-- [Installation](INSTALLATION.md): the authoritative Windows beta installation, login, update and uninstall guide. The beta is not publicly available yet.
+- [Installation](INSTALLATION.md): the authoritative Windows beta installation, login, update and uninstall guide. Friends Beta is published; it is not on the official RuneLite Plugin Hub.
 - [Feature reference](FEATURES.md): challenge rules, bank counts, buybacks and limitations.
 - [Beta testing](BETA_TESTING.md): first sessions, checks and a privacy-safe bug report.
 - [Data and privacy](DATA_AND_PRIVACY.md): local saves, backups and device limitations.
@@ -14,6 +14,7 @@ The [homepage](../README.md) introduces the challenge. Start here for help, or u
 
 - [Architecture](technical/ARCHITECTURE.md), [accounting](technical/ACCOUNTING.md) and [validation plan](technical/TEST_PLAN.md).
 - [Plugin Hub review map](PLUGIN_HUB_REVIEW.md): source paths, supported APIs and review-sensitive behavior.
+- [Milestone 10.8 bug fixes and buybacks](MILESTONE_10_8.md): exact-copy purchases, search, validation and release evidence.
 - [Milestone 10 release candidate](MILESTONE_10.md): current evidence and owner acceptance gates.
 - [Milestone 10.6 native installer](MILESTONE_10_6.md): private runtime, Windows launcher, wizard and focused acceptance.
 - [Milestone 10.7: Potion Storage and Overdraft Protection](MILESTONE_10_7.md): dose accounting, warnings, compatible saves and manual acceptance.

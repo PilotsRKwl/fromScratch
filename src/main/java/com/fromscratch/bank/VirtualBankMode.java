@@ -70,8 +70,8 @@ public final class VirtualBankMode
 	public void potionStorageSelected(){if(nativeTab()!=POTION_TAB){pausePotions();}}
 	private void pausePotions()
 	{potionView=true;wanted=false;selected=false;nativeMode=false;previousTitle=null;tabDirty=true;applied=Collections.emptySet();request();}
-	/** Native search owns its input; leave our single-tab build mode rather than close that input. */
-	public void searchSelected(){if(wanted&&selected){selectFullBank();request();}}
+	/** Core closes its tag without relayout on search. Keep our cached intersection and its input. */
+	public void searchSelected(){if(wanted&&selected&&!potionView){nativeMode=true;tabDirty=true;}}
 	public void itemsChanged(){tabDirty=true;}
 	/** Core may restore a remembered tag without any From Scratch activation. */
 	public void bankBuilt()

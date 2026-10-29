@@ -156,6 +156,14 @@ public final class BankEngine
 		BankAudit change=new BankAudit(purchaseId,session,at,BankAudit.Kind.BUYBACK,Collections.emptyMap(),adjustments,"Player confirmed legacy buyback: "+entry.getName(),Collections.emptyList(),com.fromscratch.ge.GeUpdate.empty(),purchase);
 		return next(old,old.getPhysical(),balances,true,change,old.getHostSummary());
 	}
+	/** One exact paid copy, recorded in the existing payment/audit transaction without changing raw P/B. */
+	public static BankRun buySelected(BankRun old,String catalogId,int itemId,UUID purchaseId,UUID session,Instant at)
+	{
+		requireAnchored(old);com.fromscratch.buyback.BuybackEntry entry=com.fromscratch.buyback.BuybackCatalog.entry(catalogId);
+		com.fromscratch.buyback.BuybackPurchase receipt=new com.fromscratch.buyback.BuybackPurchase(purchaseId,catalogId,entry.getPrice(),at,com.fromscratch.buyback.BuybackEngine.selectedFloors(old,itemId),itemId);
+		BankAudit change=new BankAudit(purchaseId,session,at,BankAudit.Kind.BUYBACK,Collections.emptyMap(),Collections.emptyMap(),"Player confirmed one legacy copy: "+com.fromscratch.buyback.SelectedBuybacks.name(itemId),Collections.emptyList(),com.fromscratch.ge.GeUpdate.empty(),receipt);
+		return next(old,old.getPhysical(),old.getBalances(),true,change,old.getHostSummary());
+	}
 	/** Scoped explicit setup/review; restoring a misidentified deposit recognizes only current high-water progress. */
 	public static BankRun buyBag(BankRun old,UUID purchaseId,UUID session,Instant at,com.fromscratch.buyback.BagObservation contents)
 	{

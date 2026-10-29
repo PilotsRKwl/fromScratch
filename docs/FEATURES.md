@@ -1,6 +1,6 @@
 # From Scratch — feature guide
 
-Milestone 10.7 adds Potion Storage and Overdraft Protection to the accepted challenge. This update awaits live acceptance. The plugin is a voluntary challenge, not an official account mode.
+Friends Beta 10.8 adds bank search and equipment buybacks to the accepted 10.7 baseline. The plugin is a voluntary challenge, not an official account mode.
 
 ## Start with the character you already have
 
@@ -13,7 +13,7 @@ Signed progress follows `B' = B + (P' - P)`, where P is the complete physical ba
 - Physical top-left counts: #A0A0A0 during an active overlay, full physical quantity with native compact formatting. Dragged items keep native counters.
 - Virtual bottom-right counts: configurable, #1DFF00 by default; compact integer K/M notation with no upward rounding.
 - Zero/negative items: configurable locked tint, #333333 / 50% by default. Item shapes, menus and quantities are unchanged.
-- Virtual Bank: default-ON preference, active runs only; positive effective types intersect native tabs 1–9 or All. Full Bank remains available through the single Settings checkbox. Search/other Bank Tags explicitly exit filtering. Separate special storage interfaces are outside this filter.
+- Virtual Bank: default-ON preference, active runs only; positive effective types intersect native tabs 1–9 or All. Full Bank remains available through the single Settings checkbox. Native search intersects matching results with virtual ownership and keeps the preference enabled. Independent Bank Tags keep their own view. Separate special storage interfaces are outside this filter.
 - Mixed stacks keep native physical quantities: gray 110 / green 10 means only 10 challenge copies, despite the full physical stack remaining withdrawable.
 - Normal item Examine keeps native/core messages, then adds one From Scratch line with exact signed bank quantities, cached values and entitlement status. It adds no menu option.
 
@@ -76,3 +76,10 @@ Bank History and item-specific history retain recorded deposits, withdrawals, ma
 - No gameplay automation, synthetic actions, withdrawal blocking, server ownership changes or packet manipulation.
 - No cloud sync. Export/Import Progress is explicit, private local transfer for the same character, replacing rather than merging runs.
 - Reset archives progression after a typed confirmation. Use disposable runs for destructive testing; never reset a real run for screenshots.
+
+## New equipment buybacks in Friends Beta 10.8
+
+- **Black Mask / Slayer Helmet:** 1M virtual GP for one selected legacy copy. Choose among your banked variants, then confirm the exact item. Charged masks, supported imbues and cosmetic helmets are included. Each additional identical copy costs another 1M.
+- **Elite Black Knight armour:** helm, body and legs cost 30K each, per copy. These are separate from Elite Void.
+- Earned copies remain available for free. A payment never unlocks all variants. Keep the bank open to purchase; if a paid copy is currently withdrawn, return it before buying another copy of that ID. Transformations follow normal bank changes; the plugin cannot prove unseen inventory conversions or transfer an entitlement to another ID automatically.
+- Achievement Diary rewards have no buyback category. Obtain a replacement through the normal game and bank it under the usual rules. Prior diary completion does not unlock your legacy copy.

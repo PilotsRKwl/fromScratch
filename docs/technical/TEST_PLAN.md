@@ -1,6 +1,6 @@
 # Validation plan
 
-Milestone 10.7: Potion Storage and Overdraft Protection is an authorized gameplay extension awaiting owner acceptance. Earlier beta/distribution evidence remains in [MILESTONE_10.md](../MILESTONE_10.md); historical results stay in the [archive](../history/TEST_PLAN_PRE_M10.md).
+Milestone 10.7 is the owner-accepted, published baseline. Milestone 10.8 covers native search and exact-copy equipment buybacks. [Milestone 10.8](../MILESTONE_10_8.md) records current release gates; older evidence below remains historical.
 
 ## Current verified baseline
 

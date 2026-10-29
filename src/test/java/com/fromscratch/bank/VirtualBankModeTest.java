@@ -207,12 +207,12 @@ public class VirtualBankModeTest
 		assertTrue(choices.isEmpty());assertEquals(definitions,access.definitions);mode.setEnabled(false);int[] normal={0};mode.script("bankBuildTab",normal,1);assertEquals(0,normal[0]);assertEquals(1,access.refresh);assertNull(access.active);
 	}
 	private boolean allowedByScript(int id){int[] result={-1,id};mode.script("bankSearchFilter",result,2);return result[0]!=0;}
-	@Test public void nativeTabDepositsAndWithdrawalsRemainAuthoritativeAndSearchExitsSafely() throws Exception
+	@Test public void nativeTabDepositsAndWithdrawalsRemainAuthoritativeDuringSearch() throws Exception
 	{
 		Filepath root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());BankRepository repo=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());Source source=new Source();Worker worker=new Worker();BankController controller=new BankController(source,repo,Runnable::run,v->{});mode.setEnabled(true);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();source.observer.tick();controller.tick();controller.startRun(true,null,true);worker.runAll();source.quantity(3);source.observer.tick();controller.tick();worker.runAll();
 		BankRun before=repo.load(root,source.character).get();mode.nativeTabSelected();access.active=null;access.nativeTab=1;int[] build={0};mode.script("bankBuildTab",build,1);mode.bankBuilt();assertEquals(before,repo.load(root,source.character).get());assertTrue(allowedByScript(SHIELD));
 		for(int n:new int[]{1,0,2}){source.quantity(n);source.observer.tick();controller.tick();worker.runAll();assertEquals(n-1,repo.load(root,source.character).get().balance(SHIELD));assertEquals(n>1,allowedByScript(SHIELD));}
-		int opened=access.opened;List<Boolean> preferences=new ArrayList<>();mode.fullBankSelected(()->preferences.add(false));mode.searchSelected();assertEquals(Collections.singletonList(false),preferences);assertEquals(opened,access.opened);int[] untouched={-1,SHIELD};mode.script("bankSearchFilter",untouched,2);assertEquals(-1,untouched[0]);controller.stop();mode.stop();
+		int opened=access.opened;List<Boolean> preferences=new ArrayList<>();mode.fullBankSelected(()->preferences.add(false));mode.searchSelected();assertTrue(preferences.isEmpty());assertEquals(opened,access.opened);int[] owned={1,SHIELD};mode.script("bankSearchFilter",owned,2);assertEquals(1,owned[0]);int[] nativeMiss={0,SHIELD};mode.script("bankSearchFilter",nativeMiss,2);assertEquals(0,nativeMiss[0]);controller.stop();mode.stop();
 	}
 	@Test public void incompleteNativeTabMetadataFailsSafeWithoutRefreshRecursion()
 	{
@@ -245,4 +245,22 @@ public class VirtualBankModeTest
 		BankRun run=BankEngine.observe(run(1),bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);mode.setEnabled(true);mode.update(run,true);mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.bankClosed();access.nativeTab=0;mode.update(run,true);assertNotNull(access.predicate);assertTrue(access.predicate.contains(SHIELD));assertFalse(mode.isFaulted());assertEquals(2,access.opened);
 	}
 	
+
+	@Test public void searchUsesNativeResultIntersectionAcrossRepeatedOpenClearAndTabChanges()
+	{
+		BankRun a=run(1);a=BankEngine.observe(a,bank(3),UUID.randomUUID(),SnapshotFixtures.TIME);mode.setEnabled(true);mode.update(a,true);List<Boolean> choices=new ArrayList<>();mode.fullBankSelected(()->choices.add(false));
+		for(int i=0;i<50;i++){
+			mode.searchSelected();access.active=null;mode.bankBuilt();
+			for(int nativeResult:new int[]{0,1}){int[] owned={nativeResult,SHIELD};mode.script("bankSearchFilter",owned,2);assertEquals(nativeResult,owned[0]);int[] legacy={nativeResult,OTHER};mode.script("bankSearchFilter",legacy,2);assertEquals(0,legacy[0]);}
+			mode.nativeTabSelected();access.nativeTab=i%2;mode.bankBuilt();mode.searchSelected();mode.bankBuilt();
+		}
+		assertTrue(choices.isEmpty());assertEquals(1,access.opened);assertFalse(mode.isFaulted());
+		mode.setEnabled(false);int[] full={1,OTHER};mode.script("bankSearchFilter",full,2);assertEquals(1,full[0]);mode.searchSelected();assertEquals(1,access.opened);
+	}
+	@Test public void searchDoesNotOverrideIndependentTagOrReactivateDuringPotionStorage()
+	{
+		mode.setEnabled(true);mode.update(run(1),true);mode.searchSelected();access.active=null;mode.bankBuilt();
+		mode.potionStorageSelected();access.nativeTab=15;int[] storage={1,OTHER};mode.script("bankSearchFilter",storage,2);assertEquals(1,storage[0]);mode.bankBuilt();
+		access.nativeTab=0;mode.bankBuilt();mode.update(run(1),true);mode.searchSelected();access.active="my_saved_tag";mode.bankBuilt();assertEquals("my_saved_tag",access.active);int[] user={1,OTHER};mode.script("bankSearchFilter",user,2);assertEquals(1,user[0]);
+	}
 }

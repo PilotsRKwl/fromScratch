@@ -1,6 +1,6 @@
 # Architecture
 
-Current guide for the accepted baseline plus the authorized Milestone 10.7: Potion Storage and Overdraft Protection candidate, awaiting live acceptance. Earlier Milestone 10 distribution work remains separate. The [reviewer map](../PLUGIN_HUB_REVIEW.md) links features to source files; historical designs remain in the [archive](../history/ARCHITECTURE_PRE_M10.md).
+Current guide for Friends Beta 10.8 and the owner-accepted, published 10.7 baseline. The [reviewer map](../PLUGIN_HUB_REVIEW.md) links source; historical designs remain in the [archive](../history/ARCHITECTURE_PRE_M10.md).
 
 ## Core and observation
 
@@ -16,7 +16,7 @@ Initial setup uses the player's inventory/equipment banking attestation and expl
 
 ## Views and information
 
-- `bank/VirtualBankMode` uses supported Bank Tags APIs and immutable eligible-ID snapshots. Native bank tab slot ranges intersect with positive virtual membership. Membership callbacks do set lookups, with no item-definition, disk, price or ledger work. Re-entrant close paths clear state first. Filtering requires the correct active run, identity, ready bank and saved preference; before setup and after reset the full bank remains available. Search/another Bank Tag can leave the virtual view safely. No repeated activation loop.
+- `bank/VirtualBankMode` uses supported Bank Tags APIs and immutable eligible-ID snapshots. Native bank tab slot ranges intersect with positive virtual membership. Membership callbacks do set lookups, with no item-definition, disk, price or ledger work. Re-entrant close paths clear state first. Filtering requires the correct active run, identity, ready bank and saved preference; before setup and after reset the full bank remains available. Native search keeps the cached ownership intersection; another independent Bank Tag can leave the view safely. No repeated activation loop.
 - `overlay/VirtualBankOverlay` and `overlay/BankItemPainter` preserves native interactions and geometry. M9.2 temporarily changes the public quantity-display mode, draws the physical counter in gray after the locked tint, and restores original modes when inactive. It does not change item IDs, sprites or quantities. Virtual counters retain configurable color and compact formatting. See the reviewer guide for the precise rendering disclosure.
 - Native item Examine correlation waits for the game's normal response and RuneLite price handling before one local supplemental line. Exact signed quantities and numerical color segments are bounded to avoid native chat truncation. Prices are cached; no separate menu action or outgoing player chat is created.
 - History windows query retained evidence asynchronously, with bounded pages. Item history is read-only. No expanded statistics page or fake bank inventory exists.
@@ -47,3 +47,13 @@ Client APIs run on the client thread, Swing work on the EDT, disk/price work off
 The production `src/main` plugin uses no custom backend, cloud sync, credential access, reflection, native process execution, synthetic gameplay input or withdrawal blocking. RuneLite handles its normal authentication and game connection.
 
 The separate owner-side `src/beta`, Windows scripts and Gradle packaging are outside the Hub plugin. They launch an unmodified official RuneLite runtime through its supported developer entry point. `src/preview` renders the same production Swing components with explicit synthetic data and official sprites; it never launches the game or loads player progression. Neither source set enters the production JAR or standard Hub build.
+
+## Milestone 10.8 selected-copy accounting
+
+The existing buyback transaction, GP commitments and projection are extended, not replaced. Historical role levels still grant one shared copy (including pouch/bag and Void tiers). New catalog entries explicitly use exact-ID roles `copy_<item ID>` whose integer entitlement is the receipt-derived count, not an upgrade level. Their encoded level is always 1 and quantity is the paid copy count. Each receipt has a dedicated `selected: {item, quantity: 1}` object; pouch/bag evidence is never reused. Constructors validate the allowlisted catalog/ID, one-copy quantity, complete floor keys, total GP, duplicate UUIDs and receipt-derived counts. The existing ledger is bounded at 4,096 purchases; reaching that limit rejects a purchase without spending.
+
+One exact copy costs 1M for Slayer gear or 30K for each Elite Black Knight piece. Only the eleven explicit ordinary Black Mask charge IDs bypass the tradeability exclusion; notes/placeholders and arbitrary tradeables remain rejected. The reviewed 104 Slayer IDs include 44 mask IDs and 60 helmet IDs. Native item definitions remain required at confirmation.
+
+Per-ID bank floors follow the existing signed return-protection rule. At first payment floor = min(0, raw balance); repeated payments add one paid copy without moving the floor. Returns may raise the floor to zero, never lower it. Available physical copies are the natural signed bank progression plus the paid allowance, capped by physical stock. No new gain, physical mutation or raw bank credit is fabricated. A withdrawn paid copy must return before another payment for that same ID; this prevents reanchoring debt or refilling an out-of-bank copy. Other IDs never receive that allowance. Observed transformations use normal exact-ID bank deltas, without inferring inventory conversions or moving an entitlement across variants.
+
+BankRun format 11 adds this evidence. Formats 5 through 10 remain readable; loading 10.7 format-10 bytes does not rewrite them. The next acknowledged transaction writes 11 while retaining journals and previous checkpoints. Historical receipt JSON stays unchanged. Older formats cannot contain selected-copy evidence. Backups/imports retain the same checksums, CAS, character/run isolation and atomic replacement. An older client must not load a format-11 save.

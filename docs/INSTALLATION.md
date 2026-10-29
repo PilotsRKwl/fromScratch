@@ -2,11 +2,11 @@
 
 ## Windows beta
 
-The **v0.10.7-potion-storage-overdraft** local test candidate (**0.10.7-beta.1**) is being prepared for owner testing. It includes uncommitted changes and must be rebuilt from the approved committed source before distribution. The existing 10.6 installer remains a separate earlier candidate. It has not been published or approved by RuneLite Plugin Hub. Download links will appear on [GitHub Releases](https://github.com/PilotsRKwl/fromScratch/releases) only after release approval.
+Download [Friends Beta 10.8](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks), package **0.10.8-beta.1**. [Friends Beta 10.7](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft) remains available separately. From Scratch is not yet available or approved on the RuneLite Plugin Hub.
 
 The installer supports **64-bit Windows 10 and Windows 11**. Java is included. You do not need to install Java, change PATH, use a terminal or install developer software. Windows' built-in .NET Framework 4.x runs the small application launcher.
 
-1. Download the approved **FromScratch-Beta-Setup.exe**. Keep its accompanying SHA-256 checksum if you want to verify the download.
+1. Download [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8-bug-fixes-buybacks/FromScratch-Beta-Setup.exe). Keep its accompanying SHA-256 checksum if you want to verify the download.
 2. Double-click the EXE and follow **Welcome to From Scratch Beta**. It installs for your Windows user without administrator rights.
 3. Leave **Open From Scratch Beta** selected at the end, or use **From Scratch Beta** on your desktop or Start Menu.
 4. In RuneLite, open **Jagex Accounts**, choose **Add Jagex Account**, complete the official login window yourself, select your character and choose **Play Now**. See RuneLite's [official login instructions](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
@@ -14,11 +14,11 @@ The installer supports **64-bit Windows 10 and Windows 11**. Java is included. Y
 
 The installer never asks for passwords or tokens. It does not export credentials or use insecure credential writing. Its bundled client uses RuneLite's existing developer-mode login route. Actual graphical launch and account authentication remain owner acceptance requirements; a successful install or verification check does not prove login works.
 
-This candidate is **unsigned**. Windows may display an unknown publisher or reputation warning. Check the source and checksum, and stop if uncertain. Do not disable Defender, SmartScreen or antivirus software. No authenticated publisher identity is claimed.
+The installer is **unsigned**. Windows may display an unknown publisher or reputation warning. Check the source and checksum, and stop if uncertain. Do not disable Defender, SmartScreen or antivirus software. No authenticated publisher identity is claimed.
 
 ## Updating
 
-Export Progress privately before updating. Close From Scratch Beta, then run the newer approved installer. It updates the same per-user application and shortcuts. Previous owned program payloads may remain until uninstall; saved progression is separate and unchanged. Do not run an older beta against a newer save without a verified compatible backup.
+Export Progress privately before updating. Version 10.8 writes a newer save format, so keep your backup before using an earlier beta. Close From Scratch Beta, then run the newer approved installer. It updates the same per-user application and shortcuts. Previous owned program payloads may remain until uninstall; saved progression is separate and unchanged. Do not run an older beta against a newer save without a verified compatible backup.
 
 The old v0.10.5 ZIP is retained separately. Its installed program files are not deleted by this installer. A verified old From Scratch shortcut may be replaced by the new EXE shortcut; unrelated shortcuts with the same name are preserved and installation is blocked with an explanation. [Historical script instructions](history/INSTALLATION_SCRIPTS_10_5.md) are reference only.
 

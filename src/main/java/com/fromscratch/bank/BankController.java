@@ -293,6 +293,15 @@ public final class BankController implements BankActions
 			save(candidate,()->committed.accept(candidate.getBuybacks().getPurchases().get(candidate.getBuybacks().getPurchases().size()-1)));
 		});
 	}
+	public void buySelected(UUID revision,String catalogId,int itemId,UUID purchaseId)
+	{
+		act(()->{
+			requireRevision(revision);BankObservation fresh=requireBank();
+			if(!run.getPhysical().equals(fresh.getBank().getQuantities())){throw new IllegalArgumentException("Your bank changed. Reopen Legacy Buybacks.");}
+			if(!com.fromscratch.buyback.SelectedBuybacks.selected(catalogId)||!catalogId.equals(com.fromscratch.buyback.SelectedBuybacks.catalog(itemId))||!source.buybackDefinition(itemId)){throw new IllegalArgumentException("The selected item could not be verified. No GP was spent.");}
+			save(BankEngine.buySelected(run,catalogId,itemId,purchaseId,fresh.getSession(),Instant.now()));
+		});
+	}
 	public void recordExpense(UUID revision,long gp,String reason)
 	{ act(()->{requireRevision(revision);save(BankEngine.expense(run,gp,reason,UUID.randomUUID(),Instant.now()));}); }
 	public void bagPreview(Consumer<com.fromscratch.buyback.BagObservation> callback)

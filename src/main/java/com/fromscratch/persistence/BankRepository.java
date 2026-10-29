@@ -41,7 +41,7 @@ public final class BankRepository
 			int version;
 			try { version = Math.toIntExact(BankRunCodec.number(new JsonParser().parse(text).getAsJsonObject().get("formatVersion"))); }
 			catch (RuntimeException ex) { throw new SaveException("Save header is unreadable. Existing files were preserved."); }
-			if (version == BankRunCodec.FORMAT || version == 9) { BankRun run = codec.decode(text, character); verify(d, run, true); return Optional.of(run); }
+			if (version == BankRunCodec.FORMAT || version == 10 || version == 9) { BankRun run = codec.decode(text, character); verify(d, run, true); return Optional.of(run); }
 			if(version==8)
 			{
 				BankRun old=codec.decode(text,character);verify(d,old,true);String archived=archive(d);

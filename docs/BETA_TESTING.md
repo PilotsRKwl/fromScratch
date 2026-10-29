@@ -1,6 +1,6 @@
 # Friend-and-family beta testing
 
-This is an unpublished, unreviewed candidate until the owner approves distribution. Install only the approved owner-provided **FromScratch-Beta-Setup.exe** from the [canonical repository](https://github.com/PilotsRKwl/fromScratch). [Installation and login](INSTALLATION.md) is the authoritative guide for setup, login, updates and uninstall. The private runtime is included; no developer tools or Java configuration are needed to play.
+Friends Beta 10.7 is published; the current update is [Friends Beta 10.8](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks). [Installation and login](INSTALLATION.md) is the authoritative guide. Java is included. From Scratch has not been submitted to or approved by the RuneLite Plugin Hub.
 
 ## Your first session
 
@@ -74,3 +74,13 @@ This source candidate is not included in the preserved 10.6 installer. Do not di
 2. Only if the bag really is empty, check the box and confirm. Verify one 10K GP payment, one shared bag entitlement, no legacy contents offsets, and **Player confirmed empty** in Buyback History. Restart and check the same receipt and balance remain.
 3. With a populated bag, use native Check or View and return it to the bank. Reopen Legacy Buybacks, inspect the exact contents, and confirm the normal negative offsets. There must be no empty-declaration option while contents are verified. If a previously unknown dialog is still open when populated contents become verified, its empty declaration must be rejected without spending GP.
 4. Check open/closed bag forms share the same entitlement and a repeat attempt cannot charge again. Accounts with and without Potion Storage use the same flow. Do not add items merely to make an empty bag readable, and do not reset valuable progression for this test.
+
+## Friends Beta 10.8 acceptance
+
+Use a disposable run or first export your progress privately. Only the player performs game actions.
+
+1. With Virtual Bank enabled, search for earned and legacy-only stacks. Results must intersect ownership, retain the query/focus and preference, and recover after clearing search. Repeat across tabs, bank close/reopen and Potion Storage. Full Bank and an independent Bank Tag retain their intended views.
+2. With multiple legacy Black Masks/Slayer Helmets banked, open the buyback, select a tile, switch selection, cancel and verify no change. Confirm one exact variant for 1M; other variants stay locked. With three identical masks, pay once per copy and verify counts 1, 2, 3. Earned copies remain free. Withdraw/return, restart and inspect purchase history.
+3. Buy Elite Black Knight helm/body/legs individually for 30K each. Confirm only the selected piece/copy unlocks, while Elite Void prices and upgrade behavior remain unchanged.
+4. Upgrade from 10.7 with the client closed. Verify existing progression, settings, pouch/bag entitlements, Potion Storage, overdrafts and history. Keep a pre-update backup because 10.8 writes format 11. Uninstall must preserve progression and RuneLite data.
+5. Tile layout, sprites and native search input require live owner acceptance. Automated tests and installer validation do not establish in-game correctness or authentication.

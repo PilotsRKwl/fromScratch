@@ -25,7 +25,10 @@ public class FoundationResourcesTest
 		assertEquals("Pilots r kwl", metadata.getProperty("author"));
 		assertEquals(FromScratchPlugin.class.getName(), metadata.getProperty("plugins"));
 		assertEquals("standard", metadata.getProperty("build"));
-		assertEquals("0.10.0-beta.1", metadata.getProperty("version"));
+		try (java.io.Reader toolchain=new java.io.InputStreamReader(net.runelite.client.util.Filepath.Unchecked.getRooted(java.nio.file.Paths.get("").toAbsolutePath()).join("beta","windows-native","toolchain.json").openInputStream(),java.nio.charset.StandardCharsets.UTF_8))
+		{
+			assertEquals(new com.google.gson.JsonParser().parse(toolchain).getAsJsonObject().get("packageVersion").getAsString(), metadata.getProperty("version"));
+		}
 	}
 
 	@Test

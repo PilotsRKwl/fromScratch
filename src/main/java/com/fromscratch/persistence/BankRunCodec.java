@@ -7,10 +7,10 @@ import java.time.Instant;
 import java.util.*;
 import javax.inject.Inject;
 
-/** Explicit format-10 JSON with verified format-5 through 9 decoding; no reflective domain deserialization. */
+/** Explicit format-11 JSON with verified format-5 through 10 decoding; no reflective domain deserialization. */
 public final class BankRunCodec
 {
-	public static final int FORMAT = 10;
+	public static final int FORMAT = 11;
 	private final Gson gson;
 	@Inject public BankRunCodec(Gson gson) { this.gson = gson.newBuilder().serializeNulls().create(); }
 	public String encode(BankRun r)
@@ -29,7 +29,7 @@ public final class BankRunCodec
 	{
 		try
 		{
-			int format=Math.toIntExact(number(new JsonParser().parse(text).getAsJsonObject().get("formatVersion")));if(format!=5&&format!=6&&format!=7&&format!=8&&format!=9&&format!=FORMAT){throw new IllegalArgumentException("Unsupported bank schema");}
+			int format=Math.toIntExact(number(new JsonParser().parse(text).getAsJsonObject().get("formatVersion")));if(format!=5&&format!=6&&format!=7&&format!=8&&format!=9&&format!=10&&format!=FORMAT){throw new IllegalArgumentException("Unsupported bank schema");}
 			JsonObject p = payload(text, format);
 			List<String> expected=new ArrayList<>(Arrays.asList("character","run","previousRun","started","revision","sequence","initial","physical","balances","anchored","legacyDocument","migrationArchive","recent","hostSummary"));
 			if(format>=6){expected.add("financial");}if(format>=7){expected.add("exchange");}if(format>=8){expected.add("buybacks");}if(format>=10){expected.add("potions");}keys(p,expected.toArray(new String[0]));
@@ -38,9 +38,11 @@ public final class BankRunCodec
 			if (!p.get("initial").isJsonNull()) { JsonObject i = p.getAsJsonObject("initial"); keys(i, "slots", "quantities"); initial = new ContainerSnapshot(readMap(i.getAsJsonObject("quantities")), Math.toIntExact(number(i.get("slots")))); }
 			List<BankAudit> recent = new ArrayList<>(); for (JsonElement a : p.getAsJsonArray("recent")) { recent.add(readAudit(a.getAsJsonObject())); }
 			JsonElement anchored = p.get("anchored"); if (!anchored.isJsonPrimitive() || !anchored.getAsJsonPrimitive().isBoolean()) { throw new IllegalArgumentException("Invalid bank anchor flag"); }
-			return new BankRun(character, uuid(nullable(p, "run")), uuid(nullable(p, "previousRun")), instant(nullable(p, "started")), UUID.fromString(str(p, "revision")), number(p.get("sequence")), initial,
+			BankRun decoded = new BankRun(character, uuid(nullable(p, "run")), uuid(nullable(p, "previousRun")), instant(nullable(p, "started")), UUID.fromString(str(p, "revision")), number(p.get("sequence")), initial,
 				readMap(p.getAsJsonObject("physical")), readMap(p.getAsJsonObject("balances")), anchored.getAsBoolean(), nullable(p, "legacyDocument"), nullable(p, "migrationArchive"), recent,
 				p.get("hostSummary").isJsonNull() ? null : readAudit(p.getAsJsonObject("hostSummary")),format==5?com.fromscratch.wealth.FinancialState.baseline(readMap(p.getAsJsonObject("balances")),recent.get(0).getAt(),true):FinancialCodec.state(p.getAsJsonObject("financial")),format>=7?GeCodec.state(p.getAsJsonObject("exchange")):com.fromscratch.ge.GeState.empty(),format>=8?BuybackCodec.state(p.getAsJsonObject("buybacks"),format==8):com.fromscratch.buyback.BuybackState.empty(),format>=10?PotionCodec.state(p.getAsJsonObject("potions")):com.fromscratch.potion.PotionState.unknown());
+			if(format<11&&(decoded.getBuybacks().getEntitlements().keySet().stream().anyMatch(com.fromscratch.buyback.SelectedBuybacks::copyRole)||decoded.getBuybacks().getPurchases().stream().anyMatch(purchase->purchase.getSelectedItemId()>0)||decoded.getRecent().stream().anyMatch(a->a.getBuyback()!=null&&a.getBuyback().getSelectedItemId()>0))){throw new IllegalArgumentException("Selected-copy evidence requires format 11");}
+			return decoded;
 		}
 		catch (RuntimeException ex) { throw new SaveException("Bank save is corrupt or incompatible. Existing data and recovery files were preserved."); }
 	}

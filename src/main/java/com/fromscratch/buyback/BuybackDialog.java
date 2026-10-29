@@ -20,12 +20,38 @@ public final class BuybackDialog
 		JPanel buttons=new JPanel(new FlowLayout(FlowLayout.RIGHT));JButton close=new JButton("Close");buttons.add(close);
 		JDialog[] dialog=new JDialog[1];JComponent content;
 		if(history){content=history(view.getRun(),icons);}
-		else{content=new BuybackView(view,icons,entry->{if(entry.getId().equals("looting_bag_family")){actions.bagPreview(contents->SwingUtilities.invokeLater(()->{
+		else{content=new BuybackView(view,icons,entry->{if(SelectedBuybacks.selected(entry.getId())){int id=chooseSelected(owner,view,entry,icons);if(id>0&&confirmSelected(owner,view.getRun(),entry,id,icons)){dialog[0].dispose();actions.buySelected(view.getRun().getRevision(),entry.getId(),id,UUID.randomUUID());}}else if(entry.getId().equals("looting_bag_family")){actions.bagPreview(contents->SwingUtilities.invokeLater(()->{
 			if(!dialog[0].isDisplayable()){return;}
 			BagObservation chosen=confirmBag(owner,view.getRun(),icons,contents);
 			if(chosen!=null){dialog[0].dispose();actions.buyBag(view.getRun().getRevision(),UUID.randomUUID(),chosen,purchase->SwingUtilities.invokeLater(()->message(owner,"Looting Bag Unlocked",bagSuccess(purchase,chosen.getNames()))));}
 		}));}else if(entry.getId().equals("rune_pouch_family")){actions.pouchPreview(contents->SwingUtilities.invokeLater(()->{if(!dialog[0].isDisplayable()){return;}if(!contents.fresh(java.time.Instant.now())){message(owner,"Rune Pouch Contents",contents.getProblem());return;}if(confirm(owner,view.getRun(),entry,icons,contents)){dialog[0].dispose();actions.buyback(view.getRun().getRevision(),entry.getId(),UUID.randomUUID(),contents,purchase->SwingUtilities.invokeLater(()->message(owner,"Rune Pouch Unlocked",success(purchase))));}}));}else if(confirm(owner,view.getRun(),entry,icons,null)){dialog[0].dispose();actions.buyback(view.getRun().getRevision(),entry.getId(),UUID.randomUUID());}});}
 		dialog[0]=BankDialogs.dialog(owner,history?"Buyback History":"Legacy Buybacks",content,buttons,new Dimension(700,520));close.addActionListener(e->dialog[0].dispose());dialog[0].setVisible(true);
+	}
+	private static int chooseSelected(Component owner,BankView view,BuybackEntry entry,BankIcons icons)
+	{
+		java.util.List<Integer> candidates=new java.util.ArrayList<>();for(int id:SelectedBuybacks.items(entry.getId())){if(BuybackEngine.remaining(view.getRun(),id)>0){candidates.add(id);}}
+		if(candidates.size()==1){return candidates.get(0);}if(candidates.isEmpty()){return -1;}
+		int[] selected={-1};JDialog[] dialog={null};SelectedBuybackView content=new SelectedBuybackView(view,entry,icons,id->{selected[0]=id;dialog[0].dispose();});
+		JButton cancel=new JButton("Cancel");JPanel buttons=new JPanel(new FlowLayout(FlowLayout.RIGHT));buttons.add(cancel);buttons.add(content.getContinueButton());
+		dialog[0]=BankDialogs.dialog(owner,"Choose Your Legacy Item",content,buttons,new Dimension(740,550));cancel.addActionListener(e->dialog[0].dispose());dialog[0].setVisible(true);return selected[0];
+	}
+	private static boolean confirmSelected(Component owner,BankRun run,BuybackEntry entry,int itemId,BankIcons icons)
+	{
+		boolean[] approved={false};JDialog[] dialog={null};SelectedConfirmation content=new SelectedConfirmation(run,entry,itemId,icons,id->{approved[0]=true;dialog[0].dispose();});
+		JButton cancel=new JButton("Cancel");JPanel buttons=new JPanel(new FlowLayout(FlowLayout.RIGHT));buttons.add(cancel);buttons.add(content.getConfirmButton());
+		dialog[0]=BankDialogs.dialog(owner,"Confirm One Legacy Copy",content,buttons,null);cancel.addActionListener(e->dialog[0].dispose());dialog[0].setVisible(true);return approved[0];
+	}
+	/** The final production confirmation, exercised headlessly without native game input. */
+	public static final class SelectedConfirmation extends JPanel
+	{
+		private final JButton confirm=new JButton("Confirm Buyback");private boolean submitted;
+		public JButton getConfirmButton(){return confirm;}
+		public SelectedConfirmation(BankRun run,BuybackEntry entry,int id,BankIcons icons,java.util.function.IntConsumer accepted)
+		{
+			super(new BorderLayout(8,8));JLabel icon=new JLabel();icons.apply(icon,id);add(icon,BorderLayout.WEST);
+			add(BankDialogs.text(SelectedBuybacks.name(id)+" (one copy)\nPrice: "+GpFormatter.exact(entry.getPrice())+"\nAvailable GP: "+GpFormatter.exact(BuybackEngine.available(run))+"\nRemaining: "+GpFormatter.exact(Math.subtractExact(BuybackEngine.available(run),entry.getPrice()))+"\n\nUnlocks one copy of this exact item. Other copies and variants stay locked.",40),BorderLayout.CENTER);
+			confirm.setEnabled("Available".equals(BuybackEngine.selectedStatus(run,entry,id)));confirm.addActionListener(e->{if(!submitted&&confirm.isEnabled()){submitted=true;confirm.setEnabled(false);accepted.accept(id);}});
+		}
 	}
 	private static boolean confirm(Component owner,BankRun run,BuybackEntry entry,BankIcons icons,com.fromscratch.pouch.PouchObservation contents)
 	{
@@ -80,7 +106,7 @@ public final class BuybackDialog
 		DateTimeFormatter dates=DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm").withZone(ZoneId.systemDefault());
 		java.util.List<BuybackPurchase> rows=run.getBuybacks().getPurchases();
 		JTable table=new JTable(model);BuybackView.iconRenderer(table);
-		for(int i=rows.size()-1;i>=0;i--){BuybackPurchase p=rows.get(i);BuybackEntry entry=BuybackCatalog.entry(p.getCatalogId());JLabel icon=new JLabel();icons.apply(icon,entry.getIcon());icon.addPropertyChangeListener("icon",e->table.repaint());String proof=p.getCatalogId().equals("looting_bag_family")?(p.getBagConfirmation()==BagObservation.State.PLAYER_CONFIRMED_EMPTY?"Player confirmed empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_EMPTY?"Verified empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_NONEMPTY?"Verified contents":"Not recorded"):"";model.addRow(new Object[]{icon,entry.getName(),GpFormatter.compact(p.getGp()),Integer.toString(entry.getRoles().size()),dates.format(p.getAt()),proof});}
+		for(int i=rows.size()-1;i>=0;i--){BuybackPurchase p=rows.get(i);BuybackEntry entry=BuybackCatalog.entry(p.getCatalogId());JLabel icon=new JLabel();icons.apply(icon,p.getSelectedItemId()>0?p.getSelectedItemId():entry.getIcon());icon.addPropertyChangeListener("icon",e->table.repaint());String proof=p.getCatalogId().equals("looting_bag_family")?(p.getBagConfirmation()==BagObservation.State.PLAYER_CONFIRMED_EMPTY?"Player confirmed empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_EMPTY?"Verified empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_NONEMPTY?"Verified contents":"Not recorded"):"";model.addRow(new Object[]{icon,p.getSelectedItemId()>0?SelectedBuybacks.name(p.getSelectedItemId()):entry.getName(),GpFormatter.compact(p.getGp()),Integer.toString(p.getSelectedItemId()>0?1:entry.getRoles().size()),dates.format(p.getAt()),proof});}
 		table.setRowHeight(38);table.setAutoCreateRowSorter(true);table.getColumnModel().getColumn(0).setMaxWidth(42);table.getColumnModel().getColumn(1).setPreferredWidth(300);table.getColumnModel().getColumn(4).setPreferredWidth(160);return new JScrollPane(table);
 	}
 }

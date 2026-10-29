@@ -23,6 +23,7 @@ public interface BankActions
 	default void historyItems(java.util.function.Consumer<java.util.Map<Integer,String>> callback) { callback.accept(java.util.Collections.emptyMap()); }
 	default void itemHistory(int itemId,BankHistory.Cursor cursor,java.util.function.Consumer<ItemHistory.Page> callback)
 	{ callback.accept(new ItemHistory.Page(java.util.Collections.emptyList(),null,"No recorded item history.")); }
+	default void buySelected(UUID revision,String catalogId,int itemId,UUID purchaseId){throw new UnsupportedOperationException("Selected buybacks unavailable");}
 	default void buyback(UUID revision,String catalogId,UUID purchaseId){throw new UnsupportedOperationException("Buybacks unavailable");}
 	default void pouchPreview(java.util.function.Consumer<com.fromscratch.pouch.PouchObservation> callback){callback.accept(com.fromscratch.pouch.PouchObservation.unknown());}
 	default void bagPreview(java.util.function.Consumer<com.fromscratch.buyback.BagObservation> callback){callback.accept(com.fromscratch.buyback.BagObservation.unknown());}
