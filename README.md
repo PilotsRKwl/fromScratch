@@ -1,8 +1,6 @@
-<p align="center"><img src="docs/media/from-scratch-hero.png" alt="Original From Scratch artwork with a purple bank chest and contrasting item counts" width="100%" /></p>
-
 # From Scratch
 
-**Your bank is full. Your adventure starts at zero.**
+**A fresh start without a fresh account.**
 
 You've spent years building your Old School RuneScape account. Your bank is packed with equipment, supplies and wealth, but sometimes you want the excitement of starting over without making another character.
 

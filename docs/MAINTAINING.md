@@ -51,11 +51,10 @@ For published Friends Beta 10.8.1: **Deferred: blocked by local Windows Applicat
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\Prepare-UiPreviews.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\Prepare-Marketing.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\Prepare-WindowsIcon.ps1
 ```
 
-Preview capture uses unchanged production components and explicitly synthetic data; inspect generated PNGs for layout and truthful captions. Marketing reproduces the original hero SVG/PNG, and WindowsIcon derives the ICO from the root icon. None produces a real RuneScape screenshot. Keep [artwork attribution](ARTWORK.md) and [capture provenance](SCREENSHOTS.md) accurate.
+Preview capture uses unchanged production components and explicitly synthetic data; inspect generated PNGs for layout and truthful captions. WindowsIcon derives the ICO from the root icon. Neither produces a real RuneScape screenshot. Keep [artwork attribution](ARTWORK.md) and [capture provenance](SCREENSHOTS.md) accurate.
 
 ## Housekeeping
 

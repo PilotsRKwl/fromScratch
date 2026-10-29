@@ -12,11 +12,9 @@ From Scratch's purple coin icon was generated specifically for the project with 
 
 The PNGs are genuine PNG files. The ICO is derived from the root icon by `scripts/Prepare-WindowsIcon.ps1`; it does not introduce a different logo. These assets are supplied under the project's BSD-2-Clause terms to the extent applicable.
 
-## Hero artwork
+## Retired hero artwork
 
-[Original hero SVG](media/from-scratch-hero.svg) and its [1280x640 PNG](media/from-scratch-hero.png) are code-generated title/social artwork from `scripts/Prepare-Marketing.ps1`. Geometric chest/coin shapes and illustrative counters communicate the game mode. They are **not RuneScape screenshots** and do not depict a player's actual bank.
-
-Keep the editable SVG and lossless PNG together. Reproduction uses Segoe UI on Windows, with Arial/sans-serif fallbacks in the SVG. The banner currently states that the plugin is not Plugin Hub approved; update that statement only after actual acceptance and verified availability. Branding implies no affiliation with or endorsement by Jagex, RuneLite or Steam.
+The former code-generated title banner and its generator have been retired. Git history preserves the original geometric chest/coin artwork and its provenance; it was original project artwork under BSD-2-Clause, not a RuneScape screenshot. The current coin logo and its attribution above remain unchanged. Branding implies no affiliation with or endorsement by Jagex, RuneLite or Steam.
 
 ## Interface illustrations
 

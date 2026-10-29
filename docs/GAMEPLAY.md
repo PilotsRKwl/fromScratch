@@ -1,6 +1,6 @@
 # Playing From Scratch
 
-**Your bank is full. Your adventure starts at zero.**
+**A fresh start without a fresh account.**
 
 From Scratch restarts item progression on the character you already enjoy. Keep your levels, quests, achievements, account unlocks and physical bank. Set aside your existing items under the challenge rules, then earn supplies, equipment and wealth again through normal play.
 

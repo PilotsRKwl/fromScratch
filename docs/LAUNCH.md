@@ -31,7 +31,7 @@ No public v1.0.0 release, approval badge or Plugin Hub availability claim belong
 
 Restart item progression without restarting your account. Keep your character, achievements and old bank. Start earning useful items and wealth again, reclaim selected legacy gear, play solo or alongside friends, and reset whenever you want a new beginning.
 
-**Your bank is full. Your adventure starts at zero.**
+**A fresh start without a fresh account.**
 
 Keep the public story about the game mode, with technical details in the reviewer/developer guides. Explain that rules are voluntary and progression stays local; do not imply a shared bank, multiplayer synchronization or an integrated leaderboard.
 
