@@ -20,6 +20,16 @@ The installer is unsigned. Windows may display an unknown-publisher warning or b
 
 **Installer execution testing for the published 10.8.1 build: Deferred: blocked by local Windows Application Control. Manual installation, upgrade, and uninstall testing pending.** Source/version metadata, bundled runtime, packaging manifests and published checksums were verified; that does not claim those execution tests passed.
 
+## Preparing the official-version storage transition
+
+This applies to the prepared production source, not an already approved Plugin Hub release. Published Friends Beta 10.8.1 uses `.runelite/plugin-data/from_scratch/`; the prepared official version uses `.runelite/plugin-data/from-scratch/`.
+
+**Already played the beta?** Keep a private backup, close all RuneLite and From Scratch clients, and complete the [offline migration utility](MAINTAINING.md#offline-progression-migration) before loading the prepared version. The utility copies and verifies the complete progression tree, preserves the original directory, and writes a completion receipt. The new plugin does not copy data or inspect the old sibling directory. It cannot tell whether an empty canonical directory belongs to a new player or an unmigrated beta player.
+
+**Genuinely new installation?** Read the first-run migration guidance, explicitly confirm the new installation, then follow normal **Before Starting** bank setup. New-installation confirmation is not a recovery option for existing data: missing or invalid evidence alongside canonical progression blocks loading instead of silently starting another challenge.
+
+After a successful transfer, continue that challenge only in the canonical version. Returning to the obsolete beta writes a separate old history; no synchronization or history merging exists. First validate the workflow on a disposable copy before using real progression. Native first-run and migrated-run acceptance remain owner checks.
+
 ## Updating
 
 Export Progress privately before updating and close other clients using the same run. Run the newer installer to update the per-user application and shortcuts. Existing progression is separate from program files. The beta uses the normal RuneLite home; do not move or delete its existing From Scratch data.
@@ -32,7 +42,7 @@ Close the application, then open **Windows Settings > Apps > Installed apps > Fr
 
 The uninstaller is designed to remove its registered program files, matching shortcuts and Installed apps entry. It preserves changed shortcuts, unrelated files, From Scratch progression, exports, RuneLite settings and account data, other plugins and Java installations. Published 10.8.1 execution testing remains deferred as stated above.
 
-Program files live under `%LOCALAPPDATA%\Programs\FromScratchBeta`. Progression lives under RuneLite's scoped `.runelite/plugin-data/from_scratch` directory. Launcher logs remain under `%LOCALAPPDATA%\FromScratchBeta\logs`. No system Java or persistent PATH changes are made. See [Data and privacy](DATA_AND_PRIVACY.md) for what those files contain.
+Program files live under `%LOCALAPPDATA%\Programs\FromScratchBeta`. Published beta progression lives under RuneLite's scoped `.runelite/plugin-data/from_scratch` directory; the prepared official version uses the canonical `from-scratch` directory described above. Launcher logs remain under `%LOCALAPPDATA%\FromScratchBeta\logs`. No system Java or persistent PATH changes are made. See [Data and privacy](DATA_AND_PRIVACY.md) for what those files contain.
 
 ## Developers
 

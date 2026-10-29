@@ -12,7 +12,7 @@ Use [CONTRIBUTING](../CONTRIBUTING.md) for development changes and [the validati
 
 `gradle/beta.gradle` stages `beta/windows`; its `Common.ps1` is also consumed by the native build. The script install/launch/uninstall helpers still have packaging and integration-test consumers. Do not delete them merely because the native EXE is now the player download. None of the optional source sets enters the production plugin JAR.
 
-Keep Java 11 compatibility, existing RuneLite-provided dependency boundaries, `build=standard`, package/config/storage identifiers and BSD-2-Clause notices. Build output, downloaded tools, runtimes, logs, sample homes and test progression stay under ignored `build/`.
+Keep Java 11 compatibility, existing RuneLite-provided dependency boundaries, `build=standard`, package/config identifiers and BSD-2-Clause notices. The official identifier and scoped directory are `from-scratch`; published beta data in `from_scratch` remains preserved separately. Build output, downloaded tools, runtimes, logs, sample homes and test progression stay under ignored `build/`.
 
 ## Validation commands
 
@@ -30,7 +30,11 @@ The focused test above is an example for search changes, not a required unrelate
 
 ## Offline progression migration
 
-The utility prepares a future transition from `.runelite/plugin-data/from_scratch/` to `.runelite/plugin-data/from-scratch/`. **The current plugin descriptor still uses the old directory. Do not migrate real progression yet:** the later production startup/cutover gate must be implemented and validated before players switch. Running the current beta after a transfer continues writing the preserved old tree; those later changes do not synchronize into the destination.
+The utility transfers published beta progression from `.runelite/plugin-data/from_scratch/` to `.runelite/plugin-data/from-scratch/`. The prepared production plugin uses the official `from-scratch` identifier and RuneLite's normal scoped directory. Its shared storage gate must succeed before either economic progression or playtime accesses that directory. Validate the transition with a disposable copy and retain a private backup before transferring a real run; automated checks do not establish owner acceptance of the full workflow.
+
+Existing beta players must close every client and complete the utility before loading the prepared production version. The plugin cannot inspect the legacy sibling directory and cannot automatically detect an unmigrated beta installation. A genuinely new installation instead requires the explicit first-run new-installation confirmation, followed by normal bank setup. That confirmation is available only for an empty canonical directory; it cannot replace missing/invalid migration evidence beside existing data. A migration receipt or the recorded fresh-install decision permits subsequent startup; incomplete/conflicting evidence blocks storage rather than creating a new challenge.
+
+After transferring, do not continue the same challenge in the obsolete published beta. It writes the preserved old tree, and those later changes neither synchronize nor merge into the canonical history.
 
 Build and test only the standalone utility:
 
@@ -48,7 +52,7 @@ Migration copies opaque file contents and the complete directory structure, incl
 
 The sibling `.from-scratch-migration` staging directory and its manifest support interrupted-transfer retries. Preserve them after a failure, resolve the reported cause, then rerun the same command. Verified staged files and the completion receipt are published through atomic, no-clobber hard links on the same volume. Hard-link support is required, as on ordinary Windows NTFS and Linux filesystems; an unsupported filesystem fails safely without claiming completion. Staging is retained transaction evidence and can share file contents with the destination; it is **not an independent backup**. The utility does not hard-link migrated files to the original beta files.
 
-The destination's `.from-scratch-migration-complete` receipt records successful cutover, so a future plugin can read it inside its own scoped directory. That name is reserved migration metadata; a legacy collision is refused before copying. The staging directory and utility transaction lock remain siblings outside the destination. After completion the destination is authoritative: subsequent execution must not reimport stale beta files, repair canonical data from staging or replace newer canonical progress with the original snapshot. Keep the original directory and independent private backups. Do not post manifests, saves or detailed local paths in public issues.
+The destination's `.from-scratch-migration-complete` receipt records successful transfer and is read inside the plugin's scoped directory. It contains the `FROM_SCRATCH_OFFLINE_MIGRATION_V1` header and the migration manifest's SHA-256 digest; it is not a continually recomputed checksum of legitimate later progression. That name is reserved migration metadata; a legacy collision is refused before copying. The staging directory and utility transaction lock remain siblings outside the destination. After completion the destination is authoritative: subsequent execution must not reimport stale beta files, repair canonical data from staging or replace newer canonical progress with the original snapshot. Keep the original directory and independent private backups. Do not post manifests, saves or detailed local paths in public issues.
 
 Symlinks, junctions/reparse points and unsupported filesystem objects are rejected, including existing ancestors of the selected location. Java provider behavior differs across platforms; headless disposable tests do not establish native link behavior on every filesystem or prove safety against an actively hostile process modifying paths concurrently. The utility requires an offline, locally controlled tree. No real-player migration, authentication, installation or in-game acceptance is implied by automated tests.
 

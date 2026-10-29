@@ -6,7 +6,7 @@
 - Preserve published Friends Beta releases/tags and Git history. Never modify real progression, backups, credentials or account settings. No force push or history rewrite.
 - Do not publish v1.0.0, claim RuneLite approval or advertise Hub availability before acceptance and verified availability. Stop before submission if a material compliance concern remains. Do not silently remove defining gameplay features to avoid review.
 - Read `docs/technical/ARCHITECTURE.md`, `ACCOUNTING.md` and `TEST_PLAN.md` before behavior changes. Current documentation is indexed in `docs/README.md`; Git history preserves superseded milestone notes.
-- Identity stays From Scratch, author Pilots r kwl, repository PilotsRKwl/fromScratch, package `com.fromscratch`, config `fromscratch`, internal/storage name `from_scratch`.
+- Identity stays From Scratch, author Pilots r kwl, repository PilotsRKwl/fromScratch, package `com.fromscratch`, config `fromscratch`, official internal/storage name `from-scratch`. Published beta storage remains `from_scratch`; preserve that original directory and transfer only through the separately authorized offline utility.
 
 ## Gameplay and accounting invariants
 

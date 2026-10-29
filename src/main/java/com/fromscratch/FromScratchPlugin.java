@@ -35,7 +35,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 @Slf4j
 @PluginDescriptor(
 	name = "From Scratch",
-	internalName = "from_scratch",
+	internalName = "from-scratch",
 	configName = FromScratchConfig.GROUP,
 	description = "Restart item progression on your existing character with a Virtual Bank and legacy gear buybacks.",
 	tags = {"bank", "virtual", "progression", "challenge", "fresh", "start", "legacy", "solo", "friends", "wealth"}
@@ -67,10 +67,12 @@ public class FromScratchPlugin extends Plugin
 	@Inject private ConfigManager configManager;
 	@Inject private net.runelite.client.Notifier notifier;
 	@Inject private net.runelite.client.chat.ChatMessageManager chat;
+	@Inject private com.fromscratch.persistence.BankRepository repository;
 
 	@Override
 	protected void startUp()
 	{
+		com.fromscratch.persistence.CanonicalStorageGate storage = new com.fromscratch.persistence.CanonicalStorageGate(this::getPluginDirectory, repository);
 		bankOverlayState.configure(config);
 		sidebar.negativeColor(config.negativeVirtualQuantityColor());
 		observer.configure(config.developmentItemTrace());
@@ -87,11 +89,11 @@ public class FromScratchPlugin extends Plugin
 			setupController.initialBankView(virtualBank::fullBankForSetup);
 			setupController.overdrafts(warnings->{for(com.fromscratch.bank.Overdrafts.Warning warning:warnings){String text=warning.message();chat.queue(net.runelite.client.chat.QueuedMessage.builder().type(net.runelite.api.ChatMessageType.GAMEMESSAGE).runeLiteFormattedMessage(net.runelite.client.util.ColorUtil.wrapWithColorTag("From Scratch: LEGACY ITEMS OVERDRAWN",java.awt.Color.RED)+" "+text).build());try{notifier.notify("From Scratch: LEGACY ITEMS OVERDRAWN. "+text);}catch(RuntimeException ex){log.debug("From Scratch notification delivery failed",ex);}}});
 		});
-		setupController.start(this::getPluginDirectory);
+		setupController.start(storage);
 		clientThread.invokeLater(()->
 		{
 			examine.start(setupController::currentRun);
-			playtime.start(this::getPluginDirectory);
+			playtime.start(storage);
 			setupController.restoreLifecycle(playtime::beforeRestore,playtime::afterRestore);
 			setupController.exportLifecycle(playtime::checkpoint);
 		});

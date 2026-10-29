@@ -27,6 +27,80 @@ public final class BankRepository
 	@Inject public BankRepository(BankRunCodec codec, RunRecordCodec legacy) { this(codec, legacy, BankRepository::publish); }
 	BankRepository(BankRunCodec codec, RunRecordCodec legacy, Publication publication) { this.codec = codec; this.legacy = legacy; this.publication = publication;this.backups=new ProgressBackup(this,codec); }
 	public ProgressBackup backups() { return backups; }
+	/** Read-only canonical admission. No directory creation, lock-file creation,
+	 * schema migration or playtime initialization is permitted before this passes. */
+	public void verifyCutover(Filepath root) throws IOException
+	{
+		Filepath characters = root.joinSegment("characters");
+		int complete = 0;
+		if (characters.exists())
+		{
+			if (!characters.isDirectory()) { throw new SaveException("Character storage is not a directory."); }
+			List<Filepath> children;
+			try (Stream<Filepath> entries = characters.walk(1)) { children = entries.filter(p -> !p.equals(characters)).collect(Collectors.toList()); }
+			for (Filepath base : children)
+			{
+				String character = base.getFileName();
+				if (!character.matches("[a-f0-9]{64}") || !base.isDirectory()) { throw new SaveException("Unverified character storage was preserved."); }
+				Filepath selected = ProgressBackup.directory(base, codec), current = selected.joinSegment("current.json");
+				if (!current.exists())
+				{
+					try (Stream<Filepath> entries = base.walk())
+					{
+						for (Filepath file : entries.filter(Filepath::isFile).collect(Collectors.toList()))
+						{
+							if ((file.getFileName().equals("run.lock") || file.getFileName().equals("playtime.lock")) && file.size() == 0) { continue; }
+							throw new SaveException("Current challenge is missing but recovery evidence exists.");
+						}
+					}
+					continue; // A character opened setup but never started a run.
+				}
+				String text = BankStorageFiles.readText(current);
+				int version;
+				try { version = Math.toIntExact(BankRunCodec.number(new JsonParser().parse(text).getAsJsonObject().get("formatVersion"))); }
+				catch (RuntimeException ex) { throw new SaveException("Current checkpoint header is unreadable."); }
+				UUID runId;
+				if (version >= 5)
+				{
+					BankRun run = codec.decode(text, character);
+					verify(selected, run, true);
+					runId = run.getRunId();
+					if (runId != null) { new PeakProgressRepository(codec).read(selected, run); }
+				}
+				else
+				{
+					RunRecord old = legacy.decodeSave(text, character).record;
+					if (version >= 3) { new ItemJournalStore(legacy).verifyChain(selected, old, version); }
+					runId = old.getState().getRunId();
+				}
+				if (runId != null) { verifyCutoverPlaytime(selected, character, runId); }
+				complete++;
+			}
+		}
+		if (complete == 0)
+		{
+			try (Stream<Filepath> entries = root.walk(1))
+			{
+				if (entries.anyMatch(p -> !p.equals(root) && !p.equals(characters)
+					&& !p.getFileName().equals(CanonicalStorageGate.MIGRATION_RECEIPT)
+					&& !p.getFileName().equals(CanonicalStorageGate.INSTALLATION_RECEIPT)))
+				{ throw new SaveException("Recovery data exists without a complete challenge."); }
+			}
+		}
+	}
+	private void verifyCutoverPlaytime(Filepath selected, String character, UUID run) throws IOException
+	{
+		Filepath folder = selected.joinSegment("playtime");
+		if (!folder.exists()) { return; }
+		if (!folder.isDirectory()) { throw new SaveException("Playtime storage is not a directory."); }
+		Filepath current = folder.joinSegment("playtime-" + run + ".json");
+		if (current.exists()) { new PlaytimeRepository(codec).read(current, character, run); return; }
+		try (Stream<Filepath> entries = folder.walk(1))
+		{
+			if (entries.anyMatch(p -> p.getFileName().startsWith("playtime-" + run + "-")))
+			{ throw new SaveException("Playtime current checkpoint is missing but recovery evidence exists."); }
+		}
+	}
 	public Optional<BankRun> load(Filepath root, String character) throws IOException
 	{
 		return locked(root, character, d ->

@@ -14,6 +14,7 @@ import net.runelite.client.ui.FontManager;
 public final class BankPanel extends PluginPanel
 {
 	public static final String START_WARNING = "Your current bank will become your legacy baseline. All virtual bank balances will start at zero.";
+	public static final String FRESH_INSTALLATION_WARNING = "Have you used the Friends Beta? Close all RuneLite and From Scratch clients and run the offline migration utility before beginning here.\n\nThis version cannot inspect or detect your old beta directory. Continue only if this is a genuine new installation and you have no beta progression to migrate. This does not migrate or reset any progression.";
 	private static final Color PURPLE = new Color(0xB450FF);
 	private static final Color BACKGROUND = new Color(30, 28, 25);
 	private final CardLayout cards = new CardLayout();
@@ -35,6 +36,7 @@ public final class BankPanel extends PluginPanel
 	private final JCheckBox attested = new BankAttestation();
 	private final JLabel bankStep=setupCopy("3. Open your bank.");
 	private final JButton start = new BankPrimaryButton("Start From Scratch"), corrections = new JButton(), reset = new BankDangerButton("Reset Progress"), retry = new JButton("Retry Loading"), anchor = new JButton("Review Bank Anchor");
+	private final JButton freshInstallation = new JButton("New installation");
 	private final JPanel upgrade = vertical();
 	private final JPanel stats = tileRow(0, 98);
 	private final OutstandingPanel outstanding;
@@ -66,11 +68,12 @@ public final class BankPanel extends PluginPanel
 	{
 		this.icons=icons;outstanding=new OutstandingPanel(icons);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); setBackground(BACKGROUND); body.setOpaque(false); stats.setOpaque(false); stats.setAlignmentX(LEFT_ALIGNMENT);
-		for (JButton button : new JButton[]{retry, anchor}) { button.setAlignmentX(LEFT_ALIGNMENT); button.setBackground(new Color(55, 46, 63)); button.setForeground(new Color(235, 220, 190)); button.setOpaque(true); button.setContentAreaFilled(false); }
+		for (JButton button : new JButton[]{retry, anchor, freshInstallation}) { button.setAlignmentX(LEFT_ALIGNMENT); button.setBackground(new Color(55, 46, 63)); button.setForeground(new Color(235, 220, 190)); button.setOpaque(true); button.setContentAreaFilled(false); }
 		JLabel title = new JLabel("From Scratch"); title.setFont(FontManager.getRunescapeBoldFont()); title.setForeground(new Color(0xFFD54F));
 		JPanel header=new JPanel(new BorderLayout());header.setOpaque(false);header.setAlignmentX(LEFT_ALIGNMENT);header.add(title,BorderLayout.CENTER);
 		JButton files=new JButton("⋮");files.setToolTipText("Progress files");files.getAccessibleContext().setAccessibleName("Progress files");files.setMargin(new Insets(0,6,0,6));files.addActionListener(e->ProgressDialogs.menu(this,()->actions,()->view).show(files,0,files.getHeight()));header.add(files,BorderLayout.EAST);header.setMaximumSize(new Dimension(Integer.MAX_VALUE,header.getPreferredSize().height));add(header);
 		notice.setForeground(new Color(0xFFD54F)); notice.setVisible(false); add(notice); retry.setVisible(false); add(retry);
+		freshInstallation.setName("confirmFreshInstallation"); freshInstallation.setVisible(false); add(freshInstallation);
 		JPanel setup = vertical(); setup.setName("setupPanel"); setup.add(heading("Before Starting"));
 		JLabel intro = setupCopy("1. Bank everything from your inventory.\n2. Unequip and bank all your gear."); intro.setName("setupInstructions"); intro.setBorder(BorderFactory.createEmptyBorder(0, 0, 3, 0)); setup.add(intro);
 		attested.setName("setupBankingConfirmation");setup.add(attested);
@@ -111,6 +114,12 @@ public final class BankPanel extends PluginPanel
 		corrections.addActionListener(e -> { if (correctionsNavigation != null) { correctionsNavigation.run(); } else if (view != null && actions != null) { BankCorrectionDialog.show(this, view, actions,icons); } });
 		reset.addActionListener(e -> { BankView captured = view; if (actions != null && captured != null && captured.getRun() != null && confirmation.show(this, "Reset Progress", "This ends your current challenge and clears its active progress. A recovery archive will be kept. Your real OSRS items are untouched.", "Reset Progress", true)) { reset.setEnabled(false);notice.setText("Resetting progress...");notice.setVisible(true); actions.reset(captured.getRun().getRevision()); } });
 		retry.addActionListener(e -> { if (actions != null) { actions.retry(); } }); anchor.addActionListener(e -> anchor());
+		freshInstallation.addActionListener(e ->
+		{
+			if (actions != null && view != null && view.isFreshInstallationRequired() && !view.isBusy()
+				&& confirmation.show(this, "Confirm a new installation", FRESH_INSTALLATION_WARNING, "I have no beta progression", false))
+			{ actions.confirmFreshInstallation(); }
+		});
 	}
 	public void render(BankView updated, BankActions actions)
 	{
@@ -124,6 +133,7 @@ public final class BankPanel extends PluginPanel
 		String wanted = active ? "active" : "setup"; if (!wanted.equals(card)) { cards.show(body, wanted); card = wanted; body.revalidate(); invalidate(); revalidate(); }
 		String message = updated.getMessage(); boolean important = message.equals("Resetting progress...") || message.startsWith("Progress reset.") || updated.isError() || (!active && !updated.ready()) || (active && !updated.isBusy() && !message.equals("Bank progress saved.") && !message.equals("Bank progress updates automatically.") && run.isAnchored());
 		notice.setVisible(important); notice.setText(important ? "<html>" + escape(message) + "</html>" : ""); retry.setVisible(updated.isError());
+		freshInstallation.setVisible(updated.isFreshInstallationRequired()); freshInstallation.setEnabled(!updated.isBusy());
 		if (active)
 		{
 			unlocked.value(Long.toString(run.unlocked()), "Positive bank item types plus durable purchased equipment slots; shared families count once."); refreshDuration();

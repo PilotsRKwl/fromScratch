@@ -13,6 +13,7 @@ public interface BankActions
 	void correct(UUID revision, int itemId, long desired);
 	void reset(UUID revision);
 	void retry();
+	default void confirmFreshInstallation() { }
 	default void reviewStorage(UUID revision,java.util.Map<Integer,Long> quantities){throw new UnsupportedOperationException("Storage review unavailable");}
 	default void correctStorage(UUID revision,int type,long desired){throw new UnsupportedOperationException("Storage correction unavailable");}
 	default void exportProgress(net.runelite.client.util.Filepath file,java.util.function.Consumer<String> result){result.accept("Export is unavailable.");}

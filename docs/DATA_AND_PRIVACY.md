@@ -4,7 +4,11 @@ From Scratch has no backend, account registration, analytics endpoint or cloud s
 
 ## Local progression
 
-RuneLite's scoped Filepath directory is `.runelite/plugin-data/from_scratch` beneath the normal user home. Character-specific records contain run identity/start, the original legacy bank snapshot, signed/current bank quantities, journal/checkpoint history, manual corrections, buyback payments/entitlements/declarations/contents offsets, observed GE evidence, financial/peak records and host playtime. Potion Storage records include verified quantities, dose definitions, timestamps and bounded transfer/review evidence.
+The prepared production plugin uses RuneLite's normal scoped Filepath directory `.runelite/plugin-data/from-scratch` beneath the normal user home. Published Friends Beta versions use the historical sibling `.runelite/plugin-data/from_scratch`. The production plugin does not inspect, move or delete that old directory. A separately executed, explicitly authorized [offline utility](MAINTAINING.md#offline-progression-migration) copies and verifies it before an existing beta player switches.
+
+Character-specific records contain run identity/start, the original legacy bank snapshot, signed/current bank quantities, journal/checkpoint history, manual corrections, buyback payments/entitlements/declarations/contents offsets, observed GE evidence, financial/peak records and host playtime. Potion Storage records include verified quantities, dose definitions, timestamps and bounded transfer/review evidence. Existing character identifiers, save formats and configuration keys are unchanged by the directory cutover.
+
+The canonical root also contains local migration-completion evidence or an explicitly confirmed new-installation record. Both economic progression and playtime share the verified directory. Incomplete/conflicting evidence blocks storage instead of initializing a new challenge. The plugin cannot automatically distinguish an empty new installation from unmigrated beta data outside its scope; first-run guidance makes the beta player's transfer responsibility explicit. Retained old-beta and canonical histories do not synchronize or merge.
 
 Identifiers and quantities are private progression, not anonymous statistics. Checksums, atomic saves, revision checks and retained archives protect integrity rather than confidentiality. Saves and `.fsp` exports are **not encrypted**. Secure your local account and backups, and never attach those files to a public issue.
 
