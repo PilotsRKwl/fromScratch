@@ -28,9 +28,11 @@ public class VirtualBankModeTest
 		public void allItems(){nativeTab=0;}
 		public int nativeTab(){return nativeTab;}public Set<Integer> nativeItems(){return nativeSlots==null?Collections.singleton(SHIELD):VirtualBankMode.tabItems(nativeTab,nativeSizes,nativeSlots);}
 		public void open(String name) { active=name;remembered=name;title="Tag tab "+name;opened++;onOpen.run(); }
-		public void close() { closed++;if(++closing>1){throw new AssertionError("Recursive native close");}try{onClose.run();if(!refuseClose){active=null;remembered="";title="The Bank of Gielinor";}}finally{closing--;} }
+		public void close() { closed++;if(++closing>1){throw new AssertionError("Recursive native close");}try{if(!refuseClose){coreClose();title="The Bank of Gielinor";}onClose.run();}finally{closing--;} }
+		// Native tab/search close clears both fields before a later bank build callback.
+		void coreClose(){active=null;remembered="";}
 		public String active() { return active; }
-		public String remembered(){return remembered;}public void remembered(String name){remembered=name;}
+		public String remembered(){return remembered;}
 		public boolean savedTag(String name){return savedTags.contains(name);}
 		public void refresh() { refresh++;onRefresh.run();if(failRefresh){throw new IllegalStateException("Synthetic layout failure");} }
 		public int placeholder(int id){definitions++;return id==SHIELD?999999:-1;}
@@ -46,7 +48,7 @@ public class VirtualBankModeTest
 	{
 		List<Boolean> selections=new ArrayList<>();mode.fullBankSelected(()->selections.add(false));
 		BankRun run=run(1);access.active="My saved tag";mode.setEnabled(false);mode.update(run,true);assertEquals("My saved tag",access.active);assertEquals(0,access.opened);assertTrue(selections.isEmpty());assertEquals(0,access.closed);assertEquals(0,access.removed);
-		access.active=null;mode.setEnabled(true);mode.update(run,true);assertEquals(1,access.opened);mode.setEnabled(false);assertNull(access.active);assertEquals(1,access.closed);
+		access.coreClose();mode.setEnabled(true);mode.update(run,true);assertEquals(1,access.opened);mode.setEnabled(false);assertNull(access.active);assertEquals(1,access.closed);
 		access.active="My saved tag";mode.setEnabled(true);mode.update(run,true);assertTrue(access.active.startsWith("from_scratch_virtual_"));assertEquals(2,access.opened);assertTrue(selections.isEmpty());
 		access.active="Another user tag";mode.viewChanged();assertEquals("Another user tag",access.active);assertEquals(Collections.singletonList(false),selections);assertEquals(1,access.closed);
 	}
@@ -75,10 +77,10 @@ public class VirtualBankModeTest
 	}
 	@Test public void titleKeepsPrivateIdentityRestoresFullBankAndNeverTouchesUserTags()
 	{
-		mode.setEnabled(true);mode.update(run(1),true);String privateTag=access.active;assertEquals("Temporary view must not be restored by core", "",access.remembered);
+		mode.setEnabled(true);mode.update(run(1),true);String privateTag=access.active;assertEquals("Bank Tags owns remembering its active selection",privateTag,access.remembered);assertEquals(0,access.closed);
 		assertTrue(privateTag.startsWith("from_scratch_virtual_"));mode.title(java.awt.Color.MAGENTA);
 		assertEquals("From Scratch Virtual Bank",net.runelite.client.util.Text.removeTags(access.title));assertTrue(access.title.contains("ff00ff"));assertFalse(access.title.contains(privateTag));
-		mode.setEnabled(false);assertEquals("The Bank of Gielinor",access.title);assertNull(access.active);
+		mode.setEnabled(false);assertEquals("The Bank of Gielinor",access.title);assertNull(access.active);assertEquals("",access.remembered);assertEquals(1,access.closed);
 		mode.setEnabled(true);mode.update(run(1),true);mode.title(java.awt.Color.GREEN);mode.bankClosed();assertEquals("The Bank of Gielinor",access.title);
 		mode.setEnabled(false);access.active="My tag";access.title="My tag title";mode.update(run(1),true);mode.title(java.awt.Color.GREEN);mode.stop();assertEquals("My tag title",access.title);
 	}
@@ -102,7 +104,7 @@ public class VirtualBankModeTest
 		Queue<Runnable> queue=new ArrayDeque<>();VirtualBankMode queued=new VirtualBankMode(access,queue::add);List<Boolean> choices=new ArrayList<>();queued.fullBankSelected(()->choices.add(false));
 		queued.setEnabled(true);queued.update(run(1),true);queue.remove().run();
 		queued.viewChanged();assertTrue(choices.isEmpty()); // Our priority-0 handler queues, never reconciles inline.
-		access.active=null;access.nativeTab=2; // Core's priority -1 handler runs next.
+		access.coreClose();access.nativeTab=2; // Core's priority -1 handler runs next.
 		while(!queue.isEmpty()){queue.remove().run();}
 		assertEquals(Collections.singletonList(false),choices);assertEquals(1,access.opened);assertEquals(2,access.nativeTab);assertNull(access.predicate);
 	}
@@ -121,7 +123,7 @@ public class VirtualBankModeTest
 	@Test public void nativeFullBankSelectionIsNotOverriddenAndFailureIsLatchedUntilExplicitRetry()
 	{
 		List<Boolean> selections=new ArrayList<>();mode.fullBankSelected(()->selections.add(false));
-		mode.setEnabled(true);BankRun a=run(1);mode.update(a,true);access.active=null;access.nativeTab=2;mode.viewChanged();mode.update(a,true);assertEquals(1,access.opened);assertEquals(2,access.nativeTab);assertEquals(Collections.singletonList(false),selections);assertNull(access.predicate);
+		mode.setEnabled(true);BankRun a=run(1);mode.update(a,true);access.coreClose();access.nativeTab=2;mode.viewChanged();mode.update(a,true);assertEquals(1,access.opened);assertEquals(2,access.nativeTab);assertEquals(Collections.singletonList(false),selections);assertNull(access.predicate);
 		mode.bankClosed();mode.update(a,true);assertEquals("Native selection is an explicit OFF preference",1,access.opened);
 		mode.setEnabled(false);mode.setEnabled(true);mode.update(a,true);assertEquals(2,access.opened);access.failRefresh=true;BankRun b=BankEngine.observe(a,bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);mode.update(b,true);assertNull(access.active);for(int i=0;i<20;i++){mode.update(b,true);}assertEquals(2,access.opened);assertEquals(1,access.refresh);assertEquals(2,access.removed);
 		access.failRefresh=false;mode.setEnabled(false);mode.setEnabled(true);mode.update(b,true);assertEquals(3,access.opened);
@@ -159,6 +161,36 @@ public class VirtualBankModeTest
 	{
 		String user="from_scratch_virtual_0123456789abcdef0123456789abcdef";access.savedTags.add(user);access.active=user;access.remembered=user;access.title="My saved layout";
 		mode.setEnabled(false);mode.update(null,true);mode.bankBuilt();assertTrue(mode.fullBankForSetup());mode.stop();assertEquals(user,access.active);assertEquals(user,access.remembered);assertEquals(0,access.closed);assertEquals(0,access.removed);assertEquals("My saved layout",access.title);
+	}
+	@Test public void inactiveOwnedRememberedTagIsForgottenOnlyThroughPublicClose()
+	{
+		String stale="from_scratch_virtual_0123456789abcdef0123456789abcdef";access.remembered=stale;
+		mode.setEnabled(false);mode.update(null,true);assertTrue(mode.fullBankForSetup());
+		assertEquals(1,access.closed);assertEquals("",access.remembered);assertEquals(0,access.opened);assertNull(access.predicate);
+		for(int i=0;i<20;i++){mode.bankBuilt();mode.update(null,true);}assertEquals(1,access.closed);
+	}
+	@Test public void ownedRememberedValueNeverClosesForeignActiveTagOrBlocksSetup()
+	{
+		String stale="from_scratch_virtual_0123456789abcdef0123456789abcdef";access.active="My saved tag";access.remembered=stale;access.title="My saved layout";
+		mode.setEnabled(false);mode.update(null,true);mode.bankBuilt();assertTrue(mode.fullBankForSetup());mode.stop();
+		assertEquals("My saved tag",access.active);assertEquals(stale,access.remembered);assertEquals("My saved layout",access.title);assertEquals(0,access.closed);assertEquals(0,access.removed);
+		access.active=null;mode.bankBuilt();assertEquals(1,access.closed);assertEquals("",access.remembered);assertTrue(mode.fullBankForSetup());
+	}
+	@Test public void inactiveUserRememberedTagsAreNeverForgotten()
+	{
+		String saved="from_scratch_virtual_0123456789abcdef0123456789abcdef";access.savedTags.add(saved);
+		for(String tag:new String[]{"My saved tag",saved}){access.remembered=tag;mode.setEnabled(false);mode.update(null,true);mode.bankBuilt();assertTrue(mode.fullBankForSetup());assertEquals(tag,access.remembered);assertEquals(0,access.closed);}
+	}
+	@Test public void inactiveStaleCloseCanReenterWithoutReopeningOrRecursiveCleanup()
+	{
+		access.remembered="from_scratch_virtual_0123456789abcdef0123456789abcdef";
+		access.onClose=()->{mode.bankClosed();mode.bankBuilt();mode.update(null,true);assertFalse(mode.fullBankForSetup());};
+		mode.setEnabled(false);assertEquals(1,access.closed);assertEquals("",access.remembered);assertEquals(0,access.opened);assertFalse(mode.isFaulted());assertTrue(mode.fullBankForSetup());
+	}
+	@Test public void refusedInactiveStaleCloseIsLatchedAndNeverLoops()
+	{
+		access.remembered="from_scratch_virtual_0123456789abcdef0123456789abcdef";access.refuseClose=true;mode.setEnabled(false);assertTrue(mode.isFaulted());assertFalse(mode.fullBankForSetup());int attempts=access.closed;
+		assertTrue(attempts>0);for(int i=0;i<20;i++){mode.bankBuilt();mode.update(null,true);assertFalse(mode.fullBankForSetup());}assertEquals(attempts,access.closed);assertEquals(0,access.opened);
 	}
 	@Test public void setupBlocksUntilRestoredFilterClosesAndCommitsWholePhysicalBankBeforeActivation() throws Exception
 	{
@@ -200,7 +232,7 @@ public class VirtualBankModeTest
 		run=BankEngine.observe(run,BankItems.aggregate(access.nativeSlots,id->false),UUID.randomUUID(),SnapshotFixtures.TIME);List<Boolean> choices=new ArrayList<>();mode.fullBankSelected(()->choices.add(false));mode.setEnabled(true);mode.update(run,true);int definitions=access.definitions;
 		for(int tab:new int[]{1,2,0,1,2,0})
 		{
-			mode.nativeTabSelected();access.active=null;access.nativeTab=tab;int[] build={0};mode.script("bankBuildTab",build,1);assertEquals(1,build[0]);
+			mode.nativeTabSelected();access.coreClose();access.nativeTab=tab;int[] build={0};mode.script("bankBuildTab",build,1);assertEquals(1,build[0]);
 			assertEquals(tab!=2,allowedByScript(SHIELD));assertEquals(tab!=1,allowedByScript(ashes));assertFalse(allowedByScript(OTHER));
 			mode.bankBuilt();mode.title(java.awt.Color.GREEN);assertEquals(VirtualBankMode.TITLE,net.runelite.client.util.Text.removeTags(access.title));assertEquals(1,access.opened);assertEquals(0,access.refresh);
 		}
@@ -210,18 +242,18 @@ public class VirtualBankModeTest
 	@Test public void nativeTabDepositsAndWithdrawalsRemainAuthoritativeDuringSearch() throws Exception
 	{
 		Filepath root=Filepath.Unchecked.getRooted(temporary.getRoot().toPath());BankRepository repo=new BankRepository(new BankRunCodec(SnapshotFixtures.gson()),SnapshotFixtures.codec());Source source=new Source();Worker worker=new Worker();BankController controller=new BankController(source,repo,Runnable::run,v->{});mode.setEnabled(true);controller.informationActions(run->mode.update(run,source.open,source.observe()));controller.start(()->root,worker);worker.runAll();source.observer.tick();controller.tick();controller.startRun(true,null,true);worker.runAll();source.quantity(3);source.observer.tick();controller.tick();worker.runAll();
-		BankRun before=repo.load(root,source.character).get();mode.nativeTabSelected();access.active=null;access.nativeTab=1;int[] build={0};mode.script("bankBuildTab",build,1);mode.bankBuilt();assertEquals(before,repo.load(root,source.character).get());assertTrue(allowedByScript(SHIELD));
+		BankRun before=repo.load(root,source.character).get();mode.nativeTabSelected();access.coreClose();access.nativeTab=1;int[] build={0};mode.script("bankBuildTab",build,1);mode.bankBuilt();assertEquals(before,repo.load(root,source.character).get());assertTrue(allowedByScript(SHIELD));
 		for(int n:new int[]{1,0,2}){source.quantity(n);source.observer.tick();controller.tick();worker.runAll();assertEquals(n-1,repo.load(root,source.character).get().balance(SHIELD));assertEquals(n>1,allowedByScript(SHIELD));}
 		int opened=access.opened;List<Boolean> preferences=new ArrayList<>();mode.fullBankSelected(()->preferences.add(false));mode.searchSelected();assertTrue(preferences.isEmpty());assertEquals(opened,access.opened);int[] owned={1,SHIELD};mode.script("bankSearchFilter",owned,2);assertEquals(1,owned[0]);int[] nativeMiss={0,SHIELD};mode.script("bankSearchFilter",nativeMiss,2);assertEquals(0,nativeMiss[0]);controller.stop();mode.stop();
 	}
 	@Test public void incompleteNativeTabMetadataFailsSafeWithoutRefreshRecursion()
 	{
-		mode.setEnabled(true);mode.update(run(1),true);mode.nativeTabSelected();access.active=null;access.nativeTab=1;access.nativeSlots=new net.runelite.api.Item[]{null};access.nativeSizes=new int[]{1};int[] build={0};mode.script("bankBuildTab",build,1);assertTrue(mode.isFaulted());int refresh=access.refresh;for(int i=0;i<10;i++){mode.bankBuilt();mode.update(run(1),true);}assertEquals(refresh,access.refresh);assertEquals(1,access.opened);
+		mode.setEnabled(true);mode.update(run(1),true);mode.nativeTabSelected();access.coreClose();access.nativeTab=1;access.nativeSlots=new net.runelite.api.Item[]{null};access.nativeSizes=new int[]{1};int[] build={0};mode.script("bankBuildTab",build,1);assertTrue(mode.isFaulted());int refresh=access.refresh;for(int i=0;i<10;i++){mode.bankBuilt();mode.update(run(1),true);}assertEquals(refresh,access.refresh);assertEquals(1,access.opened);
 	}
 	@Test public void potionStoragePausesFilteringAndReturnsToNativeIntersectionWithoutReopen()
 	{
 		BankRun run=BankEngine.observe(run(1),bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);List<Boolean> preferences=new ArrayList<>();mode.fullBankSelected(()->preferences.add(false));mode.setEnabled(true);mode.update(run,true);int opened=access.opened;
-		mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.update(run,true);int[] untouched={0};mode.script("bankBuildTab",untouched,1);assertEquals(0,untouched[0]);assertFalse(mode.isFaulted());assertTrue(preferences.isEmpty());assertEquals(opened,access.opened);
+		mode.potionStorageSelected();access.coreClose();access.nativeTab=15;mode.bankBuilt();mode.update(run,true);int[] untouched={0};mode.script("bankBuildTab",untouched,1);assertEquals(0,untouched[0]);assertFalse(mode.isFaulted());assertTrue(preferences.isEmpty());assertEquals(opened,access.opened);
 		access.nativeTab=1;mode.nativeTabSelected();mode.bankBuilt();assertTrue(allowedByScript(SHIELD));assertNotNull(access.predicate);assertEquals(opened,access.opened);assertFalse(mode.isFaulted());assertTrue(preferences.isEmpty());int refresh=access.refresh;for(int i=0;i<10;i++){mode.bankBuilt();mode.update(run,true);}assertEquals(refresh,access.refresh);
 	}
 	@Test public void earnedBankPotionsSurviveStorageVisitMissingContainerReturnAndRelog() throws Exception
@@ -231,18 +263,18 @@ public class VirtualBankModeTest
 		try
 		{
 			source.items=new net.runelite.api.Item[]{new net.runelite.api.Item(potion,3)};source.observer.changed();source.observer.tick();controller.tick();worker.runAll();BankRun earned=repo.load(root,source.character).get();assertEquals(3,earned.balance(potion));assertTrue(access.predicate.contains(potion));int opened=access.opened;
-			mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();source.storageOpen=true;source.fullBank=false;source.items=null;source.observer.changed();source.observer.tick();controller.tick();worker.runAll();assertEquals(earned,repo.load(root,source.character).get());assertNotNull(controller.currentRun());assertEquals(3,overlay.getProjection().balance(potion,false));
+			mode.potionStorageSelected();access.coreClose();access.nativeTab=15;mode.bankBuilt();source.storageOpen=true;source.fullBank=false;source.items=null;source.observer.changed();source.observer.tick();controller.tick();worker.runAll();assertEquals(earned,repo.load(root,source.character).get());assertNotNull(controller.currentRun());assertEquals(3,overlay.getProjection().balance(potion,false));
 			source.items=new net.runelite.api.Item[]{new net.runelite.api.Item(potion,3)};source.observer.tick();controller.tick();worker.runAll();source.storageOpen=false;source.fullBank=true;access.nativeTab=0;mode.bankBuilt();controller.tick();worker.runAll();assertTrue(access.predicate.contains(potion));assertEquals(opened,access.opened);assertFalse(mode.isFaulted());
 			source.character=null;source.observer.reset();controller.tick();worker.runAll();source.character=SnapshotFixtures.CHARACTER_A;source.observer.reset();controller.tick();worker.runAll();source.observer.tick();controller.tick();worker.runAll();assertEquals(3,repo.load(root,source.character).get().balance(potion));assertTrue(access.predicate.contains(potion));assertTrue(alerts.isEmpty());
 		}finally{controller.stop();mode.stop();}
 	}
 	@Test public void disablingWhilePotionStorageOpenDoesNotResumeFilter()
 	{
-		mode.setEnabled(true);mode.update(run(1),true);mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.setEnabled(false);access.nativeTab=0;mode.bankBuilt();assertNull(access.predicate);int[] untouched={0};mode.script("bankBuildTab",untouched,1);assertEquals(0,untouched[0]);assertFalse(mode.isFaulted());
+		mode.setEnabled(true);mode.update(run(1),true);mode.potionStorageSelected();access.coreClose();access.nativeTab=15;mode.bankBuilt();mode.setEnabled(false);access.nativeTab=0;mode.bankBuilt();assertNull(access.predicate);int[] untouched={0};mode.script("bankBuildTab",untouched,1);assertEquals(0,untouched[0]);assertFalse(mode.isFaulted());
 	}
 	@Test public void closingPotionStorageThenReopeningBankRestoresSavedPreference()
 	{
-		BankRun run=BankEngine.observe(run(1),bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);mode.setEnabled(true);mode.update(run,true);mode.potionStorageSelected();access.active=null;access.nativeTab=15;mode.bankBuilt();mode.bankClosed();access.nativeTab=0;mode.update(run,true);assertNotNull(access.predicate);assertTrue(access.predicate.contains(SHIELD));assertFalse(mode.isFaulted());assertEquals(2,access.opened);
+		BankRun run=BankEngine.observe(run(1),bank(2),UUID.randomUUID(),SnapshotFixtures.TIME);mode.setEnabled(true);mode.update(run,true);mode.potionStorageSelected();access.coreClose();access.nativeTab=15;mode.bankBuilt();mode.bankClosed();access.nativeTab=0;mode.update(run,true);assertNotNull(access.predicate);assertTrue(access.predicate.contains(SHIELD));assertFalse(mode.isFaulted());assertEquals(2,access.opened);
 	}
 	
 
@@ -250,7 +282,7 @@ public class VirtualBankModeTest
 	{
 		BankRun a=run(1);a=BankEngine.observe(a,bank(3),UUID.randomUUID(),SnapshotFixtures.TIME);mode.setEnabled(true);mode.update(a,true);List<Boolean> choices=new ArrayList<>();mode.fullBankSelected(()->choices.add(false));
 		for(int i=0;i<50;i++){
-			mode.searchSelected();access.active=null;mode.bankBuilt();
+			mode.searchSelected();access.coreClose();mode.bankBuilt();
 			for(int nativeResult:new int[]{0,1}){int[] owned={nativeResult,SHIELD};mode.script("bankSearchFilter",owned,2);assertEquals(nativeResult,owned[0]);int[] legacy={nativeResult,OTHER};mode.script("bankSearchFilter",legacy,2);assertEquals(0,legacy[0]);}
 			mode.nativeTabSelected();access.nativeTab=i%2;mode.bankBuilt();mode.searchSelected();mode.bankBuilt();
 		}
@@ -259,7 +291,7 @@ public class VirtualBankModeTest
 	}
 	@Test public void searchDoesNotOverrideIndependentTagOrReactivateDuringPotionStorage()
 	{
-		mode.setEnabled(true);mode.update(run(1),true);mode.searchSelected();access.active=null;mode.bankBuilt();
+		mode.setEnabled(true);mode.update(run(1),true);mode.searchSelected();access.coreClose();mode.bankBuilt();
 		mode.potionStorageSelected();access.nativeTab=15;int[] storage={1,OTHER};mode.script("bankSearchFilter",storage,2);assertEquals(1,storage[0]);mode.bankBuilt();
 		access.nativeTab=0;mode.bankBuilt();mode.update(run(1),true);mode.searchSelected();access.active="my_saved_tag";mode.bankBuilt();assertEquals("my_saved_tag",access.active);int[] user={1,OTHER};mode.script("bankSearchFilter",user,2);assertEquals(1,user[0]);
 	}

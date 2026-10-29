@@ -1,27 +1,24 @@
 # Documentation
 
-The [homepage](../README.md) introduces the challenge. Start here for help, or use the technical map below.
+Start with the [From Scratch homepage](../README.md).
 
-## For players
+## Playing From Scratch
 
-- [Installation](INSTALLATION.md): the authoritative Windows beta installation, login, update and uninstall guide. Friends Beta is published; it is not on the official RuneLite Plugin Hub.
-- [Feature reference](FEATURES.md): challenge rules, bank counts, buybacks and limitations.
-- [Beta testing](BETA_TESTING.md): first sessions, checks and a privacy-safe bug report.
-- [Data and privacy](DATA_AND_PRIVACY.md): local saves, backups and device limitations.
-- [Interface previews and gameplay capture checklist](SCREENSHOTS.md).
+- [Gameplay](GAMEPLAY.md): challenge rules, first run, friends and personal goals.
+- [Installation](INSTALLATION.md): current availability, Friends Beta setup, updates and uninstalling.
+- [Features](FEATURES.md): bank views, buybacks, storage, histories and progress.
+- [Troubleshooting](TROUBLESHOOTING.md): common problems and a privacy-safe bug report.
+- [Data and privacy](DATA_AND_PRIVACY.md): local saves, backups and network boundaries.
+- [Interface previews and capture checklist](SCREENSHOTS.md): clearly labeled sample panels and the real screenshots still needed.
 
-## For maintainers and reviewers
+## Maintaining and reviewing
 
 - [Architecture](technical/ARCHITECTURE.md), [accounting](technical/ACCOUNTING.md) and [validation plan](technical/TEST_PLAN.md).
-- [Buyback pricing](technical/BUYBACK_PRICING.md): fixed virtual GP costs, supported equivalents and storage safeguards.
-- [Milestone 10.8.1](MILESTONE_10_8_1.md): expanded buybacks, native-search root cause and automated/manual validation boundaries.
-- [Plugin Hub review map](PLUGIN_HUB_REVIEW.md): source paths, supported APIs and review-sensitive behavior.
-- [Milestone 10.8 bug fixes and buybacks](MILESTONE_10_8.md): exact-copy purchases, search, validation and release evidence.
-- [Milestone 10 release candidate](MILESTONE_10.md): current evidence and owner acceptance gates.
-- [Milestone 10.6 native installer](MILESTONE_10_6.md): private runtime, Windows launcher, wizard and focused acceptance.
-- [Milestone 10.7: Potion Storage and Overdraft Protection](MILESTONE_10_7.md): dose accounting, warnings, compatible saves and manual acceptance.
-- [Publication checklist](PUBLICATION.md), [release draft](RELEASE_DRAFT.md) and [repository metadata](REPOSITORY_METADATA.md).
-- [Friends Beta 10.8.1 player release notes](RELEASE_NOTES_10_8_1.md).
-- [Artwork and screenshot provenance](ARTWORK.md), [contributing](../CONTRIBUTING.md) and [changelog](../CHANGELOG.md).
+- [Fixed buyback pricing](technical/BUYBACK_PRICING.md): exact costs and supported equivalents.
+- [Plugin Hub review map](PLUGIN_HUB_REVIEW.md): source paths and review-sensitive integrations.
+- [Maintaining and packaging](MAINTAINING.md): separate production, preview and beta builds.
+- [Submission and launch](LAUNCH.md): approval boundary and the future v1.0.0 launch checklist.
+- [Manual beta checks](BETA_TESTING.md): focused owner checks after a relevant change.
+- [Artwork provenance](ARTWORK.md), [contributing](../CONTRIBUTING.md), [license](../LICENSE), [notices](../NOTICE) and [changelog](../CHANGELOG.md).
 
-[Historical development notes](history/README.md) preserve earlier designs and test results. They are not current installation instructions or authority to resume old development work.
+Superseded milestone reports and development instructions are preserved in Git history rather than maintained as current guidance. Existing release tags and published beta assets remain available on [GitHub Releases](https://github.com/PilotsRKwl/fromScratch/releases).

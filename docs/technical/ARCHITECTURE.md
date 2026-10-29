@@ -1,6 +1,6 @@
 # Architecture
 
-Current guide for Friends Beta 10.8.1. The [reviewer map](../PLUGIN_HUB_REVIEW.md) links source; historical designs remain in the [archive](../history/ARCHITECTURE_PRE_M10.md).
+Production architecture for From Scratch. The [reviewer map](../PLUGIN_HUB_REVIEW.md) describes supported APIs, review-sensitive integration and validation boundaries. Git history retains superseded designs.
 
 ## Core and observation
 
@@ -26,6 +26,10 @@ Initial setup uses the player's inventory/equipment banking attestation and expl
 - `BankCorrectionDialog` exposes Bank Items / Potion Storage. Storage corrections use `STORAGE_REVIEW` evidence in the existing atomic checkpoint, revision/identity guards and checked signed arithmetic. Last verified physical data is labeled cached; it never becomes a new observation session. Changed types invalidate their transfer budgets, preserving unrelated types. Before/after adjustments derive from retained predecessor checkpoints for paged history. No schema change is needed for this UI update.
 - The native Potion Storage button pauses From Scratch's item-tab filtering before core Bank Tags handles the same navigation. Cleanup stays deferred and state clears first. Returning to a normal item tab resumes the cached native-tab intersection without reopening a tag or changing the saved preference. Closing storage/the bank clears the pause. This narrow special-view guard does not filter or rebuild the potion interface itself.
 
+## Bank Tags configuration ownership
+
+From Scratch registers a runtime predicate and uses the documented BankTagsService open/close API. Bank Tags manages its own remembered selection as part of those service operations. From Scratch reads that state to recognize its temporary UUID tags, but never writes BankTagsConfig or another plugin's configuration directly. An owned inactive stale selection is closed through the public service without resetting search input; a foreign active or saved tag is preserved. Core may remember the temporary view while active, and normal close/stale cleanup clears it through the service. No user tab or layout is deleted. The lifecycle tests cover stale startup, explicit OFF, foreign selections, re-entry, search, native tabs and Potion Storage.
+
 ## Accounting services
 
 See [ACCOUNTING.md](ACCOUNTING.md) for the signed equation, GP spending, valuations and finalized GE view. `BankEngine` applies checked arithmetic to immutable runs. GE observations preserve cumulative fill evidence and durable slot generations; presentation aggregation does not replay financial effects.
@@ -48,7 +52,7 @@ The production `src/main` plugin uses no custom backend, cloud sync, credential 
 
 The separate owner-side `src/beta`, Windows scripts and Gradle packaging are outside the Hub plugin. They launch an unmodified official RuneLite runtime through its supported developer entry point. `src/preview` renders the same production Swing components with explicit synthetic data and official sprites; it never launches the game or loads player progression. Neither source set enters the production JAR or standard Hub build.
 
-## Milestone 10.8 selected-copy accounting
+## Exact-copy buybacks
 
 The existing buyback transaction, GP commitments and projection are extended, not replaced. Historical role levels still grant one shared copy (including pouch/bag and Void tiers). New catalog entries explicitly use exact-ID roles `copy_<item ID>` whose integer entitlement is the receipt-derived count, not an upgrade level. Their encoded level is always 1 and quantity is the paid copy count. Each receipt has a dedicated `selected: {item, quantity: 1}` object; pouch/bag evidence is never reused. Constructors validate the allowlisted catalog/ID, one-copy quantity, complete floor keys, total GP, duplicate UUIDs and receipt-derived counts. The existing ledger is bounded at 4,096 purchases; reaching that limit rejects a purchase without spending.
 
@@ -58,10 +62,10 @@ Per-ID bank floors follow the existing signed return-protection rule. At first p
 
 BankRun format 11 adds this evidence. Formats 5 through 10 remain readable; loading 10.7 format-10 bytes does not rewrite them. The next acknowledged transaction writes 11 while retaining journals and previous checkpoints. Historical receipt JSON stays unchanged. Older formats cannot contain selected-copy evidence. Backups/imports retain the same checksums, CAS, character/run isolation and atomic replacement. An older client must not load a format-11 save.
 
-## Milestone 10.8.1 extensions
+## Catalog families and empty stores
 
 The catalog adds fixed-cost families and outfits without changing the existing catalog version or historical prices. Utility & Storage, Weapons, Armour and Skilling Outfits share a deterministic case-insensitive name/ID ordering in the catalog, tiles, dropdown and search. New equivalent families pool their signed bank deltas before purchase; a cosmetic, open/closed or imbued/unimbued transformation cannot manufacture an unpaid copy. Existing exact-ID Slayer purchases retain their original semantics. Quiver tiers share one role: 15M regular, 60M blessed directly, or 45M after the regular payment.
 
 `EmptyStorageConfirmation` is an explicit player declaration for the five new gathering containers and regular/blessed quiver ammunition. Both unchecked declarations are required: the entire shared store is empty, and legacy contents are already in the initial baseline or have been corrected through Manual Bank Corrections. `StorageContentsGuard` reads only on purchase and vetoes nonempty current-session seed/tackle/quiver packets or available plank varbits. It never treats zero, missing or stale data as proof of emptiness and never tracks inventory ownership. The receipt's optional `storage` object records player provenance, with zero invented contents/offsets. Existing format-11 records and historical receipt encodings are unchanged; older formats reject the new declaration evidence. The existing atomic worker transaction still commits payment, entitlement and audit together.
 
-During native search, `VirtualBankMode` preserves the whole-bank layout instead of forcing the single-tab branch that invokes `meslayer_close`. It reads public native search mode/query state and retains the ownership veto after native matching. No input is injected or reopened. The [milestone record](../MILESTONE_10_8_1.md) separates automated lifecycle evidence from owner-only native UI verification.
+During native search, `VirtualBankMode` preserves the whole-bank layout instead of forcing the single-tab branch that invokes `meslayer_close`. It reads public native search mode/query state and retains the ownership veto after native matching. No input is injected or reopened. The [validation plan](TEST_PLAN.md) separates automated lifecycle evidence from owner-only native UI verification. In the pinned RuneLite 1.13.4 BankMainBuild script, forcing bankBuildTab=1 jumps into single-tab mode; when bankmain_searching is true, that branch invokes meslayer_close. Preserving the native search layout prevents that input-closing side effect.

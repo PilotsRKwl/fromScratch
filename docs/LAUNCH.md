@@ -1,0 +1,42 @@
+# Plugin Hub submission and v1.0.0 launch
+
+From Scratch's first official Plugin Hub release is being prepared. The latest standalone [Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix) remains available. A submitted pull request is not approval, and a beta EXE is not required for an eventual normal Plugin Hub installation.
+
+## Before submission
+
+1. Complete the current official-rule audit and keep the [reviewer map](PLUGIN_HUB_REVIEW.md) matched to source. Disclose native bank rendering, filtering, Bank Tags/config interactions, script callbacks, title updates and supplemental Examine behavior. A supported public API alone does not prove policy compliance.
+2. Resolve any published-rule violation through a compliant alternative. If a material policy uncertainty or major gameplay redesign remains, stop before submitting and report the precise concern; do not conceal it or remove defining functionality silently.
+3. Preserve beta progression, identifiers, migration fixtures, receipts, backups and reset archives. Check the production JAR independently of the optional beta launcher.
+4. Run relevant focused checks and official standard-build compatibility, commit/push the final source, then require Windows and Ubuntu CI success on that exact full SHA. Compilation/headless fixtures do not prove in-game behavior. The owner reports the current beta gameplay works; material production changes need their own owner checks.
+5. Check for an existing name/manifest/submission. Use one dedicated branch in a fork of `runelite/plugin-hub`; keep the upstream change limited to the required manifest and anything its current instructions explicitly require.
+
+The manifest normally lives at `plugins/from_scratch` and contains the canonical repository URL plus the **actual verified 40-character source SHA**. Never fill it with a guessed future commit. Follow current upstream instructions and required AI-assistance attribution honestly. Official submission is authorized for this milestone once these gates are satisfied; human approval and merge remain outside our control.
+
+## During review
+
+Keep one submission PR. Inspect automated build/security results and reviewer feedback. For necessary source changes, use focused validation, commit/push, require exact-commit CI and update the manifest in that same PR. Report human review as pending until it is actually accepted. Stop for a policy decision or major product redesign rather than unilaterally replacing the game mode.
+
+No public v1.0.0 release, approval badge or Plugin Hub availability claim belongs before actual upstream merge and verified installation availability.
+
+## After approval and verified availability
+
+- Put Plugin Hub installation first in README/INSTALLATION: open ordinary RuneLite's Plugin Hub and find **From Scratch**. Make clear that the standalone EXE is optional historical beta distribution.
+- Replace pending-review language with the verified listing link, update metadata to v1.0.0 as appropriate and record the approved source in the changelog.
+- Prepare one new immutable v1.0.0 tag/release using the appropriate verified commit. Preserve all beta releases/tags/assets and do not rewrite history.
+- Recheck repository/listing author, description, tags, icon, links, license/notices and privacy statements. Publish only after the actual approval boundary has been met.
+
+## Prepared launch copy
+
+**From Scratch | Your Adventure Starts Here**
+
+Restart item progression without restarting your account. Keep your character, achievements and old bank. Start earning useful items and wealth again, reclaim selected legacy gear, play solo or alongside friends, and reset whenever you want a new beginning.
+
+**Your bank is full. Your adventure starts at zero.**
+
+Keep the public story about the game mode, with technical details in the reviewer/developer guides. Explain that rules are voluntary and progression stays local; do not imply a shared bank, multiplayer synchronization or an integrated leaderboard.
+
+## Repository presentation
+
+Suggested concise description: **Start fresh item progression on your existing OSRS character. Track a Virtual Bank, reclaim legacy gear, and play solo or alongside friends.**
+
+Useful topics: `runelite-plugin`, `old-school-runescape`, `osrs`, `runelite`, `challenge`, `bank`, `progression`, `java`. Keep the existing original branding and author **Pilots r kwl**. Use a verified current release/listing URL rather than inventing an approval or launch link. [Artwork and screenshot attribution](ARTWORK.md) remains part of the release record.

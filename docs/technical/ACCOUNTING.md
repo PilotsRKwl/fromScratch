@@ -1,6 +1,6 @@
 # Bank accounting policy
 
-Accepted rules plus the explicitly authorized Milestone 10.8 selected-copy and 10.8.1 catalog extensions. Historical equations and migrations remain in [ACCOUNTING_PRE_M10.md](../history/ACCOUNTING_PRE_M10.md).
+Authoritative signed bank, buyback and Potion Storage rules. Existing migration implementations and compatibility fixtures preserve older save formats and their evidence. Git history retains superseded policy notes.
 
 ## Signed bank progress
 
@@ -72,7 +72,7 @@ Manual Bank Corrections remain explicit signed-balance corrections. Export/impor
 
 Storage-only observations must persist the same calculated gain exclusions as ordinary-bank observations. Exclusion replay is verified before commit, even when physical bank deltas are zero and a transfer resolves prior signed debt. Missing or incorrect evidence is rejected without advancing the durable head. Incomplete native storage builds are unavailable rather than zero; last acknowledged balances are retained and the storage display becomes unverified. This correction adds no save fields or migration.
 
-## Milestone 10.8 selected-copy accounting
+## Exact-copy buybacks
 
 The existing buyback transaction, GP commitments and projection are extended, not replaced. Historical role levels still grant one shared copy (including pouch/bag and Void tiers). New catalog entries explicitly use exact-ID roles `copy_<item ID>` whose integer entitlement is the receipt-derived count, not an upgrade level. Their encoded level is always 1 and quantity is the paid copy count. Each receipt has a dedicated `selected: {item, quantity: 1}` object; pouch/bag evidence is never reused. Constructors validate the allowlisted catalog/ID, one-copy quantity, complete floor keys, total GP, duplicate UUIDs and receipt-derived counts. The existing ledger is bounded at 4,096 purchases; reaching that limit rejects a purchase without spending.
 
@@ -82,7 +82,7 @@ Per-ID bank floors follow the existing signed return-protection rule. At first p
 
 BankRun format 11 adds this evidence. Formats 5 through 10 remain readable; loading 10.7 format-10 bytes does not rewrite them. The next acknowledged transaction writes 11 while retaining journals and previous checkpoints. Historical receipt JSON stays unchanged. Older formats cannot contain selected-copy evidence. Backups/imports retain the same checksums, CAS, character/run isolation and atomic replacement. An older client must not load a format-11 save.
 
-## Milestone 10.8.1 fixed prices and empty stores
+## Fixed prices and empty stores
 
 [Fixed prices](BUYBACK_PRICING.md) add catalog entries without changing any earlier payment cost. All new equivalent families pool exact bank deltas for natural-copy projection; one paid role still grants at most one physical legacy copy across its forms. Imbued rings include unimbued equivalents only for accounting, never to qualify a purchase. Quiver level 1 costs 15M; level 2 costs 60M directly or 45M after a paid level 1. One upgrade never grants a second legacy quiver.
 

@@ -6,14 +6,14 @@ title: ''
 
 ## Versions
 
-Beta/plugin version, RuneLite, Java, OS, UI scale (installation/update issue or gameplay issue):
+Plugin/beta version, RuneLite version, operating system and UI scale. Is this an installation/update issue or a gameplay issue?
 
 ## Reproduction
 
-Steps, expected result, actual result, behavior after toggling/restarting:
+Minimal steps, expected result, actual result, and behavior after restarting or switching to Full Bank. Include native tab/search/Potion Storage state if relevant:
 
 ## Evidence
 
 Relevant redacted log excerpt or user-captured screenshot:
 
-Remove account/character identifiers, credentials, local paths, and private progression. Never attach entire configuration folders or saves. See [the beta reporting guide](https://github.com/PilotsRKwl/fromScratch/blob/master/docs/BETA_TESTING.md) for a short template.
+Remove account/character identifiers, chat, authentication panels, credentials and private paths. Never attach saves, `.fsp` exports, whole logs, entire configuration folders or Jagex account data. See [safe reporting](https://github.com/PilotsRKwl/fromScratch/blob/master/docs/TROUBLESHOOTING.md#report-a-reproducible-problem).

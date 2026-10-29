@@ -1,23 +1,27 @@
 # Contributing
 
-From Scratch is by **Pilots r kwl**, under the [BSD 2-Clause license](LICENSE). Milestone 9.2 gameplay is frozen. Milestone 10 prepares documentation and an unpublished beta; official Plugin Hub submission belongs to Milestone 11.
+From Scratch is by **Pilots r kwl**, under the [BSD 2-Clause license](LICENSE). The project is preparing its first official RuneLite Plugin Hub submission. The published Friends Beta remains available; Plugin Hub approval and v1.0.0 publication are separate gates.
 
-Read [AGENTS.md](AGENTS.md), the [architecture](docs/technical/ARCHITECTURE.md), [accounting policy](docs/technical/ACCOUNTING.md) and [test plan](docs/technical/TEST_PLAN.md) before proposing behavior changes. The [reviewer map](docs/PLUGIN_HUB_REVIEW.md) identifies production code and sensitive APIs. Historical milestone notes are reference evidence, not current scope or installation instructions.
+Read [AGENTS.md](AGENTS.md), the [architecture](docs/technical/ARCHITECTURE.md), [accounting policy](docs/technical/ACCOUNTING.md) and [test plan](docs/technical/TEST_PLAN.md) before changing behavior. The [reviewer map](docs/PLUGIN_HUB_REVIEW.md) identifies production paths and review-sensitive integrations.
 
 ## Development and validation
 
-Use Java 11 and the existing Gradle wrapper. Prefer incremental `compileJava compileTestJava` and actual affected test-class filters. Do not routinely clean or run every gameplay test for documentation/asset changes. Both Windows and Ubuntu CI passed at the current baseline; meaningful production changes require appropriate new validation. See the test plan for exact commands.
+Use Java 11 and the existing Gradle wrapper. Compile incrementally and run the test classes affected by your change. Use documentation/metadata checks for copy or asset updates. Do not repeatedly clean or run the full gameplay suite; final Windows and Ubuntu CI must pass on the exact source commit proposed for Plugin Hub.
 
-Keep disk and price IO off the client thread and EDT. Use the complete bank container for quantities, Filepath for progression, checked signed arithmetic and guarded asynchronous acknowledgments. Do not reconnect historical personal-container tracking, add gameplay automation/withdrawal blocking, rename config keys, introduce reflection/native calls or duplicate RuneLite transitive dependencies.
+Keep changes focused and reviewable. Preserve existing save migrations, prices, receipts, character isolation, backups and configuration identifiers. Keep disk and price IO off the client thread and EDT, use the complete bank for item quantities, and acknowledge persistence before displaying committed ownership. Follow RuneLite's current public APIs and dependency rules.
 
-## Documentation and previews
+The standard production plugin must work independently of the beta launcher. Separate beta and preview sources must not enter its JAR. Do not add gameplay automation, synthetic input, withdrawal blocking, credential access, reflection/native calls or unnecessary third-party dependencies.
 
-[Installation](docs/INSTALLATION.md) is the authoritative beta guide. Player-facing copy belongs in README; technical details belong under `docs/technical` and the reviewer guide. Preserve root AGENTS/CLAUDE discovery, the license and attribution. Check local links with `scripts/Test-Documentation.ps1`.
+## Documentation and images
 
-`scripts/Prepare-UiPreviews.ps1` renders actual Swing components with sample data and official RuneLite sprites. Its separate `src/preview` source set is excluded from production/beta JARs. No game client, real progression or credentials are used. Label previews as sample UI and obtain owner screenshots for genuine gameplay.
+Keep the [README](README.md) player-focused. [Gameplay](docs/GAMEPLAY.md), [installation](docs/INSTALLATION.md), [troubleshooting](docs/TROUBLESHOOTING.md) and [privacy](docs/DATA_AND_PRIVACY.md) explain how to use the plugin; implementation detail belongs under `docs/technical` and the reviewer guide.
 
-## Safety and review
+Check local links and image references with `scripts/Test-Documentation.ps1`. Preserve license/notices and artwork attribution. Existing UI previews render real plugin components with synthetic sample data and must be labeled accordingly. Obtain owner-provided, redacted captures for actual gameplay; never fabricate RuneScape screenshots or read real profiles for marketing. See the [capture checklist](docs/GAMEPLAY.md#screenshots-and-captures).
 
-Never use automated input to operate RuneScape. The owner performs actual login/gameplay acceptance. Keep test IO isolated under `build`; never test destructive recovery/reset against real character saves. Do not include artifacts, profiles, secrets, exports or private logs in Git.
+## Safety, reporting and submission
 
-No commit, push, tag, upload, distribution, Plugin Hub submission or publishing PR without explicit owner approval. Changes should remain small, reviewable and separate from unrelated formatting. The [beta testing guide](docs/BETA_TESTING.md) contains a privacy-safe report template.
+Only the owner operates RuneScape for login and gameplay acceptance. Use disposable synthetic progression for tests and keep private files out of Git. A compile or headless test is not an in-game result.
+
+[Bug reports](https://github.com/PilotsRKwl/fromScratch/issues/new?template=bug_report.md) should provide reproducible steps and minimal redacted evidence. Do not request credentials, account data, whole logs, saves or progression exports. See [safe reporting](docs/TROUBLESHOOTING.md#report-a-reproducible-problem).
+
+The owner has authorized Milestone 11 cleanup, source commits/pushes and the initial Plugin Hub submission after its compliance and validation gates pass. Do not claim approval or publish v1.0.0 before upstream acceptance and verified availability. Material policy uncertainty or a major gameplay redesign requires an explicit owner decision. Routine documentation changes do not authorize separate releases, destructive progression changes or unrelated remote writes.

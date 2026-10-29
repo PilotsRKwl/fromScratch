@@ -1,45 +1,39 @@
 # Installation
 
-## Windows beta
+## Plugin Hub availability
 
-Download [Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix), package **0.10.8-beta.2**. [Friends Beta 10.8](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks) remains available separately. From Scratch is not yet available or approved on the RuneLite Plugin Hub.
+The first official Plugin Hub submission is being prepared. From Scratch is **not yet approved or available through Plugin Hub**. Review and acceptance are separate from Friends Beta publication. When approval and availability are confirmed, this guide will put ordinary RuneLite installation first; the standalone Windows EXE will not be required.
 
-The installer supports **64-bit Windows 10 and Windows 11**. Java is included. You do not need to install Java, change PATH, use a terminal or install developer software. Windows' built-in .NET Framework 4.x runs the small application launcher.
+## Friends Beta for Windows
 
-1. Download [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe). Keep its accompanying SHA-256 checksum if you want to verify the download.
-2. Double-click the EXE and follow **Welcome to From Scratch Beta**. It installs for your Windows user without administrator rights.
-3. Leave **Open From Scratch Beta** selected at the end, or use **From Scratch Beta** on your desktop or Start Menu.
-4. In RuneLite, open **Jagex Accounts**, choose **Add Jagex Account**, complete the official login window yourself, select your character and choose **Play Now**. See RuneLite's [official login instructions](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
-5. Enable From Scratch in RuneLite, open its purple coin panel and follow **Before Starting**, or resume that character's saved challenge.
+The current standalone release is [Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix), internal package **0.10.8-beta.2**. Earlier releases remain available separately.
 
-The installer never asks for passwords or tokens. It does not export credentials or use insecure credential writing. Its bundled client uses RuneLite's existing developer-mode login route. Actual graphical launch and account authentication remain owner acceptance requirements; a successful install or verification check does not prove login works.
+The beta supports 64-bit Windows 10 and Windows 11 and includes its own Java runtime. Players do not need developer tools or a terminal.
 
-The installer is **unsigned**. Windows may display an unknown publisher or reputation warning. Check the source and checksum, and stop if uncertain. Do not disable Defender, SmartScreen or antivirus software. No authenticated publisher identity is claimed.
+1. Download [FromScratch-Beta-Setup.exe](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe) and its [SHA-256 checksum](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe.sha256).
+2. Run Setup and follow **Welcome to From Scratch Beta**. Installation is for your Windows user, without administrator rights.
+3. Open **From Scratch Beta** from your desktop or Start Menu.
+4. Use RuneLite's **Jagex Accounts** panel to sign in and choose your character. Follow RuneLite's [official login instructions](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts). The installer never asks for passwords or tokens.
+5. Enable From Scratch, open the purple coin sidebar and follow **Before Starting**, or resume your existing saved challenge. See [Gameplay](GAMEPLAY.md) for setup and voluntary rules.
+
+The installer is unsigned. Windows may display an unknown-publisher warning or block execution. Do not disable Smart App Control, Defender, SmartScreen or other security policies. See [Troubleshooting](TROUBLESHOOTING.md) if it is blocked.
+
+**Installer execution testing for the published 10.8.1 build: Deferred: blocked by local Windows Application Control. Manual installation, upgrade, and uninstall testing pending.** Source/version metadata, bundled runtime, packaging manifests and published checksums were verified; that does not claim those execution tests passed.
 
 ## Updating
 
-Export Progress privately before updating. Version 10.8 introduced a newer save format retained by 10.8.1, so keep your backup before using an earlier beta. Close From Scratch Beta, then run the newer approved installer. It updates the same per-user application and shortcuts. Previous owned program payloads may remain until uninstall; saved progression is separate and unchanged. Do not run an older beta against a newer save without a verified compatible backup.
+Export Progress privately before updating and close other clients using the same run. Run the newer installer to update the per-user application and shortcuts. Existing progression is separate from program files. The beta uses the normal RuneLite home; do not move or delete its existing From Scratch data.
 
-The old v0.10.5 ZIP is retained separately. Its installed program files are not deleted by this installer. A verified old From Scratch shortcut may be replaced by the new EXE shortcut; unrelated shortcuts with the same name are preserved and installation is blocked with an explanation. [Historical script instructions](history/INSTALLATION_SCRIPTS_10_5.md) are reference only.
+Version 10.8 introduced save format 11, retained by 10.8.1. Keep a compatible private backup before returning to an older beta. Never run an older client against a newer save unless compatibility is established. The old 10.5 ZIP and other published installers are preserved; a current installer does not remove that separate old installation.
 
-## Uninstalling
+## Uninstalling the beta
 
-Close the application. Open **Windows Settings > Apps > Installed apps > From Scratch Beta > Uninstall** and confirm.
+Close the application, then open **Windows Settings > Apps > Installed apps > From Scratch Beta > Uninstall**.
 
-The uninstaller removes its registered program files, matching desktop/Start Menu shortcuts and Installed apps entry. It preserves unrelated files and changed shortcuts. It does not delete:
+The uninstaller is designed to remove its registered program files, matching shortcuts and Installed apps entry. It preserves changed shortcuts, unrelated files, From Scratch progression, exports, RuneLite settings and account data, other plugins and Java installations. Published 10.8.1 execution testing remains deferred as stated above.
 
-- From Scratch progression under `%USERPROFILE%\.runelite\plugin-data\from_scratch`.
-- RuneLite settings, account data or other plugins under RuneLite's normal user directories.
-- Exported backups wherever you saved them.
-- Launcher diagnostics under `%LOCALAPPDATA%\FromScratchBeta\logs`.
-- Other Java installations or the earlier v0.10.5 installation.
+Program files live under `%LOCALAPPDATA%\Programs\FromScratchBeta`. Progression lives under RuneLite's scoped `.runelite/plugin-data/from_scratch` directory. Launcher logs remain under `%LOCALAPPDATA%\FromScratchBeta\logs`. No system Java or persistent PATH changes are made. See [Data and privacy](DATA_AND_PRIVACY.md) for what those files contain.
 
-Program files live under `%LOCALAPPDATA%\Programs\FromScratchBeta`. The bundled runtime is private to the application; no system or user environment variables are changed.
+## Developers
 
-## If the app cannot start
-
-The launcher checks required files before opening RuneLite. A missing/damaged runtime or library produces an error dialog and a local diagnostic log. Reinstall a trusted beta if instructed. Keep logs private and redact account names, local paths and authentication-related context before sharing a short relevant excerpt. Do not send whole logs, credential files or progression exports.
-
-## For maintainers
-
-The [Milestone 10.6 implementation report](MILESTONE_10_6.md) lists the pinned runtime, developer compiler setup, reproducible packaging command and isolated tests. End users do not need those tools. [Beta acceptance](BETA_TESTING.md) covers actual gameplay and restart checks.
+Build and packaging commands belong in [Maintaining](MAINTAINING.md). Players do not need those tools. Actual game input, authentication and gameplay verification remain manual.

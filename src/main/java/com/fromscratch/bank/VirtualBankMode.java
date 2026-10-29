@@ -22,7 +22,7 @@ public final class VirtualBankMode
 		void open(String name); void close(); String active(); void refresh();
 		default boolean ready(){return true;} default void allItems(){}
 		default boolean filtering(){return active()!=null;}
-		default String remembered(){return "";} default void remembered(String name){}
+		default String remembered(){return "";}
 		default boolean savedTag(String name){return false;}
 		default String title(){return null;} default void title(String text){}
 		default int placeholder(int id){return -1;}
@@ -193,8 +193,9 @@ public final class VirtualBankMode
 		if(access==null&&!attempted){attempted=true;connect();}
 		if(access==null){if(wanted){faulted=true;wanted=false;log.debug("From Scratch Virtual Bank: Bank Tags unavailable; retaining the saved preference and leaving Full Bank usable");}return;}
 		String active=access.active();
-		// Cleanup is independent of preference/run readiness: core can restore a previous process's tag.
-		if(owned(access,access.remembered())){access.remembered("");}
+		// Bank Tags owns persistence. Its public close API can forget an inactive stale view
+		// without resetting native search; never close a foreign active tag to clear a setting.
+		if(active==null){closeStaleSelection(access);active=access.active();}
 		if(!wanted||faulted){deactivate(access);return;}
 		if(owned(access,active)&&(!name.equals(active)||!registered)){deactivate(access);if(!wanted){return;}active=access.active();}
 		if(nativeMode&&active==null){if(!registered){registered=true;access.register(name,this::contains);}tabMembership();if(!membership.equals(applied)){applied=membership;access.refresh();}return;}
@@ -208,8 +209,8 @@ public final class VirtualBankMode
 			tabMembership();applied=membership;
 			log.debug("From Scratch Virtual Bank: opening");access.open(name);
 			if(!name.equals(access.active())||!access.filtering()){throw new IllegalStateException("Bank Tags did not activate the requested virtual view");}
-			// This runtime-only view must never be resurrected by core Remember last tag tab.
-			if(name.equals(access.remembered())){access.remembered("");}log.debug("From Scratch Virtual Bank: open completed");
+			// Core remembers its selection and clears it through closeBankTag on normal exit.
+			log.debug("From Scratch Virtual Bank: open completed");
 		}
 		else if(!access.filtering()){throw new IllegalStateException("Bank Tags selected name has no active filter");}
 		else{tabMembership();if(!membership.equals(applied)){applied=membership;log.debug("From Scratch Virtual Bank: refreshing membership");access.refresh();log.debug("From Scratch Virtual Bank: refresh completed");}}
@@ -228,13 +229,19 @@ public final class VirtualBankMode
 			if(plugin instanceof BankTagsPlugin&&plugins.isPluginActive(plugin))
 			{
 				BankTagsService service=(BankTagsService)plugin;TagManager tags=plugin.getInjector().getInstance(TagManager.class);BankSearch search=plugin.getInjector().getInstance(BankSearch.class);BankTagsConfig config=plugin.getInjector().getInstance(BankTagsConfig.class);net.runelite.client.config.ConfigManager configs=plugin.getInjector().getInstance(net.runelite.client.config.ConfigManager.class);owner=plugin;
-				attach(new Access(){public void register(String n,BankTag tag){tags.registerTag(n,tag);}public void unregister(String n){tags.unregisterTag(n);}public boolean ready(){net.runelite.api.widgets.Widget w=client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.ITEMS);return w!=null&&!w.isHidden()&&w.getOnInvTransmitListener()!=null;}public void allItems(){client.setVarbit(net.runelite.api.gameval.VarbitID.BANK_CURRENTTAB,0);}public void open(String n){service.openBankTag(n,BankTagsService.OPTION_NO_LAYOUT|BankTagsService.OPTION_HIDE_TAG_NAME);}public void close(){service.closeBankTag();}public String active(){return service.getActiveTag();}public boolean filtering(){return service.getActiveBankTag()!=null;}public String remembered(){return config.tab();}public void remembered(String n){config.tab(n);}public boolean savedTag(String n){return net.runelite.client.util.Text.fromCSV(java.util.Objects.toString(configs.getConfiguration(BankTagsPlugin.CONFIG_GROUP,BankTagsPlugin.TAG_TABS_CONFIG),"")).contains(n)||configs.getConfiguration(BankTagsPlugin.CONFIG_GROUP,BankTagsPlugin.TAG_LAYOUT_PREFIX+n)!=null||!tags.getItemsForTag(n).isEmpty();}public void refresh(){search.layoutBank();}public String title(){net.runelite.api.widgets.Widget w=client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);return w==null?null:w.getText();}public void title(String text){net.runelite.api.widgets.Widget w=client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);if(w!=null&&!text.equals(w.getText())){w.setText(text);}}});break;
+				attach(new Access(){public void register(String n,BankTag tag){tags.registerTag(n,tag);}public void unregister(String n){tags.unregisterTag(n);}public boolean ready(){net.runelite.api.widgets.Widget w=client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.ITEMS);return w!=null&&!w.isHidden()&&w.getOnInvTransmitListener()!=null;}public void allItems(){client.setVarbit(net.runelite.api.gameval.VarbitID.BANK_CURRENTTAB,0);}public void open(String n){service.openBankTag(n,BankTagsService.OPTION_NO_LAYOUT|BankTagsService.OPTION_HIDE_TAG_NAME);}public void close(){service.closeBankTag();}public String active(){return service.getActiveTag();}public boolean filtering(){return service.getActiveBankTag()!=null;}public String remembered(){return config.tab();}public boolean savedTag(String n){return net.runelite.client.util.Text.fromCSV(java.util.Objects.toString(configs.getConfiguration(BankTagsPlugin.CONFIG_GROUP,BankTagsPlugin.TAG_TABS_CONFIG),"")).contains(n)||configs.getConfiguration(BankTagsPlugin.CONFIG_GROUP,BankTagsPlugin.TAG_LAYOUT_PREFIX+n)!=null||!tags.getItemsForTag(n).isEmpty();}public void refresh(){search.layoutBank();}public String title(){net.runelite.api.widgets.Widget w=client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);return w==null?null:w.getText();}public void title(String text){net.runelite.api.widgets.Widget w=client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);if(w!=null&&!text.equals(w.getText())){w.setText(text);}}});break;
 			}
 		}
 	}
 	private void attach(Access next){access=next;}
 	/** Only exact legacy UUID keys with no user tag/tab/layout data qualify for migration cleanup. */
 	private boolean owned(Access a,String tag){return tag!=null&&(name.equals(tag)||(tag.matches("from_scratch_virtual_[a-f0-9]{32}")&&!a.savedTag(tag)));}
+	private void closeStaleSelection(Access current)
+	{
+		if(current.active()!=null||!owned(current,current.remembered())){return;}
+		current.close();
+		if(current.active()==null&&(current.filtering()||owned(current,current.remembered()))){throw new IllegalStateException("Bank Tags did not clear the stale virtual selection");}
+	}
 	private void deactivate(Access old)
 	{
 		boolean unregister=registered,redraw=nativeMode;registered=false;selected=false;nativeMode=false;tabDirty=true;tabId=-1;applied=Collections.emptySet();String title=previousTitle;previousTitle=null;
@@ -244,13 +251,13 @@ public final class VirtualBankMode
 			if(owned(old,active))
 			{
 				old.close();
-				if(owned(old,old.active())||(old.active()==null&&old.filtering())){throw new IllegalStateException("Bank Tags did not close the virtual view");}
+				if(owned(old,old.active())||(old.active()==null&&(old.filtering()||owned(old,old.remembered())))){throw new IllegalStateException("Bank Tags did not close the virtual view");}
 				if(title!=null&&!title.contains("from_scratch_virtual_")&&old.active()==null){old.title(title);}
 				if(!name.equals(active)){old.unregister(active);}
 				log.debug("From Scratch Virtual Bank: close verified");
 			}
+			else if(active==null&&owned(old,old.remembered())){closeStaleSelection(old);}
 			else if(redraw&&active==null){old.refresh();}
-			if(owned(old,old.remembered())){old.remembered("");}
 		}
 		finally{if(unregister){old.unregister(name);}}
 	}
@@ -268,7 +275,8 @@ public final class VirtualBankMode
 		{
 			if(access==null&&!attempted){attempted=true;connect();}
 			if(access==null){return !faulted;}
-			boolean clear=!nativeMode&&!owned(access,access.active())&&!owned(access,access.remembered())&&!(access.active()==null&&access.filtering());
+			String active=access.active();
+			boolean clear=!nativeMode&&!owned(access,active)&&!(active==null&&(owned(access,access.remembered())||access.filtering()));
 			if(!clear){wanted=false;request();}return clear;
 		}
 		catch(RuntimeException ex){failed(ex);return false;}

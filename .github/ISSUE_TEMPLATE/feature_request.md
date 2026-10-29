@@ -12,6 +12,8 @@ Player need and concrete example:
 
 Expected legacy/virtual ownership, currency, uncertain-observation and location behavior:
 
-## Scope
+## Compatibility and scope
 
-Which milestone does this fit? Features must comply with RuneLite/Jagex rules and perform no automated player actions.
+How would this affect existing progression, configuration or other plugins? Features must comply with current RuneLite/Jagex rules and perform no automated player actions. Proposals are not approval to remove a defining feature or change saved ownership.
+
+Do not include account identifiers, credentials, private saves, `.fsp` exports or whole logs.

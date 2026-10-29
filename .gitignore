@@ -38,3 +38,15 @@ before-import-*/
 credentials.properties
 jagex-accounts.dat
 *.lnk
+.agents/
+.codex/
+.aws/
+.ssh/
+*.exe
+*.msi
+*.hprof
+*.dmp
+*.jks
+*.keystore
+*.p12
+*.pfx

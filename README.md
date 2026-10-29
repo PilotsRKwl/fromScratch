@@ -1,152 +1,120 @@
-<p align="center"><img src="docs/media/from-scratch-hero.png" alt="Original From Scratch title artwork with a purple bank chest and contrasting item counts" width="100%" /></p>
+<p align="center"><img src="docs/media/from-scratch-hero.png" alt="Original From Scratch artwork with a purple bank chest and contrasting item counts" width="100%" /></p>
 
-# FROM SCRATCH
+# From Scratch
 
 **Your bank is full. Your adventure starts at zero.**
 
-Remember when every drop mattered?
+You've spent years building your Old School RuneScape account. Your bank is packed with equipment, supplies and wealth, but sometimes you want the excitement of starting over without making another character.
 
-From Scratch brings that feeling back to your existing Old School RuneScape character. Keep your levels, quests and account unlocks. Start with an empty virtual bank, collect your first supplies, and work your way back toward the gear and wealth you've already earned.
+From Scratch lets you do exactly that. Keep your levels, quests, achievements, account unlocks and every item you've already earned. When you begin a challenge, your existing bank becomes your **legacy collection**: the items remain physically yours, but you set them aside under the challenge rules.
 
-Bank your loot after each trip and watch your new collection grow. That first useful weapon, stack of runes or profitable drop gives you a reason to head out again.
+Start gathering supplies and earning equipment again as if your bank were empty. Rebuild your wealth, work toward new goals, and reclaim certain difficult-to-reacquire legacy items through virtual GP buybacks. Play alone or alongside friends running their own challenges, and reset whenever you want another fresh start.
 
-## How to Play
+**Your account stays the same. Your item progression starts over.**
 
-**[Download From Scratch Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix).**
+From Scratch tracks your progress; you choose to follow the rules. It does not prevent withdrawals or stop you using legacy equipment, and it does not turn your character into an Ironman.
 
-We're preparing From Scratch for publication on the RuneLite Plugin Hub. It has not been submitted or approved yet.
+## Your challenge in three steps
 
-Requires Windows 64-bit. Everything you need is included.
+1. **Keep your character.** Retain all levels, quests, achievements and account unlocks.
+2. **Start with zero items.** Your starting bank becomes legacy gear. Everything stays yours, but those items are considered unavailable for the challenge.
+3. **Earn everything again.** Play normally, bank newly earned items, track your challenge ownership and build toward your next upgrade.
 
-1. **Download From Scratch.** Get [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe).
-2. **Install From Scratch.** Double-click the file and follow the installation wizard. A **From Scratch Beta** shortcut appears on your desktop.
-3. **Open From Scratch.** Double-click the shortcut and follow RuneLite's sign-in instructions.
-4. **Start your challenge.** Enable From Scratch in RuneLite, open its purple coin panel, and follow the setup instructions.
+Start another run at any time with **Reset Progress**. Your real items and account are untouched.
 
-[Release notes](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix) · [Installation help](docs/INSTALLATION.md)
+## Try the Friends Beta
 
-## The Challenge
+From Scratch is **not yet available or approved on the official RuneLite Plugin Hub**. The current download is [Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix) for 64-bit Windows.
 
-Keep the character you've spent years building and give yourself a fresh set of goals.
+1. Download [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe) and follow the setup wizard.
+2. Open **From Scratch Beta** from your desktop and sign in through RuneLite's official Jagex Accounts panel.
+3. Enable From Scratch, open its purple coin sidebar, and follow **Before Starting**. Bank your inventory and equipment before confirming your starting snapshot.
 
-When you start, the items already in your bank become **legacy possessions**. They stay exactly where they are. From Scratch begins a separate collection that grows as you bank items during the challenge.
+[Installation and update help](docs/INSTALLATION.md) · [Release notes and checksum](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix)
 
-Chop your first logs. Gather supplies for a quest. Earn enough for a weapon upgrade. Build toward a boss trip with equipment you've earned again.
+The installer is unsigned. Local Windows Application Control blocked installer execution testing; manual installation, upgrade and uninstall checks remain pending. Keep Windows security protections enabled and see [troubleshooting](docs/TROUBLESHOOTING.md) if installation is blocked.
 
-Your levels and quests stay unlocked, and you can keep exploring Gielinor as usual. For special legacy equipment, the buyback shop gives you another goal to save toward.
+## See your fresh start grow
 
-## Gameplay Features
+<p align="center"><img src="docs/media/dashboard-overview.png" alt="From Scratch dashboard with six progress tiles rendered using synthetic sample values" width="360" /></p>
 
-### Make Every Drop Matter Again
+*The actual dashboard rendered with synthetic sample progress. This is an interface preview, not a live RuneScape screenshot.*
 
-A few law runes can mean your next teleport. A weapon drop can unlock your next training spot. Even familiar activities feel rewarding when you're collecting the supplies to do them again.
+Genuine gameplay captures are still needed to show the native bank, mixed item quantities and Virtual Bank in action. The [capture checklist](docs/GAMEPLAY.md#screenshots-and-captures) describes exactly what the owner can provide without exposing private account information.
 
-Bank what you earn and see your challenge balance update automatically.
+## Build a bank worth using again
 
-### Your Own Fresh Bank
+- **Find your available gear.** Virtual Bank filters to item types with positive challenge ownership while keeping native bank tabs and search. Turn off **Enable Virtual Bank View** to see your full bank.
+- **Know what you can use.** Bright virtual counts show your challenge balance; gray counts show the physical stack. Shading identifies unavailable legacy items. Outstanding legacy withdrawals appear as signed debt until you return or replace them.
+- **Set your next goal.** Follow bank value, available virtual GP, unlocked items, Peak Progress Value and Time Played in the sidebar. Item values are estimates; time counts play on this computer.
+- **Review your journey.** Browse bank and item history, inspect exact quantities with normal Examine, and review completed Grand Exchange purchases and sales observed while the plugin is running.
+- **Keep useful storage.** Supported Potion Storage uses dose-based progress. Rune Pouches, Looting Bags and other supported containers have safeguards so a buyback does not also unlock old contents.
+- **Keep your run.** Progress saves locally for each character. Export a private backup, import it for the same character, or reset when you want a fresh challenge.
 
-Native bank search keeps your Virtual Bank view.
+For example, your physical bank might contain 110 sharks while only 10 belong to the challenge. Both counts remain visible. You decide to withdraw the earned 10; normal banking still allows you to withdraw the whole stack.
 
-**Virtual Bank** shows the item types available in your challenge, with your normal bank tabs and banking controls. Turn off **Enable Virtual Bank View** in From Scratch's settings whenever you want to see your full bank.
+[How to play](docs/GAMEPLAY.md) · [Detailed features and limits](docs/FEATURES.md)
 
-Bright green counts show your virtual quantities. Gray counts show the whole physical stack, and shaded items mark legacy possessions that are still locked. You can choose a different virtual count color in settings.
+## Reclaim your legacy equipment
 
-For example, you might have 110 sharks in your real bank and 10 available for the challenge. Both counts remain visible. The game still lets you withdraw the full stack, so following the challenge rules is up to you.
+Save virtual GP for **Legacy Buybacks** and give familiar gear a new place on your goal list. Browse alphabetized **Utility & Storage**, **Weapons**, **Armour** and **Skilling Outfits**, then review the price before confirming a purchase.
 
-### Watch Your Progress Grow
+| Goal | Fixed virtual GP cost |
+| --- | ---: |
+| Fire Cape | 1,000,000 |
+| Rune Pouch / Divine Rune Pouch family | 1,000,000 once |
+| Looting Bag family | 10,000 once |
+| One selected Black Mask / Slayer Helmet copy | 1,000,000 |
+| Carpenter, Pyromancer, Raiments of the Eye, Smiths' Uniform or Zealot complete set | 2,000,000 each |
 
-See your bank wealth, available GP, unlocked items and time played in one panel. **Peak Progress Value** remembers your highest recorded progress, including GP spent on permanent legacy unlocks.
+The catalog also includes corrupted crystal weapons, Emberlight, crystal armour, imbued rings, Dizana's Quiver and gathering containers. Full outfits require every qualifying piece, and copy limits still apply.
 
-Set a target for your next upgrade or look back at how far you've come. Item values use estimated prices, and Time Played counts gameplay on this computer.
+These are fixed gameplay costs paid with **virtual GP**. Buybacks leave real coins and equipment untouched. Equipment earned normally during the challenge is available without a buyback, and a storage unlock never includes its legacy contents.
 
-<p align="center"><img src="docs/media/dashboard-overview.png" alt="From Scratch dashboard showing six progress tiles with sample values" width="360" /></p>
+[All fixed prices and supported variants](docs/technical/BUYBACK_PRICING.md)
 
-<p align="center"><em>The current dashboard, shown with sample progress.</em></p>
+## Your adventure, alone or alongside friends
 
-### Earn Back Your Favorite Gear
+From Scratch is a solo challenge you can also share with friends. Start on the same day, compare virtual bank values, race to earn a particular weapon, or set milestones for your next boss trip. Agree on your goals and celebrate each other's progress.
 
-Save challenge GP to unlock selected legacy equipment in the **Legacy Buybacks** shop. A Fire Cape costs **1,000,000 GP**. Browse alphabetized Utility & Storage, Weapons, Armour and Skilling Outfits as you plan your next goal.
-
-One **1,000,000 GP** Rune Pouch purchase covers both the normal and Divine versions. The open and closed Looting Bag share one **10,000 GP** purchase. Old contents inside a pouch or bag remain legacy items.
-
-Buybacks spend your challenge GP and leave your real coins and equipment untouched. Equipment you earn normally during the challenge is available without a buyback.
-
-![The current Legacy Buybacks catalog showing combat gear, prices and availability with sample progress](docs/media/legacy-buybacks.png)
-
-*Browse your next goal. This interface preview uses sample progress.*
-
-Choose the exact Black Mask or Slayer Helmet copy to reclaim for 1M virtual GP. Elite Black Knight armour pieces cost 30K each.
-
-Reclaim more weapons and armour, unlock complete new skilling outfits for 2M each, and work toward useful storage upgrades. Buyback prices are fixed challenge costs paid with virtual GP.
-
-### Trade, Earn, and Explore
-
-Keep using the Grand Exchange to sell your loot and buy your next upgrade. From Scratch records completed trades that it observes on this computer, including offers that partly fill before you cancel the rest.
-
-Review what you bought or sold, how much traded and the reported GP. You can also look through your bank history or Examine an item to check its exact virtual bank quantity.
-
-![Grand Exchange Purchases showing completed and partly filled purchases with sample trade data](docs/media/ge-purchases.png)
-
-*Completed trades in one place. This interface preview uses sample trades.*
-
-### Keep Your Adventure Going
-
-Potion Storage keeps track of your challenge potions in doses. If you withdraw more items or doses than you have earned, From Scratch warns you and keeps the outstanding amount visible until you return or replace it. See the [feature guide](docs/FEATURES.md#outstanding-legacy-items) for setup and limits.
-
-Your challenge saves on this computer and returns when you reopen RuneLite. Each character keeps its own progress.
-
-Use **Export Progress** to make a private backup. **Import Progress** lets you restore that backup for the same character, including when moving to another computer.
-
-[See more interface previews](docs/SCREENSHOTS.md), including Sales, Bank History and setup. All previews use sample data. Gameplay captures will follow separately.
-
-## Your Next Session
-
-- **Start a challenge:** Bank your inventory and equipment, read the setup instructions, then choose **Start From Scratch**. Your bank's starting contents become legacy possessions.
-- **Find your available gear:** Use Virtual Bank and your usual bank tabs. The single settings checkbox switches between Virtual Bank and Full Bank.
-- **Read your counts:** Gray is the full physical stack. The bright count is your challenge balance. A negative count means legacy items are outstanding; returning them moves the balance back toward zero.
-- **Plan a buyback:** Open **Legacy Buybacks**, browse the cards and review the price before confirming. Full outfits need every required piece.
-- **Check your progress:** Use the main panel for wealth, GP, unlocks and Time Played. Open **Bank History** to review recorded changes.
-- **Review your trades:** Open **Grand Exchange History**, then **Purchases** or **Sales**. Offers appear once they finish or you cancel a partly filled offer.
-- **Keep a backup:** Open the **⋮** menu at the top of the panel and choose **Export Progress**. Keep the file private and safe before an update or a move to another computer.
+Each player keeps their own progression locally. There is no shared bank, automatic multiplayer synchronization or integrated leaderboard. Compare progress yourselves, and keep account details and private saves out of shared screenshots.
 
 ## FAQ
 
-**Do I need a new RuneScape account?**
+**Does it delete my bank or change my account?**
 
-No. From Scratch works with your existing character. Your levels, quests and account unlocks stay as they are.
+No. Your real items, levels, quests, achievements and account unlocks stay yours. From Scratch tracks a separate challenge balance.
 
-**What happens to the items I already own?**
+**Does it stop me using legacy gear?**
 
-They remain yours. Items in your starting bank are marked as legacy possessions, and From Scratch keeps a separate challenge balance as you bank and withdraw items.
+No. This is a voluntary game mode. The plugin distinguishes legacy items from earned challenge ownership, but normal withdrawal and equipment controls remain available.
 
-**Can I still use the Grand Exchange?**
+**How do I earn challenge items and GP?**
 
-Yes. Buying and selling is part of normal gameplay. From Scratch shows completed trades it observes while you're using it.
+Play normally and bank what you earn. From Scratch updates your challenge balances from bank changes. Available virtual GP is your challenge coin balance after committed buyback spending. See [the gameplay guide](docs/GAMEPLAY.md) for examples.
 
-**Does the plugin stop me using legacy items?**
+**Can I use the Grand Exchange?**
 
-No. The challenge relies on you following its rules. Normal banking controls stay available, including the full physical quantity of a stack that contains both legacy and challenge items.
+Yes. Normal buying and selling are part of the challenge. Completed trades the plugin observes are shown in its history.
 
-**Can I play on mobile?**
+**Can I play on mobile or another computer?**
 
-You can keep playing on mobile and update From Scratch by banking your items, then opening your bank on your usual computer. The plugin records the bank changes it finds on your return. Individual activities and mobile time played are not recorded.
+The next bank observation on your usual computer reconciles the net bank change, but cannot reconstruct every unseen transaction or mobile playtime. Use private Export / Import Progress when moving your main run between computers; there is no automatic sync.
 
-**What happens if I switch computers?**
+**Can I start over?**
 
-Use **Export Progress** on the old computer, transfer the backup privately, then use **Import Progress** for the same character on the new computer. Progress does not sync automatically, so keep using one computer as your main copy.
+Yes. **Reset Progress** ends the current run after confirmation and keeps a recovery archive. Export a private backup first if you want your own copy. Your actual items remain untouched.
 
-**Will updating or uninstalling the beta erase my challenge?**
+## Privacy and safety
 
-The beta installer and uninstaller preserve your challenge saves and backups. Export Progress before updating so you have your own copy.
+Progress stays on your computer. From Scratch has no account registration, cloud progression or analytics service, and it does not ask for passwords or tokens. It uses RuneLite's public item prices without uploading your holdings. Saves and exports are private and unencrypted, so keep them safe and never attach them to a public issue.
 
-**Is From Scratch on the RuneLite Plugin Hub?**
+[Data and privacy](docs/DATA_AND_PRIVACY.md) · [Safe troubleshooting and bug reports](docs/TROUBLESHOOTING.md)
 
-The Friends Beta is available from the download above. From Scratch has not been submitted, reviewed or approved for the RuneLite Plugin Hub.
+## Support and documentation
 
-## More Information
+[Report a bug or request a feature](https://github.com/PilotsRKwl/fromScratch/issues/new/choose) · [Gameplay](docs/GAMEPLAY.md) · [Installation](docs/INSTALLATION.md) · [Feature reference](docs/FEATURES.md) · [Documentation](docs/README.md) · [Contributing](CONTRIBUTING.md)
 
-[Feature guide](docs/FEATURES.md) · [Installation help](docs/INSTALLATION.md) · [Beta testing guide](docs/BETA_TESTING.md) · [Privacy and data](docs/DATA_AND_PRIVACY.md) · [Technical reviewer guide](docs/PLUGIN_HUB_REVIEW.md) · [Documentation index](docs/README.md) · [Report a bug](https://github.com/PilotsRKwl/fromScratch/issues/new/choose)
+Created by **Pilots r kwl**. [BSD 2-Clause license](LICENSE) · [Artwork credits](docs/ARTWORK.md) · [Plugin Hub reviewer guide](docs/PLUGIN_HUB_REVIEW.md)
 
-Created by **Pilots r kwl**. [BSD 2-Clause license](LICENSE) · [Artwork credits](docs/ARTWORK.md).
-
-RuneScape and Old School RuneScape are trademarks of Jagex Ltd. Item artwork belongs to Jagex. From Scratch is an independent community project with no Jagex, RuneLite or Steam affiliation.
+RuneScape and Old School RuneScape are trademarks of Jagex Ltd. Item artwork belongs to Jagex. From Scratch is an independent community project with no Jagex or RuneLite affiliation.

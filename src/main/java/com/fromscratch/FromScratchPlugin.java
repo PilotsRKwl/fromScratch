@@ -37,8 +37,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 	name = "From Scratch",
 	internalName = "from_scratch",
 	configName = FromScratchConfig.GROUP,
-	description = "Start fresh with a separate virtual economy and progression",
-	tags = {"bank", "progression", "challenge", "virtual", "ironman", "wealth"}
+	description = "Restart item progression on your existing character with a Virtual Bank and legacy gear buybacks.",
+	tags = {"bank", "virtual", "progression", "challenge", "fresh start", "legacy", "solo", "friends", "wealth"}
 )
 public class FromScratchPlugin extends Plugin
 {

@@ -1,9 +1,20 @@
+From Scratch
+Copyright (c) 2026, Pilots r kwl
+
+Project source and original artwork are distributed under the BSD-2-Clause
+license in LICENSE. Artwork provenance is documented in docs/ARTWORK.md.
+
 From Scratch was created from the official RuneLite example plugin template:
 https://github.com/runelite/example-plugin
-
 Existing third-party notices, including src/test/resources/logback-test.xml,
-are retained. RuneLite dependencies retain their own licenses and are not
-redistributed in the standard Plugin Hub JAR.
+are retained. The purple coin artwork was generated for this project and is
+not extracted from RuneScape assets.
 
-Purple coin artwork was generated specifically for this project; see
-docs/ARTWORK.md. It is not extracted from RuneScape assets.
+RuneLite and its dependencies retain their upstream licenses and notices.
+The optional Friends Beta distribution includes separate third-party notices
+under beta/windows-native/ and beta/windows/ and retains dependency notices.
+Game item sprites shown in labeled component previews are third-party game
+assets; the project license does not relicense those assets.
+
+From Scratch is not affiliated with Jagex or the RuneLite development team.
+Plugin Hub submission, review and acceptance are distinct from beta releases.

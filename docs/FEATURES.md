@@ -1,85 +1,55 @@
-# From Scratch — feature guide
+# Feature guide
 
-Friends Beta 10.8 adds bank search and equipment buybacks to the accepted 10.7 baseline. The plugin is a voluntary challenge, not an official account mode.
+From Scratch is a voluntary fresh-item challenge on an existing Old School RuneScape character. Keep your levels, quests, account unlocks and real possessions; distinguish your legacy bank from what you earn in the challenge. [Gameplay](GAMEPLAY.md) explains the rules and first run.
 
-## Start with the character you already have
+## Start a fresh run
 
-Bank all inventory/equipment yourself and confirm the setup attestation. A complete normal-bank API snapshot establishes immutable legacy quantities; filtering cannot start before its save succeeds. Levels/quests and physical possessions are untouched. Bank PIN/missing/incomplete observations block initialization; a genuinely empty complete bank is valid.
+Bank inventory and equipment yourself, then confirm the setup instructions. From Scratch records the complete bank as your legacy baseline. If Potion Storage is unlocked, its captured contents are included before Start. Missing or incomplete observations are never treated as empty. The original baseline remains unchanged throughout the run.
 
-Signed progress follows `B' = B + (P' - P)`, where P is the complete physical bank. A legacy axe withdrawn from baseline becomes -1, then returns to zero when banked. New deposits increase progress. Unknown containers never mean zero. Placeholders represent no physical copies and retain their original item's signed overlay. Absent deficits remain in saved balances/corrections.
+New bank deposits increase challenge progress; withdrawals reduce it. Spending more items than your available challenge quantity creates a signed deficit that remains visible until returned or replaced. Withdrawals do not prove consumption. Reset archives the old run after confirmation so you can begin again.
 
-## Read the bank at a glance
+## Read your bank
 
-- Physical top-left counts: #A0A0A0 during an active overlay, full physical quantity with native compact formatting. Dragged items keep native counters.
-- Virtual bottom-right counts: configurable, #1DFF00 by default; compact integer K/M notation with no upward rounding.
-- Zero/negative items: configurable locked tint, #333333 / 50% by default. Item shapes, menus and quantities are unchanged.
-- Virtual Bank: default-ON preference, active runs only; positive effective types intersect native tabs 1–9 or All. Full Bank remains available through the single Settings checkbox. Native search intersects matching results with virtual ownership and keeps the preference enabled. Independent Bank Tags keep their own view. Separate special storage interfaces are outside this filter.
-- Mixed stacks keep native physical quantities: gray 110 / green 10 means only 10 challenge copies, despite the full physical stack remaining withdrawable.
-- Normal item Examine keeps native/core messages, then adds one From Scratch line with exact signed bank quantities, cached values and entitlement status. It adds no menu option.
+- **Physical quantities** show how many real items are banked, in gray during the overlay.
+- **Virtual quantities** show challenge ownership, green by default; negative quantities use the configured warning color.
+- **Locked shading** marks items without positive challenge ownership. Mixed stacks retain the whole physical stack and show your smaller virtual allowance separately.
+- **Virtual Bank** shows positive challenge-owned item types within the native tab or search. Turn its single Settings checkbox off to use Full Bank. Search and view changes do not change bank balances.
+- **Examine** keeps normal game/core messages and adds one local From Scratch line with exact signed quantities and relevant buyback information.
 
-## Progress dashboard
+Normal menus, quantities and withdrawals remain available. The plugin does not enforce the challenge for you.
 
-### Outstanding legacy items
+## Progress and histories
 
-An excessive confirmed withdrawal produces a red local chat warning and a RuneLite notification where enabled. The amber warning near the top of the sidebar lists outstanding items even when their bank slots disappear or Virtual Bank is disabled. Potion debts use doses, grouped by potion type. Return or replace items to reduce the signed debt; an entry opens recorded item history. Warnings do not block any native withdrawal. Mixed-stack tooltips explain that Withdraw All takes the full physical stack.
+The sidebar tracks Peak Progress Value, Current Bank Net Worth, Bank GP, Items Unlocked, Time Played and Total Value Lost / Spent. Guide prices and tax/loss estimates are labeled where appropriate. Missing prices are disclosed rather than invented. Time Played counts logged-in ticks on this host, not mobile time or wall-clock run age.
 
-### Potion Storage
+Bank and item histories show recorded changes and corrections. GE Purchases and Sales show finalized offers with nonzero executed quantities, including canceled partial fills. Pending offers and unfilled cancellations do not become completed-trade rows. Viewing history never replays a payment or changes ownership.
 
-Open Mixology Potion Storage to see a compact **FS:** amount beside each native physical amount. It uses your virtual quantity color; outstanding amounts use Negative Virtual Quantity Color (red by default). Dose-based potions show doses. Unfinished and single-unit entries show items. Large values use compact bank notation where needed. A narrow row can show **FS** with the exact amount on hover. Unverified ownership shows **FS: ?**. Empty vials are excluded. The native quantities and controls stay unchanged.
-
-Before a new challenge, bank your inventory and gear, confirm those steps, then open your bank. If Potion Storage is unlocked, open it next and review the captured amounts if needed. Once both are recorded, you can start directly from Potion Storage while the bank capture remains valid. A character without the unlock skips that step. Only an unknown unlock state needs your explicit answer. Both legacy snapshots save together before Virtual Bank activates; your banking confirmation stays checked while switching interfaces.
-
-Existing challenges keep their original snapshots and earned balances. Use **Manual Corrections → Potion Storage** to review unresolved stock or edit a known virtual balance. The searchable list combines bottle sizes into one potion type and includes outstanding amounts even when physical stock is zero. Closed storage shows its last verified amounts as cached. Signed edits are confirmed, limited by verified physical stock and recorded in history. They change virtual ownership, never real potions. Old stock is never automatically awarded as earned. The main sidebar keeps outstanding warnings, without a separate storage list.
-
-Observed bank/storage transfers preserve ownership across dose sizes. Read storage before transferring after login. Same-session withdrawal budgets prevent delayed returns or conversions from creating new ownership. If both containers are possible sources, the plugin requests review instead of guessing. Storage is never represented by fabricated native bank slots. Verified pooled potion doses contribute once to current wealth and reliable peak checkpoints, using an estimated per-dose guide price.
-
-### Wealth and time
-
-Exactly six primary statistics: Peak Progress Value, Current Bank Net Worth, Bank GP, Items Unlocked, Time Played, Total Value Lost / Spent. Prices are cached GE-guide estimates; unknown/stale prices are disclosed. Signed deficits subtract value. Bank GP is raw signed coins minus cumulative committed buyback payments, counted once. Untradeable buyback prices are not market values.
-
-Peak Progress Value is the monotonic recorded high-water of priced signed bank wealth plus confirmed permanent progression expenditures. Old unknown peaks are not invented. Purchases of ordinary GE items merely convert assets; neither gross sale proceeds nor buyback entitlements create fresh wealth. Ordinary withdrawals are not proof of loss/consumption. Seller fees remain estimated where actual tax is unavailable; leading `~` identifies estimates.
-
-Time Played accumulates logged-in host RuneLite gameplay ticks, persists independently and truncates whole minutes/hours/days. Prior wall-clock run age is not converted. The run's historical start timestamp remains intact.
+Overdraft warnings use newly saved negative changes. Outstanding items remain visible in the sidebar even without a physical bank slot or with Virtual Bank disabled. Potion debts are grouped by potion type and dose count. These are warnings, not withdrawal restrictions.
 
 ## Legacy Buybacks
 
-Curated cards group Combat Gear (including Void), Skilling Outfits, and Utility & Storage. Eligibility comes from the catalog/entitlement engine, not item-name guessing. Purchases require a qualifying observed legacy copy, an active run and sufficient available virtual GP. Confirmation revalidates funds/ownership/revision; GP commitment, role entitlement and audit/contents offsets commit atomically. Physical coins/items never move.
+Buybacks use fixed **virtual GP**, never real coins. Tiles appear in Utility & Storage, Weapons, Armour and Skilling Outfits, alphabetized within each category. Purchases require qualifying legacy equipment in the bank, enough virtual GP and explicit confirmation. Canceling spends nothing; a failed save grants nothing and spends nothing.
 
-- Fire Cape 1000K; Infernal Cape 15M; Imbued God Cape 750K; Ava's Assembler 1000K; Dragon Defender 250K; Fighter Torso 2000K; Salve Amulet (ei) 500K; Ancient Sceptre 500K.
-- Rune Pouch / Divine Rune Pouch: one 1000K family payment, genuine supported locked variants included; notes/vouchers/runes are not equipment entitlements.
-- Looting Bag: closed/open variants share one 10K family payment. Naturally earned qualifying copies need no buyback; one earned copy does not grant every legacy copy.
-- Void helms 300K each, top/robe 800K each, gloves 200K. Elite top/robe 1800K outright or +1000K with the corresponding purchased base role; no duplicate base payment/copy.
-- Complete outfits: Graceful 1000K (six pieces), Prospector 1000K, Angler 750K, Rogue 500K, Lumberjack 500K, Farmer 750K. All qualifying pieces must be present; no partial charge/unlock.
-- Barrows Gloves and Royal Seed Pod are excluded. No arbitrary untradeable grants or automatic refunds.
+The catalog includes equipment, complete skilling outfits and utility/storage rewards. New complete outfits cost 2M each. Regular Dizana's Quiver costs 15M; blessed costs 60M directly or 45M more after a regular purchase. Existing prices are unchanged. [All exact prices and supported variants](technical/BUYBACK_PRICING.md) are documented separately.
 
-The authoritative catalog and exact approved variants are in [BuybackCatalog](../src/main/java/com/fromscratch/buyback/BuybackCatalog.java).
+Rune Pouch/Divine Rune Pouch share one 1M family payment, and open/closed Looting Bag share one 10K family payment. Supported Black Mask/Slayer Helmet copies cost 1M each through exact-item selection; Elite Black Knight pieces cost 30K each per copy. Naturally earned copies need no buyback. A payment never unlocks unlimited physical copies or unrelated variants.
 
-## Pouch and bag contents
+## Storage and contents
 
-A storage buyback unlocks the equipment, not preexisting contents. Rune Pouch uses a fresh bank-associated client/server varbit read and RuneLite's rune enum; no forced pouch withdrawal. Looting Bag uses current bank-session container 516 or explicitly observed native inspection/empty evidence. Missing data is not assumed empty. If an empty bag provides no readable contents, Legacy Buybacks offers **I confirm my Looting Bag is empty**. This voluntary declaration is recorded as **Player confirmed empty**, costs the same 10K GP, and adds no contents adjustments. Verified populated contents cannot be overridden. For a bag containing items, use its native Check or View option, return it to the bank and retry.
+Potion Storage displays an **FS:** quantity beside native amounts, using doses or items as appropriate. Unverified amounts are marked unknown. Bank/storage transfers preserve earned ownership across supported dose sizes. Existing unresolved stock can be reviewed through **Manual Corrections > Potion Storage** without resetting the run.
 
-Verified old contents create purchase-linked signed deficits in the same transaction. Existing earned nature runes +100 minus old pouch contents 500 becomes -400; depositing those 500 restores +100 without fresh gains. Coins in a bag affect raw signed bank coins separately from the 10K payment. Offsets persist, are applied once, and are not ordinary spending. Future refills never create another charge/offset. Earlier legitimate purchases are preserved.
+A container buyback unlocks the equipment, not its old contents. Verified Rune Pouch/Looting Bag contents receive linked negative legacy adjustments once; banking those contents clears the corresponding debt without awarding them again. Unknown contents are never automatically empty.
 
-## Grand Exchange and histories
+Fish Barrel, Herb Sack, Plank Sack, Seed Box, Tackle Box and quiver ammunition require explicit empty/shared-store and legacy-accounted declarations. Empty the entire shared store, including other copies. If legacy contents were banked after Start, correct those transferred amounts out of virtual ownership first. Cancel when their quantity or origin is uncertain. Available native nonempty evidence blocks a contradictory declaration. [Accounting details](technical/ACCOUNTING.md) explain these safeguards.
 
-The GE observer records cumulative offer quantities/GP, persistent generation identities, partial fills, completion/cancellation and uncertainty. GE events never independently alter bank item/coin quantities. Complete bank observations handle actual collections/deposits normally; bounded possible attribution avoids reclassifying conversions as new gains without claiming certainty about identical copies.
+## Progress files and corrections
 
-Purchases/Sales show one finalized nonzero executed offer: Bought, Sold, Bought (Partial), Sold (Partial). Active partials remain internal until full execution/cancellation. Executed quantity/GP and weighted average use cumulative observations; zero-fill cancellations and lifecycle noise are hidden. Generation IDs deduplicate pages/restarts/slot reuse. Original append-only audit evidence remains. Taxes shown for completed offers are average-price estimates, not verified settlement, and can differ from retained per-fill financial estimates. Realized profit and collection destination are not invented.
-
-Bank History and item-specific history retain recorded deposits, withdrawals, manual corrections, automatic storage offsets, buybacks and associated observed trades. Manual Bank Corrections fix errors; they are not a normal synchronization step. History is paged/read-only.
+**Export Progress** creates a private local backup. Import previews a compatible same-character run, requires confirmation, preserves the existing run and replaces rather than merges histories. Manual Bank Corrections repair known errors; they are not an automatic way to earn legacy items. Positive corrections cannot exceed verified physical stock.
 
 ## Boundaries
 
-- Complete bank quantities plus verified Potion Storage; no continuous inventory/equipment ownership or outside-bank wallet. Other storage remains excluded except for the existing on-demand buyback contents proofs.
-- Local-only, character-specific host storage. Other-device returns reconcile the next complete bank's net change, not unseen transaction details or mobile playtime.
-- Unobserved offers completed/removed while away may have no reconstructable trade history. Unknown origin/tax/profit stays uncertain.
-- No gameplay automation, synthetic actions, withdrawal blocking, server ownership changes or packet manipulation.
-- No cloud sync. Export/Import Progress is explicit, private local transfer for the same character, replacing rather than merging runs.
-- Reset archives progression after a typed confirmation. Use disposable runs for destructive testing; never reset a real run for screenshots.
-
-## New equipment buybacks in Friends Beta 10.8
-
-- **Black Mask / Slayer Helmet:** 1M virtual GP for one selected legacy copy. Choose among your banked variants, then confirm the exact item. Charged masks, supported imbues and cosmetic helmets are included. Each additional identical copy costs another 1M.
-- **Elite Black Knight armour:** helm, body and legs cost 30K each, per copy. These are separate from Elite Void.
-- Earned copies remain available for free. A payment never unlocks all variants. Keep the bank open to purchase; if a paid copy is currently withdrawn, return it before buying another copy of that ID. Transformations follow normal bank changes; the plugin cannot prove unseen inventory conversions or transfer an entitlement to another ID automatically.
-- Achievement Diary rewards have no buyback category. Obtain a replacement through the normal game and bank it under the usual rules. Prior diary completion does not unlock your legacy copy.
+- Progression is local and character-specific, with no cloud sync, shared progression or integrated leaderboard.
+- The bank is the ongoing item-quantity authority. No continuous inventory/equipment ownership tracking or outside-bank wallet exists.
+- Offline/mobile activity reconciles the next observed net bank change; unseen transactions and playtime cannot be reconstructed.
+- Normal gameplay remains under the player's control. No synthetic input, game automation, packet manipulation or server ownership changes are performed.
+- Exports are unencrypted private progression. Keep them out of public bug reports and use disposable runs for destructive testing.
