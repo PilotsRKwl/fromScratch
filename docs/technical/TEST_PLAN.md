@@ -1,6 +1,8 @@
 # Validation plan
 
-Milestone 10.7 is the owner-accepted, published baseline. Milestone 10.8 covers native search and exact-copy equipment buybacks. [Milestone 10.8](../MILESTONE_10_8.md) records current release gates; older evidence below remains historical.
+Milestone 10.8.1 extends the published 10.8 baseline. [Milestone 10.8.1](../MILESTONE_10_8_1.md) records current automated release gates and explicitly deferred owner-only native search checks; older evidence below remains historical.
+
+For 10.8.1, run focused buyback/model/pipeline/persistence/UI and native-search lifecycle tests, then the complete `build` suite once before release. Preserve assertions and both CI platforms. `ExpandedBuybacksTest`, `ExpandedBuybackPersistenceTest`, `StorageBuybackPipelineTest`, `StorageBuybackPersistenceTest`, `StorageContentsGuardTest` and `NativeBankSearchLifecycleTest` cover the new behavior. Exact-commit Windows and Ubuntu CI, standard-template compilation, beta integration and final committed-source installer validation must pass before publication. The owner's explicit 10.8.1 instruction defers native RuneLite input visibility/focus validation; headless success must not be reported as manual acceptance.
 
 ## Current verified baseline
 

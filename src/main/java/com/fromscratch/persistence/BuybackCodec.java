@@ -12,10 +12,22 @@ final class BuybackCodec
 	private BuybackCodec(){}
 	static JsonObject purchase(BuybackPurchase p)
 	{
+		if(p.isStorageConfirmedEmpty())
+		{
+			JsonObject j=new JsonObject(),floors=new JsonObject();p.getBankFloors().forEach(floors::addProperty);j.add("floors",floors);j.addProperty("id",p.getId().toString());j.addProperty("catalog",p.getCatalogId());j.addProperty("gp",p.getGp());j.addProperty("at",p.getAt().toString());
+			JsonObject storage=new JsonObject();storage.addProperty("confirmation","PLAYER_CONFIRMED_EMPTY");storage.addProperty("legacyContents","ALREADY_ACCOUNTED");j.add("storage",storage);return j;
+		}
 		JsonObject j=new JsonObject(),floors=new JsonObject();p.getBankFloors().forEach(floors::addProperty);j.add("floors",floors);j.addProperty("id",p.getId().toString());j.addProperty("catalog",p.getCatalogId());j.addProperty("gp",p.getGp());j.addProperty("at",p.getAt().toString());if(p.getSelectedItemId()>0){JsonObject selected=new JsonObject();selected.addProperty("item",p.getSelectedItemId());selected.addProperty("quantity",1);j.add("selected",selected);}if(p.getPouchItemId()>0){JsonObject pouch=new JsonObject();pouch.addProperty("item",p.getPouchItemId());pouch.add("runes",map(p.getLegacyRunes()));if(p.getBagConfirmation()==BagObservation.State.PLAYER_CONFIRMED_EMPTY){pouch.addProperty("confirmation",p.getBagConfirmation().name());}j.add(p.getCatalogId().equals("looting_bag_family")?"bag":"pouch",pouch);}return j;
 	}
 	static BuybackPurchase purchase(JsonObject j)
 	{
+		if(j.has("storage"))
+		{
+			keys(j,"id","catalog","gp","at","floors","storage");JsonObject storage=j.getAsJsonObject("storage");keys(storage,"confirmation","legacyContents");
+			if(!str(storage,"confirmation").equals("PLAYER_CONFIRMED_EMPTY")||!str(storage,"legacyContents").equals("ALREADY_ACCOUNTED")){throw new IllegalArgumentException("Invalid empty-storage declaration");}
+			Map<String,Long> floors=new TreeMap<>();j.getAsJsonObject("floors").entrySet().forEach(e->floors.put(e.getKey(),number(e.getValue())));
+			return BuybackPurchase.emptyStorage(UUID.fromString(str(j,"id")),str(j,"catalog"),number(j.get("gp")),Instant.parse(str(j,"at")),floors);
+		}
 		if(j.has("selected")){keys(j,"id","catalog","gp","at","floors","selected");JsonObject selected=j.getAsJsonObject("selected");keys(selected,"item","quantity");if(number(selected.get("quantity"))!=1){throw new IllegalArgumentException("Each purchase must pay for one copy");}Map<String,Long> floors=new TreeMap<>();j.getAsJsonObject("floors").entrySet().forEach(e->floors.put(e.getKey(),number(e.getValue())));return new BuybackPurchase(UUID.fromString(str(j,"id")),str(j,"catalog"),number(j.get("gp")),Instant.parse(str(j,"at")),floors,Math.toIntExact(number(selected.get("item"))));}
 		String content=j.has("bag")?"bag":"pouch";
 		if(j.has(content)){keys(j,"id","catalog","gp","at","floors",content);JsonObject stored=j.getAsJsonObject(content);if(stored.has("confirmation")){keys(stored,"item","runes","confirmation");if(!content.equals("bag")||!str(stored,"confirmation").equals(BagObservation.State.PLAYER_CONFIRMED_EMPTY.name())){throw new IllegalArgumentException("Invalid bag declaration");}}else{keys(stored,"item","runes");}}else{keys(j,"id","catalog","gp","at","floors");}

@@ -1,6 +1,6 @@
 # Architecture
 
-Current guide for Friends Beta 10.8 and the owner-accepted, published 10.7 baseline. The [reviewer map](../PLUGIN_HUB_REVIEW.md) links source; historical designs remain in the [archive](../history/ARCHITECTURE_PRE_M10.md).
+Current guide for Friends Beta 10.8.1. The [reviewer map](../PLUGIN_HUB_REVIEW.md) links source; historical designs remain in the [archive](../history/ARCHITECTURE_PRE_M10.md).
 
 ## Core and observation
 
@@ -57,3 +57,11 @@ One exact copy costs 1M for Slayer gear or 30K for each Elite Black Knight piece
 Per-ID bank floors follow the existing signed return-protection rule. At first payment floor = min(0, raw balance); repeated payments add one paid copy without moving the floor. Returns may raise the floor to zero, never lower it. Available physical copies are the natural signed bank progression plus the paid allowance, capped by physical stock. No new gain, physical mutation or raw bank credit is fabricated. A withdrawn paid copy must return before another payment for that same ID; this prevents reanchoring debt or refilling an out-of-bank copy. Other IDs never receive that allowance. Observed transformations use normal exact-ID bank deltas, without inferring inventory conversions or moving an entitlement across variants.
 
 BankRun format 11 adds this evidence. Formats 5 through 10 remain readable; loading 10.7 format-10 bytes does not rewrite them. The next acknowledged transaction writes 11 while retaining journals and previous checkpoints. Historical receipt JSON stays unchanged. Older formats cannot contain selected-copy evidence. Backups/imports retain the same checksums, CAS, character/run isolation and atomic replacement. An older client must not load a format-11 save.
+
+## Milestone 10.8.1 extensions
+
+The catalog adds fixed-cost families and outfits without changing the existing catalog version or historical prices. Utility & Storage, Weapons, Armour and Skilling Outfits share a deterministic case-insensitive name/ID ordering in the catalog, tiles, dropdown and search. New equivalent families pool their signed bank deltas before purchase; a cosmetic, open/closed or imbued/unimbued transformation cannot manufacture an unpaid copy. Existing exact-ID Slayer purchases retain their original semantics. Quiver tiers share one role: 15M regular, 60M blessed directly, or 45M after the regular payment.
+
+`EmptyStorageConfirmation` is an explicit player declaration for the five new gathering containers and regular/blessed quiver ammunition. Both unchecked declarations are required: the entire shared store is empty, and legacy contents are already in the initial baseline or have been corrected through Manual Bank Corrections. `StorageContentsGuard` reads only on purchase and vetoes nonempty current-session seed/tackle/quiver packets or available plank varbits. It never treats zero, missing or stale data as proof of emptiness and never tracks inventory ownership. The receipt's optional `storage` object records player provenance, with zero invented contents/offsets. Existing format-11 records and historical receipt encodings are unchanged; older formats reject the new declaration evidence. The existing atomic worker transaction still commits payment, entitlement and audit together.
+
+During native search, `VirtualBankMode` preserves the whole-bank layout instead of forcing the single-tab branch that invokes `meslayer_close`. It reads public native search mode/query state and retains the ownership veto after native matching. No input is injected or reopened. The [milestone record](../MILESTONE_10_8_1.md) separates automated lifecycle evidence from owner-only native UI verification.

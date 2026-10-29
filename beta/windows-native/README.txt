@@ -1,6 +1,6 @@
 FROM SCRATCH BETA
 
-Friends Beta 10.8. This is not an approved RuneLite Plugin Hub release.
+Friends Beta 10.8.1. This is not an approved RuneLite Plugin Hub release.
 
 INSTALL
 Double-click FromScratch-Beta-Setup.exe and follow the wizard.

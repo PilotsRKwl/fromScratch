@@ -20,12 +20,37 @@ public final class BuybackDialog
 		JPanel buttons=new JPanel(new FlowLayout(FlowLayout.RIGHT));JButton close=new JButton("Close");buttons.add(close);
 		JDialog[] dialog=new JDialog[1];JComponent content;
 		if(history){content=history(view.getRun(),icons);}
-		else{content=new BuybackView(view,icons,entry->{if(SelectedBuybacks.selected(entry.getId())){int id=chooseSelected(owner,view,entry,icons);if(id>0&&confirmSelected(owner,view.getRun(),entry,id,icons)){dialog[0].dispose();actions.buySelected(view.getRun().getRevision(),entry.getId(),id,UUID.randomUUID());}}else if(entry.getId().equals("looting_bag_family")){actions.bagPreview(contents->SwingUtilities.invokeLater(()->{
+		else{content=new BuybackView(view,icons,entry->{if(SelectedBuybacks.selected(entry.getId())){int id=chooseSelected(owner,view,entry,icons);if(id>0&&confirmSelected(owner,view.getRun(),entry,id,icons)){dialog[0].dispose();actions.buySelected(view.getRun().getRevision(),entry.getId(),id,UUID.randomUUID());}}else if(EmptyStorageConfirmation.required(entry.getId())){EmptyStorageConfirmation declaration=confirmStorage(owner,view.getRun(),entry,icons);if(declaration!=null){dialog[0].dispose();actions.buyEmptyStorage(view.getRun().getRevision(),entry.getId(),UUID.randomUUID(),declaration);}}else if(entry.getId().equals("looting_bag_family")){actions.bagPreview(contents->SwingUtilities.invokeLater(()->{
 			if(!dialog[0].isDisplayable()){return;}
 			BagObservation chosen=confirmBag(owner,view.getRun(),icons,contents);
 			if(chosen!=null){dialog[0].dispose();actions.buyBag(view.getRun().getRevision(),UUID.randomUUID(),chosen,purchase->SwingUtilities.invokeLater(()->message(owner,"Looting Bag Unlocked",bagSuccess(purchase,chosen.getNames()))));}
 		}));}else if(entry.getId().equals("rune_pouch_family")){actions.pouchPreview(contents->SwingUtilities.invokeLater(()->{if(!dialog[0].isDisplayable()){return;}if(!contents.fresh(java.time.Instant.now())){message(owner,"Rune Pouch Contents",contents.getProblem());return;}if(confirm(owner,view.getRun(),entry,icons,contents)){dialog[0].dispose();actions.buyback(view.getRun().getRevision(),entry.getId(),UUID.randomUUID(),contents,purchase->SwingUtilities.invokeLater(()->message(owner,"Rune Pouch Unlocked",success(purchase))));}}));}else if(confirm(owner,view.getRun(),entry,icons,null)){dialog[0].dispose();actions.buyback(view.getRun().getRevision(),entry.getId(),UUID.randomUUID());}});}
 		dialog[0]=BankDialogs.dialog(owner,history?"Buyback History":"Legacy Buybacks",content,buttons,new Dimension(700,520));close.addActionListener(e->dialog[0].dispose());dialog[0].setVisible(true);
+	}
+	private static EmptyStorageConfirmation confirmStorage(Component owner,BankRun run,BuybackEntry entry,BankIcons icons)
+	{
+		EmptyStorageConfirmation[] approved={null};JDialog[] dialog={null};
+		StorageConfirmation content=new StorageConfirmation(run,entry,icons,declaration->{approved[0]=declaration;dialog[0].dispose();});
+		JButton cancel=new JButton("Cancel");JPanel buttons=new JPanel(new FlowLayout(FlowLayout.RIGHT));buttons.add(cancel);buttons.add(content.getConfirmButton());
+		dialog[0]=BankDialogs.dialog(owner,"Confirm Empty Storage Buyback",content,buttons,null);cancel.addActionListener(e->dialog[0].dispose());dialog[0].setVisible(true);return approved[0];
+	}
+	/** Real unchecked declarations, separately required; closing or canceling sends no intent. */
+	public static final class StorageConfirmation extends JPanel
+	{
+		private final JButton confirm=new JButton("Confirm Buyback");private boolean submitted;
+		public JButton getConfirmButton(){return confirm;}
+		public StorageConfirmation(BankRun run,BuybackEntry entry,BankIcons icons,java.util.function.Consumer<EmptyStorageConfirmation> accepted)
+		{
+			super(new BorderLayout(8,8));if(!EmptyStorageConfirmation.required(entry.getId())){throw new IllegalArgumentException("Not a storage buyback");}
+			JLabel icon=new JLabel();icons.apply(icon,entry.getIcon());add(icon,BorderLayout.WEST);
+			add(BankDialogs.text(BuybackView.confirmation(run,entry)+"\n\nThis unlocks one copy of the item, never the items or ammunition stored inside it. Contents can be shared across physical copies and forms.\n\nBefore buying, empty the entire shared store, including any other copies. If you banked legacy contents after starting this run, remove that credited ownership using Manual Bank Corrections first. Subtract only the transferred legacy amounts from each current virtual balance; preserve earned items and any existing debt. Do not correct the same contents twice.\n\nFrom Scratch cannot prove historical emptiness. These are your declarations, not an automatic contents observation. If the contents or their accounting are uncertain, cancel this purchase.",42),BorderLayout.CENTER);
+			JCheckBox empty=new JCheckBox("I confirm the entire shared store is empty.");empty.setName("storageEmptyAttestation");
+			JCheckBox accounted=new JCheckBox("Its legacy contents were in my starting bank or already corrected.");accounted.setName("storageLegacyAccountedAttestation");
+			JPanel checks=new JPanel(new GridLayout(0,1,0,6));checks.add(empty);checks.add(accounted);add(checks,BorderLayout.SOUTH);
+			boolean eligible="Available".equals(BuybackEngine.status(run,entry));confirm.setEnabled(false);
+			java.awt.event.ActionListener changed=e->confirm.setEnabled(!submitted&&eligible&&empty.isSelected()&&accounted.isSelected());empty.addActionListener(changed);accounted.addActionListener(changed);
+			confirm.addActionListener(e->{if(!submitted&&confirm.isEnabled()){submitted=true;confirm.setEnabled(false);accepted.accept(new EmptyStorageConfirmation(entry.getId(),run.getRevision(),java.time.Instant.now(),empty.isSelected(),accounted.isSelected()));}});
+		}
 	}
 	private static int chooseSelected(Component owner,BankView view,BuybackEntry entry,BankIcons icons)
 	{
@@ -106,7 +131,7 @@ public final class BuybackDialog
 		DateTimeFormatter dates=DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm").withZone(ZoneId.systemDefault());
 		java.util.List<BuybackPurchase> rows=run.getBuybacks().getPurchases();
 		JTable table=new JTable(model);BuybackView.iconRenderer(table);
-		for(int i=rows.size()-1;i>=0;i--){BuybackPurchase p=rows.get(i);BuybackEntry entry=BuybackCatalog.entry(p.getCatalogId());JLabel icon=new JLabel();icons.apply(icon,p.getSelectedItemId()>0?p.getSelectedItemId():entry.getIcon());icon.addPropertyChangeListener("icon",e->table.repaint());String proof=p.getCatalogId().equals("looting_bag_family")?(p.getBagConfirmation()==BagObservation.State.PLAYER_CONFIRMED_EMPTY?"Player confirmed empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_EMPTY?"Verified empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_NONEMPTY?"Verified contents":"Not recorded"):"";model.addRow(new Object[]{icon,p.getSelectedItemId()>0?SelectedBuybacks.name(p.getSelectedItemId()):entry.getName(),GpFormatter.compact(p.getGp()),Integer.toString(p.getSelectedItemId()>0?1:entry.getRoles().size()),dates.format(p.getAt()),proof});}
+		for(int i=rows.size()-1;i>=0;i--){BuybackPurchase p=rows.get(i);BuybackEntry entry=BuybackCatalog.entry(p.getCatalogId());JLabel icon=new JLabel();icons.apply(icon,p.getSelectedItemId()>0?p.getSelectedItemId():entry.getIcon());icon.addPropertyChangeListener("icon",e->table.repaint());String proof=p.isStorageConfirmedEmpty()?"Player confirmed empty; legacy contents accounted":p.getCatalogId().equals("looting_bag_family")?(p.getBagConfirmation()==BagObservation.State.PLAYER_CONFIRMED_EMPTY?"Player confirmed empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_EMPTY?"Verified empty":p.getBagConfirmation()==BagObservation.State.VERIFIED_NONEMPTY?"Verified contents":"Not recorded"):"";model.addRow(new Object[]{icon,p.getSelectedItemId()>0?SelectedBuybacks.name(p.getSelectedItemId()):entry.getName(),GpFormatter.compact(p.getGp()),Integer.toString(p.getSelectedItemId()>0?1:entry.getRoles().size()),dates.format(p.getAt()),proof});}
 		table.setRowHeight(38);table.setAutoCreateRowSorter(true);table.getColumnModel().getColumn(0).setMaxWidth(42);table.getColumnModel().getColumn(1).setPreferredWidth(300);table.getColumnModel().getColumn(4).setPreferredWidth(160);return new JScrollPane(table);
 	}
 }

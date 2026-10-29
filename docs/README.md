@@ -13,12 +13,15 @@ The [homepage](../README.md) introduces the challenge. Start here for help, or u
 ## For maintainers and reviewers
 
 - [Architecture](technical/ARCHITECTURE.md), [accounting](technical/ACCOUNTING.md) and [validation plan](technical/TEST_PLAN.md).
+- [Buyback pricing](technical/BUYBACK_PRICING.md): fixed virtual GP costs, supported equivalents and storage safeguards.
+- [Milestone 10.8.1](MILESTONE_10_8_1.md): expanded buybacks, native-search root cause and automated/manual validation boundaries.
 - [Plugin Hub review map](PLUGIN_HUB_REVIEW.md): source paths, supported APIs and review-sensitive behavior.
 - [Milestone 10.8 bug fixes and buybacks](MILESTONE_10_8.md): exact-copy purchases, search, validation and release evidence.
 - [Milestone 10 release candidate](MILESTONE_10.md): current evidence and owner acceptance gates.
 - [Milestone 10.6 native installer](MILESTONE_10_6.md): private runtime, Windows launcher, wizard and focused acceptance.
 - [Milestone 10.7: Potion Storage and Overdraft Protection](MILESTONE_10_7.md): dose accounting, warnings, compatible saves and manual acceptance.
 - [Publication checklist](PUBLICATION.md), [release draft](RELEASE_DRAFT.md) and [repository metadata](REPOSITORY_METADATA.md).
+- [Friends Beta 10.8.1 player release notes](RELEASE_NOTES_10_8_1.md).
 - [Artwork and screenshot provenance](ARTWORK.md), [contributing](../CONTRIBUTING.md) and [changelog](../CHANGELOG.md).
 
 [Historical development notes](history/README.md) preserve earlier designs and test results. They are not current installation instructions or authority to resume old development work.

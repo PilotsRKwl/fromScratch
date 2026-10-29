@@ -20,6 +20,8 @@ public final class BankFixtures
 		public boolean open = true;
 		public boolean pin;
 		public boolean buybackDefinitions=true;
+		public boolean storageHasContents;
+		public boolean storageNonempty(String catalogId){return storageHasContents;}
 		public com.fromscratch.potion.PotionObservation storage=com.fromscratch.potion.PotionObservation.unavailableStore();
 		public com.fromscratch.potion.PotionObservation potions(){return storage;}
 		public boolean fullBank=true,storageOpen,captureValid=true;

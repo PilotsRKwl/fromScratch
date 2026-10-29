@@ -1,6 +1,6 @@
 # Bank accounting policy
 
-Accepted rules plus the explicitly authorized Milestone 10.8 selected-copy extension. Historical equations and migrations remain in [ACCOUNTING_PRE_M10.md](../history/ACCOUNTING_PRE_M10.md).
+Accepted rules plus the explicitly authorized Milestone 10.8 selected-copy and 10.8.1 catalog extensions. Historical equations and migrations remain in [ACCOUNTING_PRE_M10.md](../history/ACCOUNTING_PRE_M10.md).
 
 ## Signed bank progress
 
@@ -81,3 +81,11 @@ One exact copy costs 1M for Slayer gear or 30K for each Elite Black Knight piece
 Per-ID bank floors follow the existing signed return-protection rule. At first payment floor = min(0, raw balance); repeated payments add one paid copy without moving the floor. Returns may raise the floor to zero, never lower it. Available physical copies are the natural signed bank progression plus the paid allowance, capped by physical stock. No new gain, physical mutation or raw bank credit is fabricated. A withdrawn paid copy must return before another payment for that same ID; this prevents reanchoring debt or refilling an out-of-bank copy. Other IDs never receive that allowance. Observed transformations use normal exact-ID bank deltas, without inferring inventory conversions or moving an entitlement across variants.
 
 BankRun format 11 adds this evidence. Formats 5 through 10 remain readable; loading 10.7 format-10 bytes does not rewrite them. The next acknowledged transaction writes 11 while retaining journals and previous checkpoints. Historical receipt JSON stays unchanged. Older formats cannot contain selected-copy evidence. Backups/imports retain the same checksums, CAS, character/run isolation and atomic replacement. An older client must not load a format-11 save.
+
+## Milestone 10.8.1 fixed prices and empty stores
+
+[Fixed prices](BUYBACK_PRICING.md) add catalog entries without changing any earlier payment cost. All new equivalent families pool exact bank deltas for natural-copy projection; one paid role still grants at most one physical legacy copy across its forms. Imbued rings include unimbued equivalents only for accounting, never to qualify a purchase. Quiver level 1 costs 15M; level 2 costs 60M directly or 45M after a paid level 1. One upgrade never grants a second legacy quiver.
+
+Fish Barrel, Herb Sack, Plank Sack, Seed Box, Tackle Box and quiver ammo use an explicit empty-shared-store workflow. The player must empty the entire shared store and account for any legacy contents banked after Start before purchasing. Such deposits initially follow the ordinary signed bank equation; use Manual Bank Corrections to subtract the transferred legacy amounts from current balances, preserving earned stock and existing debt. Do not subtract them again at purchase. If their origin or quantity is uncertain, cancel rather than assert an empty/accounted store.
+
+Both declarations start unchecked and are required. Fresh positive native data overrides them where available; no complete automatic historical contents proof is claimed. Purchase receipts distinguish `PLAYER_CONFIRMED_EMPTY` and `ALREADY_ACCOUNTED` from native observation. The payment creates no contents credit and no fabricated negative offset. It commits only after the current character/run revision, full bank, qualifying item definitions, unpurchased role/tier, funds and declaration age have been checked. Failed saves publish neither GP spending nor access. The optional declaration object is limited to the new storage catalog IDs; historical receipt bytes, prices, format-10 imports and format-11 selected-copy evidence keep their existing meaning.

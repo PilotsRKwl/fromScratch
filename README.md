@@ -12,18 +12,18 @@ Bank your loot after each trip and watch your new collection grow. That first us
 
 ## How to Play
 
-**[Download the From Scratch Friends Beta](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks).**
+**[Download From Scratch Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix).**
 
 We're preparing From Scratch for publication on the RuneLite Plugin Hub. It has not been submitted or approved yet.
 
-Requires Windows 64-bit. Java is included.
+Requires Windows 64-bit. Everything you need is included.
 
-1. **Download From Scratch.** Get [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8-bug-fixes-buybacks/FromScratch-Beta-Setup.exe).
+1. **Download From Scratch.** Get [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe).
 2. **Install From Scratch.** Double-click the file and follow the installation wizard. A **From Scratch Beta** shortcut appears on your desktop.
 3. **Open From Scratch.** Double-click the shortcut and follow RuneLite's sign-in instructions.
 4. **Start your challenge.** Enable From Scratch in RuneLite, open its purple coin panel, and follow the setup instructions.
 
-[Release notes](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks) · [Installation help](docs/INSTALLATION.md)
+[Release notes](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix) · [Installation help](docs/INSTALLATION.md)
 
 ## The Challenge
 
@@ -65,7 +65,7 @@ Set a target for your next upgrade or look back at how far you've come. Item val
 
 ### Earn Back Your Favorite Gear
 
-Save challenge GP to unlock selected legacy equipment in the **Legacy Buybacks** shop. A Fire Cape costs **1,000,000 GP**. Browse combat gear, complete skilling outfits and useful storage items as you plan your next goal.
+Save challenge GP to unlock selected legacy equipment in the **Legacy Buybacks** shop. A Fire Cape costs **1,000,000 GP**. Browse alphabetized Utility & Storage, Weapons, Armour and Skilling Outfits as you plan your next goal.
 
 One **1,000,000 GP** Rune Pouch purchase covers both the normal and Divine versions. The open and closed Looting Bag share one **10,000 GP** purchase. Old contents inside a pouch or bag remain legacy items.
 
@@ -76,6 +76,8 @@ Buybacks spend your challenge GP and leave your real coins and equipment untouch
 *Browse your next goal. This interface preview uses sample progress.*
 
 Choose the exact Black Mask or Slayer Helmet copy to reclaim for 1M virtual GP. Elite Black Knight armour pieces cost 30K each.
+
+Reclaim more weapons and armour, unlock complete new skilling outfits for 2M each, and work toward useful storage upgrades. Buyback prices are fixed challenge costs paid with virtual GP.
 
 ### Trade, Earn, and Explore
 
@@ -139,7 +141,7 @@ The beta installer and uninstaller preserve your challenge saves and backups. Ex
 
 **Is From Scratch on the RuneLite Plugin Hub?**
 
-We're preparing it for publication. It has not been submitted, reviewed or approved, and the public beta download is not available yet.
+The Friends Beta is available from the download above. From Scratch has not been submitted, reviewed or approved for the RuneLite Plugin Hub.
 
 ## More Information
 

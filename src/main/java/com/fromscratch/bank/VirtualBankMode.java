@@ -27,6 +27,7 @@ public final class VirtualBankMode
 		default String title(){return null;} default void title(String text){}
 		default int placeholder(int id){return -1;}
 		default int nativeTab(){return 0;} default Set<Integer> nativeItems(){return null;}
+		default boolean searching(){return false;}
 	}
 	private final PluginManager plugins;
 	private final Client client;
@@ -123,6 +124,13 @@ public final class VirtualBankMode
 		ItemComposition placeholder=client.getItemDefinition(linked);return placeholder.getPlaceholderTemplateId()!=-1&&placeholder.getPlaceholderId()==id?linked:-1;
 	}
 	private int nativeTab(){return fixture!=null?fixture.nativeTab():client.getVarbitValue(net.runelite.api.gameval.VarbitID.BANK_CURRENTTAB);}
+	private boolean nativeSearching()
+	{
+		return fixture!=null?fixture.searching():searching(client.getVarcIntValue(net.runelite.api.gameval.VarClientID.MESLAYERMODE),client.getVarcStrValue(net.runelite.api.gameval.VarClientID.MESLAYERINPUT));
+	}
+	/** Mirrors native bankmain_searching, including a submitted query with no open input. */
+	static boolean searching(int inputMode,String query)
+	{return inputMode==net.runelite.api.vars.InputType.SEARCH.getType()||(inputMode<=0&&query!=null&&!query.isEmpty());}
 	private void tabMembership()
 	{
 		int tab=nativeTab();if(!tabDirty&&tab==tabId){return;}
@@ -154,7 +162,14 @@ public final class VirtualBankMode
 		String active=access.active();if(!name.equals(active)&&!(nativeMode&&active==null)){return;}
 		try
 		{
-			if("bankBuildTab".equals(event)&&size>=1){tabMembership();stack[size-1]=1;applied=membership;}
+			if("bankBuildTab".equals(event)&&size>=1)
+			{
+				tabMembership();
+				// RuneLite's forced single-tab branch invokes meslayer_close when searching.
+				// Keep native whole-bank search layout and apply our ownership veto below.
+				if(!nativeSearching()){stack[size-1]=1;}
+				applied=membership;
+			}
 			else if("bankSearchFilter".equals(event)&&size>=2&&!contains(stack[size-1])){stack[size-2]=0;}
 		}
 		catch(RuntimeException ex){log.warn("From Scratch Virtual Bank tab filtering failed; returning to Full Bank.",ex);faulted=true;wanted=false;request();}

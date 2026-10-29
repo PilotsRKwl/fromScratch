@@ -149,12 +149,23 @@ public final class BankEngine
 	public static BankRun buyback(BankRun old,String catalogId,UUID purchaseId,UUID session,Instant at,com.fromscratch.pouch.PouchObservation contents)
 	{
 		requireAnchored(old);
+		if(com.fromscratch.buyback.EmptyStorageConfirmation.required(catalogId)){throw new IllegalArgumentException("Confirm the empty shared store and account for legacy contents in Legacy Buybacks first.");}
 		com.fromscratch.buyback.BuybackEntry entry=com.fromscratch.buyback.BuybackCatalog.entry(catalogId);
 		boolean pouch=catalogId.equals("rune_pouch_family");if(pouch&&(!contents.fresh(at)||old.physical(contents.getPouchId())!=1||com.fromscratch.buyback.BuybackCatalog.variants(catalogId).keySet().stream().mapToLong(old::physical).reduce(0L,Math::addExact)!=1)){throw new IllegalArgumentException("Rune Pouch data is not available yet. Keep the bank open, wait a game tick and retry.");}
 		Map<Integer,Long> adjustments=new TreeMap<>(),balances=new TreeMap<>(old.getBalances());if(pouch){contents.getQuantities().forEach((id,n)->{adjustments.put(id,Math.negateExact(n));balances.put(id,Math.subtractExact(old.balance(id),n));});}
 		com.fromscratch.buyback.BuybackPurchase purchase=new com.fromscratch.buyback.BuybackPurchase(purchaseId,catalogId,com.fromscratch.buyback.BuybackCatalog.cost(entry,old.getBuybacks().getEntitlements()),at,com.fromscratch.buyback.BuybackEngine.purchaseFloors(old,entry),pouch?contents.getPouchId():-1,pouch?contents.getQuantities():Collections.emptyMap());
 		BankAudit change=new BankAudit(purchaseId,session,at,BankAudit.Kind.BUYBACK,Collections.emptyMap(),adjustments,"Player confirmed legacy buyback: "+entry.getName(),Collections.emptyList(),com.fromscratch.ge.GeUpdate.empty(),purchase);
 		return next(old,old.getPhysical(),balances,true,change,old.getHostSummary());
+	}
+	/** An explicit empty-store declaration uses the same atomic payment and one-copy entitlement. */
+	public static BankRun buyEmptyStorage(BankRun old,String catalogId,UUID purchaseId,UUID session,Instant at,com.fromscratch.buyback.EmptyStorageConfirmation confirmation)
+	{
+		requireAnchored(old);
+		if(confirmation==null||!confirmation.valid(catalogId,old.getRevision(),at)){throw new IllegalArgumentException("Your storage confirmation expired or the bank changed. Reopen Legacy Buybacks.");}
+		com.fromscratch.buyback.BuybackEntry entry=com.fromscratch.buyback.BuybackCatalog.entry(catalogId);
+		com.fromscratch.buyback.BuybackPurchase receipt=com.fromscratch.buyback.BuybackPurchase.emptyStorage(purchaseId,catalogId,com.fromscratch.buyback.BuybackCatalog.cost(entry,old.getBuybacks().getEntitlements()),at,com.fromscratch.buyback.BuybackEngine.purchaseFloors(old,entry));
+		BankAudit change=new BankAudit(purchaseId,session,at,BankAudit.Kind.BUYBACK,Collections.emptyMap(),Collections.emptyMap(),"Player confirmed legacy buyback: "+entry.getName()+"; all shared contents empty and legacy contents already accounted for (player declaration).",Collections.emptyList(),com.fromscratch.ge.GeUpdate.empty(),receipt);
+		return next(old,old.getPhysical(),old.getBalances(),true,change,old.getHostSummary());
 	}
 	/** One exact paid copy, recorded in the existing payment/audit transaction without changing raw P/B. */
 	public static BankRun buySelected(BankRun old,String catalogId,int itemId,UUID purchaseId,UUID session,Instant at)

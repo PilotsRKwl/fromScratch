@@ -19,4 +19,6 @@ public interface BankSource
 	default boolean buybackDefinition(int id) { return false; }
 	default com.fromscratch.pouch.PouchObservation pouch(){return com.fromscratch.pouch.PouchObservation.unknown();}
 	default com.fromscratch.buyback.BagObservation bag(){return com.fromscratch.buyback.BagObservation.unknown();}
+	/** Only positive current native evidence can veto a player's empty-storage declaration. */
+	default boolean storageNonempty(String catalogId){return false;}
 }

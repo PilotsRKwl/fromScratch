@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([string]$InnoCompiler = '', [switch]$ImageOnly,
     [ValidatePattern('^\d+\.\d+\.\d+-beta\.\d+$')][string]$PackageVersion = '',
-    [ValidatePattern('^v\d+\.\d+\.\d+-[a-z0-9-]+$')][string]$ReleaseVersion = '',
+    [ValidatePattern('^v\d+\.\d+\.\d+(?:\.\d+)?-[a-z0-9-]+$')][string]$ReleaseVersion = '',
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')][string]$WindowsVersion = '',
     [switch]$LocalTestCandidate,[switch]$Offline)
 $ErrorActionPreference = 'Stop'
@@ -24,7 +24,14 @@ try {
         if(!$PackageVersion -or !$ReleaseVersion -or !$WindowsVersion){throw 'Specify package, release and Windows versions together.'}
         $pin.packageVersion=$PackageVersion;$pin.releaseVersion=$ReleaseVersion;$pin.windowsVersion=$WindowsVersion
     }
-    if($pin.windowsVersion -notmatch '^\d+\.\d+\.\d+\.\d+$' -or $pin.releaseVersion -notmatch '^v\d+\.\d+\.\d+-[a-z0-9-]+$'){throw 'Invalid pinned Windows/release version.'}
+    if($pin.packageVersion -notmatch '^\d+\.\d+\.\d+-beta\.\d+$' -or $pin.windowsVersion -notmatch '^\d+\.\d+\.\d+\.\d+$' -or $pin.releaseVersion -notmatch '^v\d+\.\d+\.\d+(?:\.\d+)?-[a-z0-9-]+$'){throw 'Invalid pinned package/Windows/release version.'}
+    $packageBase=($pin.packageVersion -split '-')[0]
+    $releaseNumber=($pin.releaseVersion.Substring(1) -split '-')[0]
+    $releaseWindows=if(($releaseNumber -split '\.').Count -eq 3){$releaseNumber+'.0'}else{$releaseNumber}
+    if(!$pin.windowsVersion.StartsWith($packageBase+'.') -or $releaseWindows -ne $pin.windowsVersion){throw 'Pinned release, package and Windows versions disagree.'}
+    $sourceStatus=(& git status --porcelain | Out-String).Trim()
+    if($LASTEXITCODE -ne 0){throw 'Cannot verify committed source status.'}
+    if($sourceStatus -and !$LocalTestCandidate){throw 'Final installers require a clean committed source tree. Use LocalTestCandidate only for unpublished tests.'}
     # Preserve every earlier local candidate while keeping the pinned release/package versions.
     $output=Join-Path $project ('build/distributions/'+$pin.releaseVersion+$(if($LocalTestCandidate){'/local-test-'+$pin.packageVersion+'-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff')}else{''}))
     if(Test-Path -LiteralPath (Join-Path $output 'FromScratch-Beta-Setup.exe')){throw 'A candidate already exists for this version. Preserve it and choose a new unique beta version.'}
@@ -90,7 +97,7 @@ try {
     if(!$InnoCompiler -or !(Test-Path -LiteralPath $InnoCompiler)){throw 'Inno Setup 6.7.3 is required to compile Setup. Install it from https://jrsoftware.org/isdl.php after developer approval, then pass -InnoCompiler <ISCC.exe>. No downloaded installer is run by this script.'}
     # FromScratch.iss checks ISPP's real compiler version (PE metadata may say 0.0.0.0).
     $innoVersion=$pin.inno.version
-    Invoke-Tool $InnoCompiler @(('/DImageDir='+$image),('/DOutputDir='+$output),('/DPackageVersion='+($pin.packageVersion -split '-')[0]),('/DWindowsVersion='+$pin.windowsVersion),('/DReleaseVersion='+$pin.releaseVersion),(Join-Path $project 'beta\windows-native\FromScratch.iss'))
+    Invoke-Tool $InnoCompiler @(('/DImageDir='+$image),('/DOutputDir='+$output),('/DPackageVersion='+$releaseNumber),('/DWindowsVersion='+$pin.windowsVersion),('/DReleaseVersion='+$pin.releaseVersion),(Join-Path $project 'beta\windows-native\FromScratch.iss'))
     $setup=Join-Path $output 'FromScratch-Beta-Setup.exe';$setupHash=Digest $setup
     [IO.File]::WriteAllText($setup+'.sha256',$setupHash+'  FromScratch-Beta-Setup.exe'+"`n",$utf8)
     $result.installer=$setup;$result['sha256']=$setupHash;$result['signed']=((Get-AuthenticodeSignature -LiteralPath $setup).Status -eq 'Valid');$result['innoVersion']=$innoVersion;$result['innoCompilerSha256']=(Digest $InnoCompiler)

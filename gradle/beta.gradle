@@ -8,7 +8,7 @@ if (providers.gradleProperty('betaPackageVersion').isPresent()) {
 	project.version = requested
 }
 def releaseVersion = providers.gradleProperty('betaReleaseVersion').getOrElse('v' + project.version.toString())
-if (!(releaseVersion ==~ /v\d+\.\d+\.\d+-[a-z0-9.-]+/)) throw new GradleException('Invalid beta release label.')
+if (!(releaseVersion ==~ /v\d+\.\d+\.\d+(?:\.\d+)?-[a-z0-9.-]+/)) throw new GradleException('Invalid beta release label.')
 
 // Separate source set: no launcher or test fixtures enter the production plugin JAR.
 sourceSets {

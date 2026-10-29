@@ -13,7 +13,7 @@ public final class BuybackView extends JPanel
 	private final BankView view;
 	private final BankIcons icons;
 	private final JTextField search=new JTextField();
-	private final JComboBox<String> category=new JComboBox<>(new String[]{"All categories","Combat Gear","Skilling Outfits","Utility & Storage"});
+	private final JComboBox<String> category=new JComboBox<>();
 	private final JPanel catalog=new JPanel();
 	private final java.util.List<BuybackEntry> entries=new ArrayList<>();
 	private final java.util.List<JPanel> grids=new ArrayList<>();
@@ -23,7 +23,7 @@ public final class BuybackView extends JPanel
 	private int columns=3;
 	public BuybackView(BankView view,BankIcons icons,java.util.function.Consumer<BuybackEntry> confirm)
 	{
-		super(new BorderLayout(8,8));this.view=view;this.icons=icons;
+		super(new BorderLayout(8,8));this.view=view;this.icons=icons;category.addItem("All categories");BuybackCatalog.CATEGORIES.forEach(category::addItem);
 		JPanel top=new JPanel(new BorderLayout(4,6));top.add(new JLabel("Available GP: "+GpFormatter.compact(BuybackEngine.available(view.getRun()))),BorderLayout.NORTH);
 		JPanel controls=new JPanel(new GridLayout(1,2,8,0));search.setToolTipText("Search item or family name");controls.add(search);controls.add(category);top.add(controls,BorderLayout.SOUTH);add(top,BorderLayout.NORTH);
 		catalog.setLayout(new BoxLayout(catalog,BoxLayout.Y_AXIS));JScrollPane scroll=new JScrollPane(catalog,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);scroll.getVerticalScrollBar().setUnitIncrement(24);add(scroll,BorderLayout.CENTER);
@@ -50,7 +50,7 @@ public final class BuybackView extends JPanel
 	{
 		catalog.removeAll();grids.clear();entries.clear();selected=null;purchase.setEnabled(false);detail.setText("Select an item to view its availability.");
 		String chosen=(String)category.getSelectedItem();
-		for(String group:new String[]{"Combat Gear","Skilling Outfits","Utility & Storage"})
+		for(String group:BuybackCatalog.CATEGORIES)
 		{
 			if(!"All categories".equals(chosen)&&!group.equals(chosen)){continue;}
 			JPanel grid=new JPanel(new GridLayout(0,columns,8,8));grid.setAlignmentX(LEFT_ALIGNMENT);
@@ -66,7 +66,7 @@ public final class BuybackView extends JPanel
 		}
 		catalog.revalidate();catalog.repaint();
 	}
-	public static String category(BuybackEntry entry){return entry.getCategory().equals("Combat & Utility")||entry.getCategory().equals("Void Knight")?"Combat Gear":entry.getCategory();}
+	public static String category(BuybackEntry entry){return entry.getCategory();}
 	private static String escape(String text){return text.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");}
 	static void iconRenderer(JTable table)
 	{table.setDefaultRenderer(JLabel.class,(t,value,selected,focus,row,column)->{JLabel label=(JLabel)value;label.setOpaque(true);label.setBackground(selected?t.getSelectionBackground():t.getBackground());return label;});}

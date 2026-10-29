@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+-beta\.\d+$')][string]$PackageVersion = '',
-    [ValidatePattern('^v\d+\.\d+\.\d+-[a-z0-9-]+$')][string]$ReleaseVersion = '',
+    [ValidatePattern('^v\d+\.\d+\.\d+(?:\.\d+)?-[a-z0-9-]+$')][string]$ReleaseVersion = '',
     [switch]$StageOnly,
     [switch]$LocalTestCandidate,
     [switch]$Offline

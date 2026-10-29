@@ -1,4 +1,8 @@
-# Friends Beta 10.8 release notes
+# Friends Beta 10.8.1 release notes
+
+Publication source: [player-facing 10.8.1 notes](RELEASE_NOTES_10_8_1.md). Target title: **From Scratch | Friends Beta 10.8.1 — More Buybacks & Bank Search Fix**. Tag: `v0.10.8.1-buybacks-search-fix`. Final publication requires the complete local regression, exact-commit Windows/Ubuntu CI and final committed-source installer checks. Live game acceptance remains an owner-only check.
+
+## Historical 10.8 release notes
 
 Publication source for v0.10.8-bug-fixes-buybacks. Final publication is gated on the validation in [Milestone 10.8](MILESTONE_10_8.md).
 

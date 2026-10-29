@@ -28,10 +28,12 @@ public final class RuneLiteBankSource implements BankSource
 	private volatile boolean diagnostics;
 	private long lastDiagnostic;
 	private final com.fromscratch.buyback.LootingBagReader.Session bagProof;
+	private final com.fromscratch.buyback.StorageContentsGuard storageGuard;
 	@Inject public RuneLiteBankSource(Client client, ConfigManager config, BankTimings timings)
 	{
 		this.client = client; this.config = config; this.timings = timings;this.potions=new com.fromscratch.potion.RuneLitePotionSource(client);
 		bagProof=new com.fromscratch.buyback.LootingBagReader.Session(new com.fromscratch.buyback.LootingBagReader(client));
+		storageGuard=new com.fromscratch.buyback.StorageContentsGuard(client);
 		observer = new BankObserver(new BankObserver.Access()
 		{
 			// Both native views share BANKMAIN, but quantities come ONLY from InventoryID.BANK.
@@ -40,7 +42,10 @@ public final class RuneLiteBankSource implements BankSource
 			public BankTimings.Trace trace() { return timings.current(); }
 		});
 	}
-	public void resetSession() { observer.reset(); character = null; bagUnavailable();potions.reset(); }
+	public void resetSession() { observer.reset(); character = null; bagUnavailable();storageUnavailable();potions.reset(); }
+	public void storageChanged(int containerId){storageGuard.changed(containerId);}
+	public void storageUnavailable(){storageGuard.clear();}
+	public boolean storageNonempty(String catalogId){return storageGuard.nonempty(catalogId);}
 	public void potionScript(int id){potions.script(id);}
 	public void potionVarp(int id){potions.varp(id);}
 	public void potionClosed(){potions.closed();}
@@ -98,7 +103,7 @@ public final class RuneLiteBankSource implements BankSource
 		// Rendering revalidates cheap identity fields, not profile lists or SHA hashes on each frame.
 		if (character != null && loggedIn && hash == verifiedHash && type == verifiedType && Objects.equals(profile, verifiedProfile)) { return character; }
 		String key = loggedIn ? CharacterIdentity.verify(true, hash, type, profile, config.getRSProfiles()).orElse(null) : null;
-		if (!Objects.equals(key, character)) { observer.reset();potions.reset();bagProof.clear(); character = key; }
+		if (!Objects.equals(key, character)) { observer.reset();potions.reset();bagProof.clear();storageGuard.clear(); character = key; }
 		verifiedHash = hash; verifiedType = type; verifiedProfile = profile;
 		return key;
 	}

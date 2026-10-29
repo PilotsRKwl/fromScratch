@@ -25,6 +25,7 @@ public interface BankActions
 	{ callback.accept(new ItemHistory.Page(java.util.Collections.emptyList(),null,"No recorded item history.")); }
 	default void buySelected(UUID revision,String catalogId,int itemId,UUID purchaseId){throw new UnsupportedOperationException("Selected buybacks unavailable");}
 	default void buyback(UUID revision,String catalogId,UUID purchaseId){throw new UnsupportedOperationException("Buybacks unavailable");}
+	default void buyEmptyStorage(UUID revision,String catalogId,UUID purchaseId,com.fromscratch.buyback.EmptyStorageConfirmation confirmation){throw new UnsupportedOperationException("Storage buybacks unavailable");}
 	default void pouchPreview(java.util.function.Consumer<com.fromscratch.pouch.PouchObservation> callback){callback.accept(com.fromscratch.pouch.PouchObservation.unknown());}
 	default void bagPreview(java.util.function.Consumer<com.fromscratch.buyback.BagObservation> callback){callback.accept(com.fromscratch.buyback.BagObservation.unknown());}
 	default void buyBag(UUID revision,UUID purchaseId,com.fromscratch.buyback.BagObservation contents,java.util.function.Consumer<com.fromscratch.buyback.BuybackPurchase> committed){throw new UnsupportedOperationException("Bag buybacks unavailable");}

@@ -129,7 +129,7 @@ public class FromScratchPlugin extends Plugin
 	{
 		GameState state = event.getGameState();
 		if(state!=GameState.LOGGED_IN&&state!=GameState.LOADING){virtualBank.update(null,false);}
-		if(state!=GameState.LOGGED_IN){observer.bagUnavailable();}
+		if(state!=GameState.LOGGED_IN){observer.bagUnavailable();observer.storageUnavailable();}
 		examine.clear();
 		if(state!=GameState.LOGGED_IN) { playtime.interrupted(); }
 		if(state==GameState.LOGGING_IN||state==GameState.HOPPING||state==GameState.CONNECTION_LOST||state==GameState.LOGIN_SCREEN){exchangeObserver.resetSession();}
@@ -205,6 +205,7 @@ public class FromScratchPlugin extends Plugin
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
 		int id = event.getContainerId();
+		observer.storageChanged(id);
 		if(id==InventoryID.LOOTING_BAG){observer.bagChanged();}
 		if (id == InventoryID.BANK)
 		{

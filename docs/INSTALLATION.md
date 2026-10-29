@@ -2,11 +2,11 @@
 
 ## Windows beta
 
-Download [Friends Beta 10.8](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks), package **0.10.8-beta.1**. [Friends Beta 10.7](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.7-potion-storage-overdraft) remains available separately. From Scratch is not yet available or approved on the RuneLite Plugin Hub.
+Download [Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix), package **0.10.8-beta.2**. [Friends Beta 10.8](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8-bug-fixes-buybacks) remains available separately. From Scratch is not yet available or approved on the RuneLite Plugin Hub.
 
 The installer supports **64-bit Windows 10 and Windows 11**. Java is included. You do not need to install Java, change PATH, use a terminal or install developer software. Windows' built-in .NET Framework 4.x runs the small application launcher.
 
-1. Download [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8-bug-fixes-buybacks/FromScratch-Beta-Setup.exe). Keep its accompanying SHA-256 checksum if you want to verify the download.
+1. Download [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe). Keep its accompanying SHA-256 checksum if you want to verify the download.
 2. Double-click the EXE and follow **Welcome to From Scratch Beta**. It installs for your Windows user without administrator rights.
 3. Leave **Open From Scratch Beta** selected at the end, or use **From Scratch Beta** on your desktop or Start Menu.
 4. In RuneLite, open **Jagex Accounts**, choose **Add Jagex Account**, complete the official login window yourself, select your character and choose **Play Now**. See RuneLite's [official login instructions](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
@@ -18,7 +18,7 @@ The installer is **unsigned**. Windows may display an unknown publisher or reput
 
 ## Updating
 
-Export Progress privately before updating. Version 10.8 writes a newer save format, so keep your backup before using an earlier beta. Close From Scratch Beta, then run the newer approved installer. It updates the same per-user application and shortcuts. Previous owned program payloads may remain until uninstall; saved progression is separate and unchanged. Do not run an older beta against a newer save without a verified compatible backup.
+Export Progress privately before updating. Version 10.8 introduced a newer save format retained by 10.8.1, so keep your backup before using an earlier beta. Close From Scratch Beta, then run the newer approved installer. It updates the same per-user application and shortcuts. Previous owned program payloads may remain until uninstall; saved progression is separate and unchanged. Do not run an older beta against a newer save without a verified compatible backup.
 
 The old v0.10.5 ZIP is retained separately. Its installed program files are not deleted by this installer. A verified old From Scratch shortcut may be replaced by the new EXE shortcut; unrelated shortcuts with the same name are preserved and installation is blocked with an explanation. [Historical script instructions](history/INSTALLATION_SCRIPTS_10_5.md) are reference only.
 

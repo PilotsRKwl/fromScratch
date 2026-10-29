@@ -19,14 +19,14 @@ foreach ($file in Get-ChildItem -LiteralPath (Join-Path $project 'beta/windows')
 }
 Pass-Beta 'PowerShell 5.1 script parsing'
 $manifest = Read-BetaPackage $PackageDirectory
-Assert-Beta ($manifest.runeLiteVersion -eq '1.13.3') 'Unexpected RuneLite version.'
+Assert-Beta ($manifest.runeLiteVersion -eq '1.13.4') 'Unexpected RuneLite version.'
 Assert-Beta (-not @($manifest.files | Where-Object {$_.path -match '(?i)credentials|jagex-accounts|\.fsp$|\.env|\.log$|junit|test-fixtures'}).Count) 'Private/test files entered the distribution.'
 Pass-Beta 'Manifest hashes, allowlist and pinned RuneLite'
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $plugin = [IO.Compression.ZipFile]::OpenRead((Get-BetaPath $PackageDirectory $manifest.pluginJar))
 try { Assert-Beta (-not @($plugin.Entries | Where-Object {$_.FullName -match '(^org/junit/|Test.class$|^com/fromscratch/(beta|preview)/|META-INF/services/net.runelite.client.plugins.Plugin)'}).Count) 'Tests/bootstrap/previews/service registration entered the plugin JAR.';Assert-Beta ($null -ne $plugin.GetEntry('com/fromscratch/icon.png')) 'Missing plugin resource.' } finally {$plugin.Dispose()}
-$client=[IO.Compression.ZipFile]::OpenRead((Get-BetaPath $PackageDirectory 'lib/client-1.13.3.jar'))
+$client=[IO.Compression.ZipFile]::OpenRead((Get-BetaPath $PackageDirectory 'lib/client-1.13.4.jar'))
 try { Assert-Beta ($null -ne $client.GetEntry('net/runelite/client/plugins/jagexauth/JagexAuthPlugin.class')) 'Official Jagex Accounts panel missing.' } finally {$client.Dispose()}
 Pass-Beta 'Production JAR/resource isolation and official authentication panel'
 

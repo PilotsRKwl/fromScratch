@@ -1,6 +1,15 @@
 # Changelog
 
-Current status: Friends Beta 10.7 is published. Milestone 10.8 adds the three requested fixes and buybacks; official RuneLite Plugin Hub submission remains Milestone 11. Historical entries below retain their original development context.
+Current status: Friends Beta 10.8 is published. Milestone 10.8.1 expands fixed-price buybacks and repairs the native search lifecycle; official RuneLite Plugin Hub submission remains Milestone 11. Historical entries below retain their original development context.
+
+## Milestone 10.8.1: More Buybacks & Bank Search Fix
+
+- More fixed-price utility, weapon, armour and imbued-ring buybacks. Five new complete skilling outfits cost 2M virtual GP each. Existing prices and historical purchases remain unchanged.
+- Utility & Storage, Weapons, Armour and Skilling Outfits appear in that order, with deterministic alphabetical entry ordering. The exact-copy Slayer chooser and confirmation remain.
+- Native Virtual Bank search retains its input and intersects native matches with virtual ownership through repeated search, clearing and native-view transitions. Automated lifecycle checks supplement the required owner gameplay verification.
+- Container purchases require supported contents evidence or an explicit empty-container declaration; unknown contents never silently become owned.
+- Package `0.10.8-beta.2`, Windows/installer `0.10.8.1`, release label `v0.10.8.1-buybacks-search-fix`. Four-component release labels are isolated from normal Gradle/package version parsing. Final installers require clean committed source, and validation checks embedded commit/tree/dependency provenance.
+- See the [player release notes](docs/RELEASE_NOTES_10_8_1.md). Publication remains gated on full local regression, exact-source Windows/Ubuntu CI and final installer validation; live gameplay acceptance is separate.
 
 ## Milestone 10.8: Bug Fixes & Buyback Additions
 

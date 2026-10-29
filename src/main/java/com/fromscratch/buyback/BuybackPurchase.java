@@ -17,6 +17,7 @@ public class BuybackPurchase
 	Map<Integer,Long> legacyRunes;
 	BagObservation.State bagConfirmation;
 	int selectedItemId;
+	boolean storageConfirmedEmpty;
 	public BuybackPurchase(UUID id,String catalogId,long gp,Instant at,Map<String,Long> bankFloors)
 	{this(id,catalogId,gp,at,bankFloors,-1,Collections.emptyMap());}
 	public BuybackPurchase(UUID id,String catalogId,long gp,Instant at,Map<String,Long> bankFloors,int pouchItemId,Map<Integer,Long> legacyRunes)
@@ -26,7 +27,13 @@ public class BuybackPurchase
 	public BuybackPurchase(UUID id,String catalogId,long gp,Instant at,Map<String,Long> bankFloors,int selectedItemId)
 	{this(id,catalogId,gp,at,bankFloors,-1,Collections.emptyMap(),BagObservation.State.UNKNOWN,selectedItemId);}
 	private BuybackPurchase(UUID id,String catalogId,long gp,Instant at,Map<String,Long> bankFloors,int pouchItemId,Map<Integer,Long> legacyRunes,BagObservation.State bagConfirmation,int selectedItemId)
+	{this(id,catalogId,gp,at,bankFloors,pouchItemId,legacyRunes,bagConfirmation,selectedItemId,false);}
+	public static BuybackPurchase emptyStorage(UUID id,String catalogId,long gp,Instant at,Map<String,Long> bankFloors)
+	{return new BuybackPurchase(id,catalogId,gp,at,bankFloors,-1,Collections.emptyMap(),BagObservation.State.UNKNOWN,-1,true);}
+	private BuybackPurchase(UUID id,String catalogId,long gp,Instant at,Map<String,Long> bankFloors,int pouchItemId,Map<Integer,Long> legacyRunes,BagObservation.State bagConfirmation,int selectedItemId,boolean storageConfirmedEmpty)
 	{
+		if(EmptyStorageConfirmation.required(catalogId)!=storageConfirmedEmpty){throw new IllegalArgumentException("Storage buybacks require an explicit empty/shared-store and legacy-accounting declaration");}
+		this.storageConfirmedEmpty=storageConfirmedEmpty;
 		this.selectedItemId=selectedItemId;
 		if(SelectedBuybacks.selected(catalogId)!=(selectedItemId>0)||selectedItemId>0&&!catalogId.equals(SelectedBuybacks.catalog(selectedItemId))){throw new IllegalArgumentException("Invalid selected-copy evidence");}
 		this.id=Objects.requireNonNull(id);this.catalogId=Objects.requireNonNull(catalogId);

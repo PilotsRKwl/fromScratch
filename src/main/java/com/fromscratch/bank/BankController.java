@@ -302,6 +302,19 @@ public final class BankController implements BankActions
 			save(BankEngine.buySelected(run,catalogId,itemId,purchaseId,fresh.getSession(),Instant.now()));
 		});
 	}
+	public void buyEmptyStorage(UUID revision,String catalogId,UUID purchaseId,com.fromscratch.buyback.EmptyStorageConfirmation confirmation)
+	{
+		act(()->{
+			requireRevision(revision);BankObservation fresh=requireBank();
+			if(!run.getPhysical().equals(fresh.getBank().getQuantities())){throw new IllegalArgumentException("Your bank changed. Reopen Legacy Buybacks.");}
+			if(!com.fromscratch.buyback.EmptyStorageConfirmation.required(catalogId)){throw new IllegalArgumentException("This is not a supported storage buyback.");}
+			if(source.storageNonempty(catalogId)){throw new IllegalArgumentException("Native data shows contents in this shared store. Empty it and account for its legacy contents before confirming. No GP was spent.");}
+			com.fromscratch.buyback.BuybackEntry entry=com.fromscratch.buyback.BuybackCatalog.entry(catalogId);
+			boolean verified=entry.getRoles().entrySet().stream().allMatch(role->com.fromscratch.buyback.BuybackCatalog.variants(role.getKey()).entrySet().stream().anyMatch(v->v.getValue().equals(role.getValue())&&run.physical(v.getKey())>0&&source.buybackDefinition(v.getKey())));
+			if(!verified){throw new IllegalArgumentException("A qualifying banked container could not be verified. No GP was spent.");}
+			save(BankEngine.buyEmptyStorage(run,catalogId,purchaseId,fresh.getSession(),Instant.now(),confirmation));
+		});
+	}
 	public void recordExpense(UUID revision,long gp,String reason)
 	{ act(()->{requireRevision(revision);save(BankEngine.expense(run,gp,reason,UUID.randomUUID(),Instant.now()));}); }
 	public void bagPreview(Consumer<com.fromscratch.buyback.BagObservation> callback)

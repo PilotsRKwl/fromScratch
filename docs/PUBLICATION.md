@@ -1,13 +1,13 @@
 # Publication preparation
 
-Friends Beta 10.7 is published. The owner authorized Milestone 10.8 source commit, push, exact-commit CI, installer packaging and GitHub pre-release publication. **Milestone 11 exclusively owns official Plugin Hub submission/review/publication.** See [Milestone 10.8](MILESTONE_10_8.md) for current implementation and live checks.
+Friends Beta 10.8 is published. The owner authorized Milestone 10.8.1 source commit, push, exact-commit CI, installer packaging and GitHub pre-release publication once validation passes. **Milestone 11 exclusively owns official Plugin Hub submission/review/publication.** See the [10.8.1 release notes](RELEASE_NOTES_10_8_1.md) and [10.8 baseline](MILESTONE_10_8.md).
 
 ## Current release gates
 
 1. Complete regression passes without skipped/disabled failures; source/config/documentation reviewed and private/generated files excluded.
 2. Ordinary non-force master push; both Windows and Ubuntu CI pass for the exact release SHA.
 3. Clean-source native installer has matching source/tree/version manifests, pinned private Java, payload hashes and safe isolated install/upgrade/uninstall validation.
-4. New unique v0.10.8-bug-fixes-buybacks tag; public pre-release with EXE/checksum. Public downloads must hash-match the validated local installer.
+4. New unique `v0.10.8.1-buybacks-search-fix` tag; public pre-release with EXE/checksum. Public downloads must hash-match the validated local installer. Preserve previous releases and assets.
 5. Keep issues open for owner gameplay verification. No automatic game input or authentication. No Plugin Hub submission.
 
 ## Historical Milestone 10 preparation record

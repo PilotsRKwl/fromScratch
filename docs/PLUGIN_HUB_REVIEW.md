@@ -1,12 +1,14 @@
 # Plugin Hub reviewer map
 
-From Scratch / **Pilots r kwl**. Package `com.fromscratch`, configuration `fromscratch`, internal/storage name `from_scratch`. Friends Beta 10.7 is published; Milestone 10.8 adds the three requested changes. This is preparation, **not a submitted or approved Plugin Hub plugin**.
+From Scratch / **Pilots r kwl**. Package `com.fromscratch`, configuration `fromscratch`, internal/storage name `from_scratch`. Friends Beta 10.8.1 extends the published 10.8 baseline. This is preparation, **not a submitted or approved Plugin Hub plugin**.
 
 Review alongside the official [Plugin Hub repository](https://github.com/runelite/plugin-hub), [review process](https://github.com/runelite/runelite/wiki/Plugin-Hub-Review), [rejected features](https://github.com/runelite/runelite/wiki/Rejected-or-Rolled-Back-Features), and [Jagex guidelines](https://secure.runescape.com/m=news/third-party-client-guidelines?oldschool=1). Unusual public API use below is disclosed for human review; compilation is not policy approval.
 
 ## Player behavior and implementation
 
 All paths below are relative to `src/main/java/com/fromscratch/`.
+
+For the 10.8.1 review, see the [native-search correction](MILESTONE_10_8_1.md) and [fixed buyback prices/variants](technical/BUYBACK_PRICING.md). Search leaves native layout active while its input/query is present and applies only an ownership veto after native matching; the owner has deferred actual in-game input verification. New families retain one-copy limits and historical prices. Gathering containers and quiver ammunition require explicit empty/accounted declarations; native positive evidence can veto, while missing data never verifies emptiness. Declaration provenance is stored in the existing atomic format-11 receipt path, with no cloud storage or synthetic game action.
 
 | Feature | Actual behavior and entry points |
 | --- | --- |
@@ -57,7 +59,7 @@ No gameplay enforcement is present: **no withdrawal blocking/cancellation, condi
 
 ## Remaining gates
 
-Owner-test the actual packaged shortcut/authentication/gameplay, add privacy-safe real bank screenshots, and review the scoped widget/filtering APIs against the then-current rules. Authentic sample-component previews are disclosed separately; `src/preview` and its tooling are excluded from the production JAR and Hub standard build. Prepare an approved immutable source commit only after review. **No usable future-SHA Hub manifest, publishing PR, release, submission or approval has been created.** Milestone 11 owns official submission.
+Owner-test the actual packaged shortcut/authentication/gameplay, add privacy-safe real bank screenshots, and review the scoped widget/filtering APIs against the then-current rules. Authentic sample-component previews are disclosed separately; `src/preview` and its tooling are excluded from the production JAR and Hub standard build. Friends Beta releases are independent of official submission. **No Plugin Hub manifest, submission pull request or official approval has been created.** Milestone 11 owns official submission.
 
 Related: [architecture](technical/ARCHITECTURE.md), [accounting](technical/ACCOUNTING.md), [features](FEATURES.md), [privacy](DATA_AND_PRIVACY.md), [installation](INSTALLATION.md).
 

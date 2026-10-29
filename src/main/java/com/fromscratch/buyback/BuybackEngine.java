@@ -23,14 +23,22 @@ public final class BuybackEngine
 		if(entry.getRoles().entrySet().stream().allMatch(e->owned.getOrDefault(e.getKey(),0)>=e.getValue())){return "Already unlocked";}
 		for(Map.Entry<String,Integer> role:entry.getRoles().entrySet())
 		{
-			long physical=0,raw=0,qualifying=0;
+			long physical=0,raw=0,qualifying=0,qualifyingRaw=0;
 			for(Map.Entry<Integer,Integer> variant:BuybackCatalog.variants(role.getKey()).entrySet())
 			{
 				int id=variant.getKey();physical=Math.addExact(physical,run.physical(id));raw=Math.addExact(raw,run.balance(id));
-				if(variant.getValue()==role.getValue()){qualifying=Math.addExact(qualifying,run.physical(id));}
+				if(variant.getValue()==role.getValue()){qualifying=Math.addExact(qualifying,run.physical(id));qualifyingRaw=Math.addExact(qualifyingRaw,run.balance(id));}
 			}
 			// The difference is still locked legacy stock. A naturally positive copy cannot qualify alone.
 			if(qualifying==0){return entry.getRoles().size()>1?"Missing set pieces":"Not in bank";}
+			if(BuybackCatalog.naturalFamilies().contains(role.getKey())&&!owned.containsKey(role.getKey())&&qualifying<=Math.max(0,qualifyingRaw)){return "Already unlocked";}
+			// A paid lower tier must not make an independently earned higher-tier copy billable.
+			if(BuybackCatalog.naturalFamilies().contains(role.getKey())&&owned.containsKey(role.getKey())&&owned.get(role.getKey())<role.getValue())
+			{
+				Map<Integer,Long> projected=balances(run);long earnedTarget=0;
+				for(Map.Entry<Integer,Integer> variant:BuybackCatalog.variants(role.getKey()).entrySet()){if(variant.getValue().equals(role.getValue())){earnedTarget=Math.addExact(earnedTarget,Math.max(0,projected.getOrDefault(variant.getKey(),0L)));}}
+				if(qualifying<=earnedTarget){return "Already unlocked";}
+			}
 			if(physical<=Math.max(0,raw)){return entry.getRoles().size()>1?"Missing set pieces":entry.getId().equals("looting_bag_family")?"Earned":"Already unlocked";}
 			if(owned.containsKey(role.getKey())&&raw<run.getBuybacks().getBankFloors().get(role.getKey())){return "Return unlocked copy";}
 		}
@@ -75,7 +83,7 @@ public final class BuybackEngine
 	 */
 	public static Map<Integer,Long> balances(BankRun run)
 	{
-		if(run.getBuybacks().getEntitlements().isEmpty()){return BuybackCatalog.variants("looting_bag_family").keySet().stream().noneMatch(run.getBalances()::containsKey)?run.getBalances():naturalBag(run,new TreeMap<>(run.getBalances()));}
+		if(run.getBuybacks().getEntitlements().isEmpty()){return naturalFamilies(run,BuybackCatalog.variants("looting_bag_family").keySet().stream().noneMatch(run.getBalances()::containsKey)?run.getBalances():naturalBag(run,new TreeMap<>(run.getBalances())));}
 		Map<Integer,Long> result=new TreeMap<>(run.getBalances());
 		for(Map.Entry<String,Integer> entitlement:run.getBuybacks().getEntitlements().entrySet())
 		{
@@ -93,7 +101,20 @@ public final class BuybackEngine
 		}
 		// The coin counter shows unspent challenge GP; the saved raw coin cursor is untouched.
 		long coins=available(run);if(coins==0){result.remove(ItemID.COINS);}else{result.put(ItemID.COINS,coins);}
-		return run.getBuybacks().getEntitlements().containsKey("looting_bag_family")?Collections.unmodifiableMap(result):naturalBag(run,result);
+		return naturalFamilies(run,run.getBuybacks().getEntitlements().containsKey("looting_bag_family")?result:naturalBag(run,result));
+	}
+	/** Observed changes between new equivalent forms cannot mint natural copies before payment. */
+	private static Map<Integer,Long> naturalFamilies(BankRun run,Map<Integer,Long> balances)
+	{
+		Map<Integer,Long> result=new TreeMap<>(balances);
+		for(String role:BuybackCatalog.naturalFamilies())
+		{
+			if(run.getBuybacks().getEntitlements().containsKey(role)){continue;}
+			Set<Integer> variants=BuybackCatalog.variants(role).keySet();long raw=raw(run.getBalances(),role);variants.forEach(result::remove);
+			if(raw<0){int id=variants.stream().filter(i->run.balance(i)<0).findFirst().orElse(variants.iterator().next());result.put(id,raw);}
+			else if(raw>0){List<Integer> ids=new ArrayList<>(variants);ids.sort(Comparator.<Integer>comparingLong(run::balance).reversed().thenComparingInt(i->i));for(int id:ids){long n=Math.min(raw,run.physical(id));if(n>0){result.put(id,n);raw-=n;}}}
+		}
+		return Collections.unmodifiableMap(result);
 	}
 	/** Opening/closing the same bag changes its form, never its earned-copy count. */
 	private static Map<Integer,Long> naturalBag(BankRun run,Map<Integer,Long> result)

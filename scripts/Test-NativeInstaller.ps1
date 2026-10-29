@@ -23,9 +23,11 @@ function Latest-LauncherLog([string]$Root){return Get-ChildItem -LiteralPath (Jo
 
 foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1'){$tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors);Assert-Native ($errors.Count -eq 0) ('Script syntax: '+$file.Name)}
 Pass-Native 'PowerShell packaging syntax'
-Assert-Native ($pin.format -eq 1 -and $pin.releaseVersion -cmatch '^v\d+\.\d+\.\d+-[a-z0-9-]+$' -and $pin.packageVersion -cmatch '^\d+\.\d+\.\d+-beta\.\d+$' -and $pin.windowsVersion -match '^\d+\.\d+\.\d+\.\d+$') 'Invalid pinned release/package/Windows version.'
+Assert-Native ($pin.format -eq 1 -and $pin.releaseVersion -cmatch '^v\d+\.\d+\.\d+(?:\.\d+)?-[a-z0-9-]+$' -and $pin.packageVersion -cmatch '^\d+\.\d+\.\d+-beta\.\d+$' -and $pin.windowsVersion -match '^\d+\.\d+\.\d+\.\d+$') 'Invalid pinned release/package/Windows version.'
 $baseVersion=($pin.packageVersion -split '-')[0]
-Assert-Native ($pin.releaseVersion.StartsWith('v'+$baseVersion+'-') -and $pin.windowsVersion.StartsWith($baseVersion+'.')) 'Pinned release, package and Windows versions disagree.'
+$releaseNumber=($pin.releaseVersion.Substring(1) -split '-')[0]
+$releaseWindows=if(($releaseNumber -split '\.').Count -eq 3){$releaseNumber+'.0'}else{$releaseNumber}
+Assert-Native ($releaseWindows -eq $pin.windowsVersion -and $pin.windowsVersion.StartsWith($baseVersion+'.')) 'Pinned release, package and Windows versions disagree.'
 Assert-Native ($pin.runtime.sha256 -cmatch '^[a-f0-9]{64}$' -and $pin.inno.sha256 -cmatch '^[a-f0-9]{64}$') 'Pinned toolchain checksums are invalid.'
 Assert-Native ($pin.runtime.url.StartsWith('https://github.com/adoptium/temurin11-binaries/releases/download/') -and $pin.inno.url.StartsWith('https://github.com/jrsoftware/issrc/releases/download/')) 'Pinned toolchain sources are not the official release repositories.'
 Pass-Native ('Pinned configuration: '+$pin.releaseVersion+' / '+$pin.packageVersion+' / '+$pin.windowsVersion)
@@ -45,6 +47,20 @@ $private=@($manifest.files|Where-Object{$_.path -match '(?i)(^|/)(credentials\.p
 Assert-Native ($private.Count -eq 0) 'Private/test data entered the image.'
 Assert-Native (@($manifest.files|Where-Object{$_.path -match '^lib/.*(junit|shadow|preview|test-fixture).*\.jar$'}).Count -eq 0) 'Unrelated Java artifacts entered the image.'
 Pass-Native 'Complete payload hashes, release/source metadata and private-data exclusion'
+$source=Get-Content -LiteralPath (Join-Path $payload 'SOURCE.json') -Raw|ConvertFrom-Json
+$native=Get-Content -LiteralPath (Join-Path $payload 'native-build.json') -Raw|ConvertFrom-Json
+$revision=(& git -C $project rev-parse HEAD | Out-String).Trim();Assert-Native ($LASTEXITCODE -eq 0) 'Cannot verify source revision.'
+$tree=(& git -C $project rev-parse HEAD:src/main | Out-String).Trim();Assert-Native ($LASTEXITCODE -eq 0) 'Cannot verify production source tree.'
+Assert-Native ($source.revision -eq $revision -and $native.sourceRevision -eq $revision -and $build.sourceRevision -eq $revision -and $source.gameplayTree -eq $tree -and $native.gameplayTree -eq $tree) 'Installer was not built from the current source commit/tree.'
+Assert-Native ($source.releaseVersion -eq $pin.releaseVersion -and $native.releaseVersion -eq $pin.releaseVersion -and $native.packageVersion -eq $pin.packageVersion) 'Embedded source/native version metadata differs.'
+if(!$build.localTestCandidate){Assert-Native (!$build.sourceWorktreeDirty -and !$source.releaseWorktreeDirty -and !$source.localTestCandidate -and !$native.packagingWorktreeDirty -and !$native.localTestCandidate) 'A final installer contains uncommitted or local-test source.'}
+$dependencies=Get-Content -LiteralPath (Join-Path $payload 'DEPENDENCIES.json') -Raw|ConvertFrom-Json
+foreach($dependency in $dependencies.artifacts){Assert-Native ((Get-FileHash -LiteralPath (Join-Path $payload $dependency.path) -Algorithm SHA256).Hash.ToLowerInvariant() -eq $dependency.sha256) ('Dependency manifest differs: '+$dependency.coordinate)}
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$pluginPath=Join-Path $payload ('lib/fromScratch-'+$pin.packageVersion+'.jar')
+$plugin=[IO.Compression.ZipFile]::OpenRead($pluginPath)
+try{Assert-Native (@($plugin.Entries|Where-Object{$_.FullName -match '(^org/junit/|Test.class$|^com/fromscratch/(beta|preview)/|META-INF/services/net.runelite.client.plugins.Plugin)'}).Count -eq 0) 'Development code entered the production plugin JAR.';Assert-Native ($null -ne $plugin.GetEntry('com/fromscratch/icon.png')) 'Production navigation icon is missing.'}finally{$plugin.Dispose()}
+Pass-Native 'Committed source provenance, dependency manifests and production JAR isolation'
 $icon=[IO.File]::ReadAllBytes((Join-Path $build.image 'FromScratch.ico'))
 Assert-Native ([BitConverter]::ToUInt16($icon,2) -eq 1 -and [BitConverter]::ToUInt16($icon,4) -eq 5) 'ICO frame count invalid.'
 $sizes=@();for($i=0;$i -lt 5;$i++){$n=[int]$icon[6+16*$i];$sizes+= $(if($n -eq 0){256}else{$n})}
@@ -122,7 +138,7 @@ if(!$ImageOnly){
     $keys=@(Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall|Where-Object{$_.PSChildName -like 'FromScratchBeta-InstallerTest-*'}|Where-Object{(Get-ItemProperty $_.PSPath).InstallLocation.TrimEnd('\') -eq $installed})
     Assert-Native ($keys.Count -eq 1) 'Windows Installed apps registration missing or duplicated.'
     $uninstallKey=$keys[0].PSPath
-    Assert-Native ((Get-ItemProperty $uninstallKey).DisplayVersion -eq $baseVersion) 'Upgrade did not update Installed apps to the pinned current version.'
+    Assert-Native ((Get-ItemProperty $uninstallKey).DisplayVersion -eq $releaseNumber) 'Upgrade did not update Installed apps to the pinned current release version.'
     Pass-Native 'Desktop/Start Menu native shortcuts, icon references and Installed apps entry'
     Assert-Native ((Run-Native $setup $args 60000) -eq 0) 'Reinstall failed.'
     Assert-Native (([IO.File]::ReadAllText($sentinel)) -eq 'preserve progression fixture') 'Reinstall changed progression fixture.'
