@@ -89,10 +89,12 @@ public final class OfflineProgressMigration
 		safeAncestors(base);
 		requireDirectory(base);
 		Path source = base.resolve("from_scratch"), target = base.resolve("from-scratch");
-		Path receipt = base.resolve(COMPLETE);
+		// The future Hub plugin can read this through its own scoped Filepath root.
+		Path receipt = target.resolve(COMPLETE);
 		if (completed(receipt, target)) { return new Result(0, true, dryRun); }
 		requireDirectory(source);
 		Snapshot original = snapshot(source);
+		if (original.entries.containsKey(COMPLETE)) { throw fail("Legacy root contains reserved migration metadata. Preserve it and resolve the conflict first."); }
 		Snapshot existing = Files.exists(target, NOFOLLOW) ? snapshot(target) : new Snapshot();
 		checkSubset(original, existing);
 		checkIndependent(source, target, existing);

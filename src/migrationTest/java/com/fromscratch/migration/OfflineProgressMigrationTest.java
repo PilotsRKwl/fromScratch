@@ -68,7 +68,12 @@ public class OfflineProgressMigrationTest
 		assertFilesEqual(before, files(source, false));
 		assertFalse(Files.exists(destination.resolve("characters/character-a/run.lock")));
 		assertFalse(Files.exists(destination.resolve("characters/character-a/playtime/playtime.lock")));
-		assertTrue(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertTrue(Files.exists(destination.resolve(".from-scratch-migration-complete")));
+		byte[] manifestHash = java.security.MessageDigest.getInstance("SHA-256")
+			.digest(Files.readAllBytes(base.resolve(".from-scratch-migration/manifest")));
+		String expectedReceipt = "FROM_SCRATCH_OFFLINE_MIGRATION_V1\n"
+			+ String.format(java.util.Locale.ROOT, "%064x", new java.math.BigInteger(1, manifestHash)) + "\n";
+		assertEquals(expectedReceipt, Files.readString(destination.resolve(".from-scratch-migration-complete")));
 		assertFalse(java.util.Arrays.equals(Files.readAllBytes(destination.resolve("characters/character-a/current.json")),
 			Files.readAllBytes(destination.resolve("characters/character-b/current.json"))));
 	}
@@ -94,7 +99,7 @@ public class OfflineProgressMigrationTest
 		expectFailure(() -> OfflineProgressMigration.migrate(base, false));
 		assertFilesEqual(originalSource, files(source, false));
 		assertFilesEqual(originalDestination, files(destination, false));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 	}
 
 	@Test public void interruptedCopyCanBeRetriedWithoutLosingOriginals() throws Exception
@@ -106,7 +111,7 @@ public class OfflineProgressMigrationTest
 			if (copied.incrementAndGet() == 2) { throw new IOException("Disposable interrupted-copy fixture"); }
 		}));
 		assertEquals(2, copied.get());
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		assertFilesEqual(original, files(source, false));
 		OfflineProgressMigration.migrate(base, false);
 		assertCopiedTree();
@@ -130,11 +135,11 @@ public class OfflineProgressMigrationTest
 		Map<String, byte[]> partial = files(destination, false);
 		assertFalse(partial.isEmpty());
 		assertTrue(partial.size() < files(source, true).size());
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		assertFilesEqual(original, files(source, false));
 		OfflineProgressMigration.migrate(base, false);
 		assertCopiedTree();
-		assertTrue(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertTrue(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		assertFilesEqual(original, files(source, false));
 	}
 
@@ -146,7 +151,7 @@ public class OfflineProgressMigrationTest
 			byte[] bytes = Files.readAllBytes(to);
 			if (bytes.length > 0) { bytes[0] ^= 1; Files.write(to, bytes); }
 		}));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		assertFilesEqual(original, files(source, false));
 		OfflineProgressMigration.migrate(base, false);
 		assertCopiedTree();
@@ -155,7 +160,7 @@ public class OfflineProgressMigrationTest
 	@Test public void truncatedStagedCopyIsNotDeclaredSuccessful() throws Exception
 	{
 		expectFailure(() -> OfflineProgressMigration.migrate(base, false, (from, to) -> Files.write(to, new byte[0])));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		OfflineProgressMigration.migrate(base, false);
 		assertCopiedTree();
 	}
@@ -197,7 +202,7 @@ public class OfflineProgressMigrationTest
 		assertTrue(result.isDryRun());
 		assertFalse(Files.exists(destination));
 		assertFalse(Files.exists(base.resolve(".from-scratch-migration")));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		assertFilesEqual(original, files(source, false));
 		assertFilesEqual(pluginData, files(base, false));
 	}
@@ -208,7 +213,7 @@ public class OfflineProgressMigrationTest
 			 FileLock ignored = channel.lock())
 		{
 			expectFailure(() -> OfflineProgressMigration.migrate(base, false));
-			assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+			assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		}
 	}
 
@@ -229,7 +234,7 @@ public class OfflineProgressMigrationTest
 		Map<String, byte[]> original = files(source, false);
 		expectFailure(() -> OfflineProgressMigration.migrate(base, false));
 		assertFilesEqual(original, files(source, false));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 	}
 
 	@Test public void cliMissingOrWrongConfirmationWritesNothing() throws Exception
@@ -246,7 +251,7 @@ public class OfflineProgressMigrationTest
 			assertFilesEqual(original, files(base, false));
 			assertFalse(Files.exists(destination));
 			assertFalse(Files.exists(base.resolve(".from-scratch-migration")));
-			assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+			assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		}
 	}
 
@@ -260,7 +265,7 @@ public class OfflineProgressMigrationTest
 		assertTrue(guardCalls.get() > 0);
 		assertTrue(output.toString("UTF-8").contains("SUCCESS"));
 		assertEquals("", error.toString("UTF-8"));
-		assertTrue(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertTrue(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 		assertCopiedTree();
 	}
 
@@ -276,7 +281,7 @@ public class OfflineProgressMigrationTest
 		assertFilesEqual(original, files(base, false));
 		assertFalse(Files.exists(destination));
 		assertFalse(Files.exists(base.resolve(".from-scratch-migration")));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 	}
 
 	@Test public void directoryLinkInsideLegacyTreeIsRejectedWithoutTouchingItsTarget() throws Exception
@@ -291,7 +296,7 @@ public class OfflineProgressMigrationTest
 			createDirectoryLink(link, outside);
 			expectFailure(() -> OfflineProgressMigration.migrate(base, false));
 			assertFalse(Files.exists(destination));
-			assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+			assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 			assertFilesEqual(outsideBytes, files(outside, false));
 		}
 		finally { Files.deleteIfExists(link); }
@@ -336,7 +341,7 @@ public class OfflineProgressMigrationTest
 		expectFailure(() -> OfflineProgressMigration.migrate(base, false));
 		assertFilesEqual(original, files(source, false));
 		assertFilesEqual(previousDestination, files(destination, false));
-		assertFalse(Files.exists(base.resolve(".from-scratch-migration-complete")));
+		assertFalse(Files.exists(destination.resolve(".from-scratch-migration-complete")));
 	}
 
 	private static void createDirectoryLink(Path link, Path target) throws Exception
@@ -364,6 +369,15 @@ public class OfflineProgressMigrationTest
 		}
 	}
 
+	@Test public void reservedLegacyReceiptIsPreservedAndMigrationRefused() throws Exception
+	{
+		write(source, ".from-scratch-migration-complete", "unexpected legacy evidence");
+		Map<String, byte[]> original = files(source, false);
+		expectFailure(() -> OfflineProgressMigration.migrate(base, false));
+		assertFilesEqual(original, files(source, false));
+		assertFalse(Files.exists(destination));
+	}
+
 	private void assertCopiedTree() throws Exception
 	{
 		assertFilesEqual(files(source, true), files(destination, false));
@@ -386,6 +400,8 @@ public class OfflineProgressMigrationTest
 			for (Path path : entries.filter(Files::isRegularFile).collect(Collectors.toList()))
 			{
 				String name = path.getFileName().toString();
+				if (root.getFileName().toString().equals("from-scratch") && path.getParent().equals(root)
+					&& name.equals(".from-scratch-migration-complete")) { continue; }
 				if (omitLocks && (name.equals("run.lock") || name.equals("playtime.lock"))) { continue; }
 				result.put(root.relativize(path).toString().replace('\\', '/'), Files.readAllBytes(path));
 			}
