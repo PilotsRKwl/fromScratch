@@ -28,7 +28,7 @@ This applies to the prepared production source, not an already approved Plugin H
 
 **Genuinely new installation?** Read the first-run migration guidance, explicitly confirm the new installation, then follow normal **Before Starting** bank setup. New-installation confirmation is not a recovery option for existing data: missing or invalid evidence alongside canonical progression blocks loading instead of silently starting another challenge.
 
-After a successful transfer, continue that challenge only in the canonical version. Returning to the obsolete beta writes a separate old history; no synchronization or history merging exists. First validate the workflow on a disposable copy before using real progression. Native first-run and migrated-run acceptance remain owner checks.
+After a successful transfer, continue that challenge only in the canonical version. Returning to the obsolete beta writes a separate old history; no synchronization or history merging exists. First validate the workflow on a disposable copy before using real progression. The owner reports successful migration of existing progression and completed manual acceptance of the production candidate. Native first-run behavior remains an explicit check for a genuinely clean installation; never reset an existing character to test it.
 
 ## Updating
 

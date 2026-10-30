@@ -1,6 +1,6 @@
 # Validation plan
 
-The owner reports the published Friends Beta gameplay works. Automated fixtures do not establish in-game acceptance, authentication or native UI focus. Only the owner operates RuneScape; no computer-use gameplay or synthetic input is permitted.
+The owner reports successful offline migration of existing progression and completion of manual acceptance testing for the production candidate before authorizing Plugin Hub submission. Automated fixtures do not establish in-game acceptance, authentication or native UI focus. Only the owner operates RuneScape; no computer-use gameplay or synthetic input is permitted.
 
 ## Development checks
 
@@ -13,7 +13,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Test-StandardBui
 git diff --check
 ```
 
-`Test-StandardBuild.ps1` obtains the current official Plugin Hub build/settings template and Hub client version, compiles only `src/main`, and records evidence under ignored `build/standard-check`. It also extracts the current packager identifier rule, checks the compiled descriptor against `from-scratch`, checks metadata/Java bytecode and inspects JAR resources and development-class isolation. It fails when compilation succeeds but identifier compatibility does not. This local preflight does not execute the hosted packager or establish security/policy approval or live testing. The existing underscore descriptor intentionally keeps this gate blocked until safe beta storage migration is resolved.
+`Test-StandardBuild.ps1` obtains the current official Plugin Hub build/settings template and Hub client version, compiles only `src/main`, and records evidence under ignored `build/standard-check`. It also extracts the current packager identifier rule, checks the compiled descriptor against `from-scratch`, checks metadata/Java bytecode and inspects JAR resources and development-class isolation. It fails when compilation succeeds but identifier compatibility does not. This local preflight does not execute the hosted packager or establish security/policy approval or live testing. The production descriptor and intended manifest identifier are both `from-scratch`; the beta used `from_scratch`. The standalone migration utility and beta launcher remain outside the standard artifact.
 
 ## Focused coverage
 
@@ -24,14 +24,16 @@ git diff --check
 | Historical saves | `ExpandedBuybackPersistenceTest`, `SelectedBuybackPersistenceTest`, `StorageBuybackPersistenceTest` and existing repository/backup fixtures retain 10.7 format-10 purchases, 10.8 selected-copy evidence and 10.8.1 declarations, without rewriting original bytes on load. Exercise continuation, failed publication/retry, restart and isolated export/import. |
 | Buybacks | Model, pipeline and UI fixtures cover exact fixed prices, natural versus paid copies, complete sets, approved variants, GP limits, UUID duplication, quiver upgrades, declaration/native evidence, cancellation and failed saves. |
 | Resources | `FoundationResourcesTest` verifies classpath PNG loading, dimensions, metadata and branding. Standard artifact inspection excludes beta/preview/bootstrap/tests and Plugin service registration. |
-| Directory capability boundary | `PluginDirectoryCapabilityTest` verifies that scoped roots cannot access their parent/sibling and the legacy migration API rejects the nested beta path. These are blocker-evidence tests, not successful directory-migration tests. No migrator is implemented or claimed passing. |
+| Directory capability boundary | `PluginDirectoryCapabilityTest` verifies that scoped roots cannot access their parent/sibling and the legacy migration API rejects the nested beta path. These verify the production capability boundary, not directory copying; the implemented offline utility has separate coverage. |
+| Offline migration | `OfflineProgressMigrationTest` in `src/migrationTest` covers disposable whole-tree transfers, original-byte preservation, conflicts, interruption/retry, link rejection and completion evidence. Run separately with `migrationTest`; it is not part of the standard artifact or the default `build` test task. |
+| Canonical startup | `CanonicalStorageGateTest` and `CanonicalStorageGuidanceTest` cover receipt admission, invalid/conflicting evidence, shared storage gating and explicit fresh-install guidance without silently creating a replacement challenge. |
 | Broader progression | Final CI retains bank/potion signed deltas and doses, overlays/counters, overdrafts, GE attribution/history, corrections, wealth/time, migrations, backups/reset and character isolation tests. |
 
 Fixtures use disposable synthetic characters and Filepath roots. Never substitute real profiles, progression or backup paths. Preserve migration fixtures even when historical production controllers are no longer used.
 
 ## Owner checks for native integration
 
-After a meaningful view integration change, check Virtual Bank close/reopen and client restart with preferences ON/OFF; native search opening/typing/clearing/reopening; native tabs, independent Bank Tags and Potion Storage; gray physical/bright signed virtual counters; and unchanged balances/history. The configuration-ownership cleanup preserves gameplay/accounting and delegates existing cleanup through the public API. A native regression smoke check is recommended; no new gameplay feature is introduced. Headless tests cannot prove native focus/rendering on every client scale.
+The owner completed manual acceptance after successful migration of existing progression. For future meaningful view integration changes, check Virtual Bank close/reopen and client restart with preferences ON/OFF; native search opening/typing/clearing/reopening; native tabs, independent Bank Tags and Potion Storage; gray physical/bright signed virtual counters; and unchanged balances/history. The configuration-ownership cleanup preserves gameplay/accounting and delegates existing cleanup through the public API. A native regression smoke check is recommended; no new gameplay feature is introduced. Headless tests cannot prove native focus/rendering on every client scale.
 
 Use [beta checks](../BETA_TESTING.md), [installation](../INSTALLATION.md) and RuneLite's [Using Jagex Accounts](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts) instructions. Destructive import/reset experiments require disposable progression or a private backup. Optional native installer execution checks remain separately deferred because local Windows Application Control blocked Setup; do not count them as passing.
 
