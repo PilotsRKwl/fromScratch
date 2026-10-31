@@ -1,6 +1,6 @@
 # Contributing
 
-From Scratch is by **Pilots r kwl**, under the [BSD 2-Clause license](LICENSE). The project is preparing its first official RuneLite Plugin Hub submission. The published Friends Beta remains available; Plugin Hub approval and v1.0.0 publication are separate gates.
+From Scratch is by **Pilots r kwl**, under the [BSD 2-Clause license](LICENSE). The initial RuneLite Plugin Hub submission was merged, then distribution was disabled with the reason `disallowed readme`. Re-enablement requires maintainer review; see [current status](docs/LAUNCH.md#current-status). Do not publish v1.0.0 before verified availability.
 
 Read [AGENTS.md](AGENTS.md), the [architecture](docs/technical/ARCHITECTURE.md), [accounting policy](docs/technical/ACCOUNTING.md) and [test plan](docs/technical/TEST_PLAN.md) before changing behavior. The [reviewer map](docs/PLUGIN_HUB_REVIEW.md) identifies production paths and review-sensitive integrations.
 

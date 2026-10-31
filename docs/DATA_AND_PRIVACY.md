@@ -4,7 +4,7 @@ From Scratch has no backend, account registration, analytics endpoint or cloud s
 
 ## Local progression
 
-The prepared production plugin uses RuneLite's normal scoped Filepath directory `.runelite/plugin-data/from-scratch` beneath the normal user home. Published Friends Beta versions use the historical sibling `.runelite/plugin-data/from_scratch`. The production plugin does not inspect, move or delete that old directory. A separately executed, explicitly authorized [offline utility](MAINTAINING.md#offline-progression-migration) copies and verifies it before an existing beta player switches.
+The production plugin uses RuneLite's normal scoped Filepath directory `.runelite/plugin-data/from-scratch` beneath the normal user home. Published Friends Beta versions use the historical sibling `.runelite/plugin-data/from_scratch`. The production plugin does not inspect, move or delete that old directory. A separately executed, explicitly authorized [offline utility](MAINTAINING.md#offline-progression-migration) copies and verifies it before an existing beta player switches.
 
 Character-specific records contain run identity/start, the original legacy bank snapshot, signed/current bank quantities, journal/checkpoint history, manual corrections, buyback payments/entitlements/declarations/contents offsets, observed GE evidence, financial/peak records and host playtime. Potion Storage records include verified quantities, dose definitions, timestamps and bounded transfer/review evidence. Existing character identifiers, save formats and configuration keys are unchanged by the directory cutover.
 
@@ -20,13 +20,15 @@ The plugin requests RuneLite's bulk public item-price feed through the existing 
 
 RuneLite itself handles its normal game downloads/connections, authentication, updates and Plugin Hub traffic. Those services are not From Scratch progression synchronization. Use RuneLite's supported login flow; From Scratch has no custom sign-in or account system.
 
-## Optional standalone beta
+## Historical standalone beta
+
+These details document existing beta installations and developer tools. They do not recommend a standalone launcher as an alternative to [Plugin Hub installation](INSTALLATION.md).
 
 The Windows launcher and developer bootstrap are separate from the production Plugin Hub plugin. They invoke an unmodified official RuneLite runtime through its developer entry point and use RuneLite's Jagex Accounts panel. They do not extract tokens, copy credential files, enable insecure credential writing or scrape another process's environment.
 
 The beta installs per-user under `%LOCALAPPDATA%\Programs\FromScratchBeta` with owned version payloads, a private checksum-verified Temurin Java 11 runtime, desktop/Start Menu shortcuts and its own Installed apps entry. It uses the normal RuneLite home so existing local progression remains in place. Close other clients before restoring or using the same run. No persistent PATH or system Java change is made.
 
-The uninstaller is designed to remove owned program files and matching shortcuts while preserving progression, exports, RuneLite account/settings files, other plugins, unrelated files and Java installations. See [Installation](INSTALLATION.md) for the explicit 10.8.1 installer execution-testing deferral.
+The uninstaller is designed to remove owned program files and matching shortcuts while preserving progression, exports, RuneLite account/settings files, other plugins, unrelated files and Java installations. See [the historical beta reference](HISTORICAL_BETA.md) for the explicit 10.8.1 installer execution-testing deferral.
 
 Launcher diagnostics are local under `%LOCALAPPDATA%\FromScratchBeta\logs`, bounded and retained after uninstall. No log is uploaded automatically. Developer verification uses disposable homes and never opens a personal account.
 

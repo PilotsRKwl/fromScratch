@@ -6,7 +6,7 @@
 
 *Actual sidebar interface with synthetic example progress, not a live RuneScape screenshot.*
 
-From Scratch is independently developed by Pilots r kwl and is not affiliated with or endorsed by Jagex or RuneLite. It is currently in Friends Beta and is being prepared for official RuneLite Plugin Hub submission. It has not yet received Plugin Hub approval.
+From Scratch is independently developed by Pilots r kwl and is not affiliated with or endorsed by Jagex or RuneLite.
 
 **Author: Pilots r kwl**
 
@@ -28,17 +28,19 @@ From Scratch tracks your progress; you choose to follow the rules. It does not p
 
 Start another run at any time with **Reset Progress**. Your real items and account are untouched.
 
-## Try the Friends Beta
+## Installation
 
-From Scratch is **not yet available or approved on the official RuneLite Plugin Hub**. The current download is [Friends Beta 10.8.1](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix) for 64-bit Windows.
+From Scratch is distributed through RuneLite Plugin Hub. **Availability is temporarily paused pending review.** RuneLite disabled distribution with the reason "disallowed readme"; see the [review status](docs/LAUNCH.md#current-status).
 
-1. Download [**FromScratch-Beta-Setup.exe**](https://github.com/PilotsRKwl/fromScratch/releases/download/v0.10.8.1-buybacks-search-fix/FromScratch-Beta-Setup.exe) and follow the setup wizard.
-2. Open **From Scratch Beta** from your desktop and sign in through RuneLite's official Jagex Accounts panel.
-3. Enable From Scratch, open its purple coin sidebar, and follow **Before Starting**. Bank your inventory and equipment before confirming your starting snapshot.
+Once RuneLite restores availability:
 
-[Installation and update help](docs/INSTALLATION.md) · [Release notes and checksum](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix)
+1. Open RuneLite.
+2. Open **Plugin Hub** from the configuration panel.
+3. Search for **From Scratch**.
+4. Select **Install**.
+5. Open the purple coin sidebar and follow the plugin's **Before Starting** setup instructions.
 
-The installer is unsigned. Local Windows Application Control blocked installer execution testing; manual installation, upgrade and uninstall checks remain pending. Keep Windows security protections enabled and see [troubleshooting](docs/TROUBLESHOOTING.md) if installation is blocked.
+[Installation and existing-beta migration guidance](docs/INSTALLATION.md)
 
 ## See your fresh start grow
 

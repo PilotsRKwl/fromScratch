@@ -1,6 +1,12 @@
 # Changelog
 
-The latest published standalone release is Friends Beta 10.8.1. Official RuneLite Plugin Hub submission is in preparation; approval, availability and public v1.0.0 publication are separate gates. Git history preserves the earlier development chronology.
+RuneLite Plugin Hub distribution is temporarily paused pending review after the initial submission was merged and then disabled with the reason `disallowed readme`. See [current status](docs/LAUNCH.md#current-status). Friends Beta 10.8.1 is preserved as a historical standalone release. No v1.0.0 has been published. Git history preserves the earlier development chronology.
+
+## Unreleased: README compliance corrections
+
+- Prioritize normal RuneLite Plugin Hub installation, clearly marked unavailable pending review. Remove README promotion of the external Windows beta installer and standalone launcher.
+- Correct outdated submission/availability statements and retain beta maintenance and migration guidance as historical reference.
+- Production plugin, gameplay, progression, releases, tags and packaging tools are unchanged.
 
 ## Unreleased: Plugin Hub preparation
 

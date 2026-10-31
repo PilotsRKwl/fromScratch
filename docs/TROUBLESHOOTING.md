@@ -2,17 +2,21 @@
 
 Keep a private **Export Progress** backup before updates, restoration or reset. Do not delete progression files to resolve a display or loading problem.
 
-## Windows blocks the beta installer
+## From Scratch is unavailable in Plugin Hub
+
+Plugin Hub distribution is temporarily paused pending maintainer review after From Scratch was disabled with the reason `disallowed readme`. See [installation](INSTALLATION.md) for the current status and normal RuneLite installation steps once distribution resumes. Historical beta installers are not an alternative to Plugin Hub installation.
+
+## Historical beta installer diagnostics
 
 Friends Beta 10.8.1 is unsigned. Windows Application Control blocked execution on the release machine. **Manual installation, upgrade and uninstall testing is pending.** Static package, source, runtime and checksum checks do not establish that those execution tests passed.
 
 Keep Windows security protections enabled. Do not disable Smart App Control, Defender or organizational policies to run the installer. Use your normal approved software process or ask the device administrator if applicable. A checksum verifies downloaded bytes; it does not provide a trusted publisher signature.
 
-Use only the [published release and its checksum](https://github.com/PilotsRKwl/fromScratch/releases/tag/v0.10.8.1-buybacks-search-fix). See [installation](INSTALLATION.md) for the supported login and update flow. Plugin Hub availability is still pending; no official approval is claimed.
+The [historical beta reference](HISTORICAL_BETA.md) preserves release, compatibility and uninstall information for existing installations.
 
-## The application cannot start or sign in
+## RuneLite cannot start or sign in
 
-The beta launcher checks its bundled runtime and libraries before launching RuneLite. Missing or damaged files can prevent startup. Preserve your progression and note the exact error before reinstalling a trusted release through the normal approved installation process.
+Preserve your progression and note the exact error. Use normal RuneLite and its supported troubleshooting process.
 
 Sign in through RuneLite's **Jagex Accounts** panel using its [official instructions](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts). From Scratch does not ask for passwords or tokens. Never send an authentication panel, credential file or account export with a bug report.
 
