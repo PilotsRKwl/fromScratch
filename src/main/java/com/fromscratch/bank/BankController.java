@@ -39,7 +39,6 @@ public final class BankController implements BankActions
 	public void overdrafts(Consumer<List<Overdrafts.Warning>> listener){overdraftListener=listener;}
 	private boolean busy;
 	private boolean error;
-	private boolean freshInstallationRequired;
 	private String message = "Log in to load this character's local progress.";
 	private String notice;
 	private final Map<Integer, String> names = new TreeMap<>();
@@ -85,7 +84,7 @@ public final class BankController implements BankActions
 	public void start(DirectoryProvider directory, ExecutorService worker)
 	{
 		this.directory = directory; this.worker = worker; enabled = true; long token = epoch.incrementAndGet();
-			dispatch.accept(() -> { if (!enabled || epoch.get() != token) { return; } character = null; setupCapture=null;setupAttempt=UUID.randomUUID();setup=BankSetup.begin(null,setupAttempt);run = null; busy = false; error = false; freshInstallationRequired = false; automatic = false; committedTrace = null; notice = null; pending.clear(); exchangeBaseline.clear(); latestOffers.clear(); observation = null; last = null; context++; valuation=null;valuationQueued=false;valuedRevision=null;valuedPrices=-1; names.clear(); publish(); tick(); });
+			dispatch.accept(() -> { if (!enabled || epoch.get() != token) { return; } character = null; setupCapture=null;setupAttempt=UUID.randomUUID();setup=BankSetup.begin(null,setupAttempt);run = null; busy = false; error = false; automatic = false; committedTrace = null; notice = null; pending.clear(); exchangeBaseline.clear(); latestOffers.clear(); observation = null; last = null; context++; valuation=null;valuationQueued=false;valuedRevision=null;valuedPrices=-1; names.clear(); publish(); tick(); });
 	}
 	public void stop() { enabled = false; epoch.incrementAndGet(); if (worker != null) { worker.shutdownNow(); } }
 	public void tick()
@@ -94,7 +93,7 @@ public final class BankController implements BankActions
 		String key = source.characterKey();
 		if (!Objects.equals(character, key))
 		{
-			character = key; setupCapture=null;setupAttempt=UUID.randomUUID();setup=BankSetup.begin(key,setupAttempt);context++; run = null; observation = null; busy = false; error = false; freshInstallationRequired = false; automatic = false; pending.clear(); exchangeBaseline.clear(); latestOffers.clear(); notice = null; committedTrace = null; names.clear();
+			character = key; setupCapture=null;setupAttempt=UUID.randomUUID();setup=BankSetup.begin(key,setupAttempt);context++; run = null; observation = null; busy = false; error = false; automatic = false; pending.clear(); exchangeBaseline.clear(); latestOffers.clear(); notice = null; committedTrace = null; names.clear();
 			valuation=null;valuationQueued=false;valuedRevision=null;valuedPrices=-1;bankContinuous=false;potionObservation=com.fromscratch.potion.PotionObservation.unknown();
 			if (key == null) { message = "Log in to load this character's local progress."; publish(); }
 			else { load(); } return;
@@ -199,23 +198,7 @@ public final class BankController implements BankActions
 		bankContinuous=false;
 		busy = true; automatic = false; pending.clear(); message = "Loading local bank progress…"; publish();
 		String key = character;
-		submit(root -> repository.load(root, key).orElse(null), loaded -> { run = loaded; busy = false; error = false; freshInstallationRequired = false; notice = null; tick(); });
-	}
-	@Override public void confirmFreshInstallation()
-	{
-		dispatch.accept(() ->
-		{
-			if (!enabled || busy || !error || !freshInstallationRequired || character == null
-				|| !(directory instanceof com.fromscratch.persistence.CanonicalStorageGate)) { return; }
-			com.fromscratch.persistence.CanonicalStorageGate gate = (com.fromscratch.persistence.CanonicalStorageGate) directory;
-			busy = true; error = false; freshInstallationRequired = false;
-			message = "Verifying the new installation..."; publish();
-			submit(root -> null, ignored -> { busy = false; load(); }, () ->
-			{
-				gate.confirmFreshInstallation();
-				return gate.get();
-			});
-		});
+		submit(root -> repository.load(root, key).orElse(null), loaded -> { run = loaded; busy = false; error = false; notice = null; tick(); });
 	}
 	public void startRun(boolean attested){startRun(attested,null,false);}
 	public void setupAttested(UUID attempt,boolean value){act(()->{requireSetup(attempt);setup=setup.attest(value);publish();});}
@@ -450,15 +433,15 @@ public final class BankController implements BankActions
 		boolean previewChanged = (run == null || !run.isAnchored()) && last != null && presented != null && presented.isReady()
 			&& (last.getObservation() == null || !last.getObservation().isReady() || !last.getObservation().getBank().getQuantities().equals(presented.getBank().getQuantities()));
 		if (last != null && Objects.equals(last.getRun(), run) && last.isBusy() == busy && last.isError() == error && last.ready() == ready
-			&& last.getMessage().equals(visibleMessage) && last.isFreshInstallationRequired()==freshInstallationRequired && Objects.equals(last.getValuation(),valuation) && Objects.equals(last.getPotions(),potionObservation) && Objects.equals(last.getCapture(),setupCapture) && last.isPotionUnlocked()==source.potionStorageUnlocked() && last.isPotionUnlockKnown()==source.potionStorageUnlockKnown() && Objects.equals(last.getSetup(),setup) && !previewChanged) { return; }
+			&& last.getMessage().equals(visibleMessage) && Objects.equals(last.getValuation(),valuation) && Objects.equals(last.getPotions(),potionObservation) && Objects.equals(last.getCapture(),setupCapture) && last.isPotionUnlocked()==source.potionStorageUnlocked() && last.isPotionUnlockKnown()==source.potionStorageUnlockKnown() && Objects.equals(last.getSetup(),setup) && !previewChanged) { return; }
 		Set<Integer> ids = new TreeSet<>();
 		if (run != null) { ids.addAll(run.getPhysical().keySet()); ids.addAll(run.getBalances().keySet()); if (run.getInitialBank() != null) { ids.addAll(run.getInitialBank().getQuantities().keySet()); } run.getRecent().forEach(a -> { ids.addAll(a.getBalanceChanges().keySet()); ids.addAll(a.getPhysicalChanges().keySet()); }); }
 		if (observation != null && observation.isReady()) { ids.addAll(observation.getBank().getQuantities().keySet()); }
 		for (int id : ids) { names.computeIfAbsent(id, key -> { String name = source.itemName(key); return name == null || name.isEmpty() ? "Item #" + key : name; }); }
-		BankView view = new BankView(run, presented, names, busy, error, visibleMessage, committedTrace,valuation,potionObservation,setupCapture,source.potionStorageUnlocked(),source.potionStorageUnlockKnown(),setup,freshInstallationRequired);
+		BankView view = new BankView(run, presented, names, busy, error, visibleMessage, committedTrace,valuation,potionObservation,setupCapture,source.potionStorageUnlocked(),source.potionStorageUnlockKnown(),setup);
 		// Tick/time changes alone need not rebuild the entire Swing panel every game tick.
 		if (last == null || !Objects.equals(last.getRun(), view.getRun()) || !last.getNames().equals(view.getNames()) || last.isBusy() != busy || last.isError() != error
-			|| !last.getMessage().equals(visibleMessage) || last.isFreshInstallationRequired()!=freshInstallationRequired || !Objects.equals(last.getValuation(),valuation) || !Objects.equals(last.getPotions(),potionObservation) || !Objects.equals(last.getCapture(),setupCapture) || last.isPotionUnlocked()!=source.potionStorageUnlocked() || last.isPotionUnlockKnown()!=source.potionStorageUnlockKnown() || last.ready() != view.ready() || !Objects.equals(last.getSetup(),setup) || previewChanged) { last = view; display.accept(view); }
+			|| !last.getMessage().equals(visibleMessage) || !Objects.equals(last.getValuation(),valuation) || !Objects.equals(last.getPotions(),potionObservation) || !Objects.equals(last.getCapture(),setupCapture) || last.isPotionUnlocked()!=source.potionStorageUnlocked() || last.isPotionUnlockKnown()!=source.potionStorageUnlockKnown() || last.ready() != view.ready() || !Objects.equals(last.getSetup(),setup) || previewChanged) { last = view; display.accept(view); }
 	}
 	/** Derived values use the storage worker; only a new verified peak writes its small checkpoint. */
 	private void refreshValuation()
@@ -481,14 +464,14 @@ public final class BankController implements BankActions
 			worker.execute(() ->
 			{
 				if (!enabled || token != epoch.get() || Thread.currentThread().isInterrupted()) { return; }
-				T result = null; String failure = null; boolean needsFreshConfirmation = false;
-				try { result = work.run(capturedDirectory.get()); } catch (IOException | RuntimeException ex) { needsFreshConfirmation = ex instanceof com.fromscratch.persistence.CanonicalStorageGate.FreshInstallationRequired; failure = ex instanceof IOException ? ex.getMessage() : "Bank storage failed validation. Existing files were preserved."; }
-				T value = result; String errorMessage = failure; boolean freshConfirmation = needsFreshConfirmation;
+				T result = null; String failure = null;
+				try { result = work.run(capturedDirectory.get()); } catch (IOException | RuntimeException ex) { failure = ex instanceof IOException ? ex.getMessage() : "Bank storage failed validation. Existing files were preserved."; }
+				T value = result; String errorMessage = failure;
 				dispatch.accept(() ->
 				{
 					if (!enabled || token != epoch.get() || capturedContext != context || !Objects.equals(key, character) || !Objects.equals(key, source.characterKey())) { return; }
 					if (errorMessage == null) { success.accept(value); }
-					else { busy = false; automatic = false; error = true; freshInstallationRequired = freshConfirmation; message = errorMessage; publish(); }
+					else { busy = false; automatic = false; error = true; message = errorMessage; publish(); }
 				});
 			});
 		}

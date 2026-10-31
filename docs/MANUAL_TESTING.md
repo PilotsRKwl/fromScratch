@@ -1,6 +1,6 @@
 # Manual gameplay checks
 
-The owner reports completed manual acceptance of the production candidate. This checklist is for relevant future changes and reproducible issue reports; it is not a claim that automated tests operated RuneScape. Only the player performs authentication and gameplay.
+The owner reports existing gameplay works. The first-start and storage change requires the [targeted owner checks](technical/TEST_PLAN.md#owner-checks-for-first-challenge-and-storage) before submission. This checklist is not a claim that automated tests operated RuneScape. Only the player performs authentication and gameplay.
 
 Use [Installation](INSTALLATION.md), [Gameplay](GAMEPLAY.md) and [Troubleshooting](TROUBLESHOOTING.md). Export a private backup before updating. Use disposable progression for reset/import-replacement experiments; never reset a real run to create a screenshot.
 

@@ -72,7 +72,7 @@ public class FromScratchPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		com.fromscratch.persistence.CanonicalStorageGate storage = new com.fromscratch.persistence.CanonicalStorageGate(this::getPluginDirectory, repository);
+		com.fromscratch.persistence.ProgressStorage storage = new com.fromscratch.persistence.ProgressStorage(this::getPluginDirectory, repository);
 		bankOverlayState.configure(config);
 		sidebar.negativeColor(config.negativeVirtualQuantityColor());
 		observer.configure(config.developmentItemTrace());

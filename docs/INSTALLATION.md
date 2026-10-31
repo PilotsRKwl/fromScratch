@@ -14,15 +14,11 @@ Once RuneLite restores availability:
 
 Use normal RuneLite for installation and authentication. RuneLite documents its supported login flow in [Using Jagex Accounts](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
-## Legacy progression compatibility
+## First challenge
 
-Earlier progression used `.runelite/plugin-data/from_scratch/`; the production plugin uses `.runelite/plugin-data/from-scratch/`. These are separate histories. Keep the original legacy directory and private backups.
+v1.0.0 will be the first official public release. Open the plugin and complete **Before Starting**: bank your inventory and equipment, capture the complete bank and any supported Potion Storage, confirm the challenge rules, and start a new From Scratch run.
 
-**Have existing progression in the legacy directory?** Keep a private backup, close all RuneLite processes and From Scratch project tools, and complete the [offline migration utility](MAINTAINING.md#offline-progression-migration) before loading the production plugin. The utility copies and verifies the complete progression tree, preserves the original directory, and writes a completion receipt. The new plugin does not copy data or inspect the old sibling directory. It cannot tell whether an empty canonical directory belongs to a new player or a player with unmigrated legacy progression.
-
-**Genuinely new installation?** Read the first-run migration guidance, explicitly confirm the new installation, then follow normal **Before Starting** bank setup. New-installation confirmation is not a recovery option for existing data: missing or invalid evidence alongside canonical progression blocks loading instead of silently starting another challenge.
-
-After a successful transfer, continue that challenge only in the canonical version. The original and canonical directories remain separate histories; no synchronization or history merging exists. First validate the workflow on a disposable copy before using real progression. The owner reports successful migration of existing progression and completed manual acceptance of the production candidate. Native first-run behavior remains an explicit check for a genuinely clean installation; never reset an existing character to test it.
+Starting a challenge changes only From Scratch's local challenge records. Your real OSRS items, levels, quests and unlocks remain yours. Once started, the challenge resumes normally on this computer. **Reset Progress** requires explicit confirmation and preserves a recovery archive; do not delete files to resolve a loading problem.
 
 ## Updating
 

@@ -40,7 +40,7 @@ See [ACCOUNTING.md](ACCOUNTING.md) for the signed equation, GP spending, valuati
 
 ## Persistence and threads
 
-All progression IO uses Filepath on the background worker. A forced journal/checkpoint precedes atomic current replacement; acknowledged commits alone become UI/rendering authority. Revision/CAS checks reject stale work, and callbacks are guarded by identity/run/lifecycle. Existing saves, immutable baselines and exact migration/recovery evidence are preserved. A load failure is not permission to create a new run. Reset archives before acknowledgment.
+Production progression uses the fixed `.runelite/plugin-data/from-scratch/progress/` location resolved by `ProgressStorage`; other directories are not read, copied or removed. A first installation enters normal guided setup, while an existing official run resumes normally. All progression IO uses Filepath on the background worker. A forced journal/checkpoint precedes atomic current replacement; acknowledged commits alone become UI/rendering authority. Revision/CAS checks reject stale work, and callbacks are guarded by identity/run/lifecycle. Existing saves, immutable baselines and exact migration/recovery evidence are preserved. A load failure is not permission to create a new run. Reset archives before acknowledgment.
 
 Version 10.7 introduced economic checkpoint format 10 for dose state and audit evidence; format 11 subsequently added selected-copy evidence as described below. Format 9 and 10 records load without rewriting; the next acknowledged transaction writes the current format through the existing journal/checkpoint/atomic path. Formats 1 through 8 retain their previous verified migration paths. Format-9 `.fsp` exports remain readable. Playtime and peak keep their small separate checked records. Import verifies a bounded checksummed archive and matching character, previews replacement, preserves the prior run and atomically selects the restored tree. Histories are never silently merged.
 
@@ -50,7 +50,7 @@ Client APIs run on the client thread, Swing work on the EDT, disk/price work off
 
 The production `src/main` plugin uses no custom backend, cloud sync, credential access, reflection, native process execution, synthetic gameplay input or withdrawal blocking. RuneLite handles its normal authentication and game connection.
 
-`src/preview` renders the same production Swing components with explicit synthetic data and official sprites; it never launches the game or loads player progression. The offline migration utility has its own source set and tests. Neither utility enters the production JAR or standard Hub build.
+`src/preview` renders the same production Swing components with explicit synthetic data and official sprites; it never launches the game or loads player progression. The preview source set does not enter the production JAR or standard Hub build.
 
 ## Exact-copy buybacks
 

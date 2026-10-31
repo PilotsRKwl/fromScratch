@@ -65,4 +65,3 @@ tasks.withType(AbstractArchiveTask).configureEach {
 
 // Maintainer utilities remain outside the Plugin Hub standard build.
 apply from: 'gradle/previews.gradle'
-apply from: 'gradle/migration.gradle'

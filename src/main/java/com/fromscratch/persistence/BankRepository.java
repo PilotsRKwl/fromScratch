@@ -27,10 +27,11 @@ public final class BankRepository
 	@Inject public BankRepository(BankRunCodec codec, RunRecordCodec legacy) { this(codec, legacy, BankRepository::publish); }
 	BankRepository(BankRunCodec codec, RunRecordCodec legacy, Publication publication) { this.codec = codec; this.legacy = legacy; this.publication = publication;this.backups=new ProgressBackup(this,codec); }
 	public ProgressBackup backups() { return backups; }
-	/** Read-only canonical admission. No directory creation, lock-file creation,
-	 * schema migration or playtime initialization is permitted before this passes. */
-	public void verifyCutover(Filepath root) throws IOException
+	/** Read-only storage validation before directory creation, file writes or playtime initialization. */
+	public void verifyStorage(Filepath root) throws IOException
 	{
+		if (!root.exists()) { return; }
+		if (!root.isDirectory()) { throw new SaveException("Progress storage is not a directory."); }
 		Filepath characters = root.joinSegment("characters");
 		int complete = 0;
 		if (characters.exists())
@@ -73,7 +74,7 @@ public final class BankRepository
 					if (version >= 3) { new ItemJournalStore(legacy).verifyChain(selected, old, version); }
 					runId = old.getState().getRunId();
 				}
-				if (runId != null) { verifyCutoverPlaytime(selected, character, runId); }
+				if (runId != null) { verifyStoredPlaytime(selected, character, runId); }
 				complete++;
 			}
 		}
@@ -81,14 +82,12 @@ public final class BankRepository
 		{
 			try (Stream<Filepath> entries = root.walk(1))
 			{
-				if (entries.anyMatch(p -> !p.equals(root) && !p.equals(characters)
-					&& !p.getFileName().equals(CanonicalStorageGate.MIGRATION_RECEIPT)
-					&& !p.getFileName().equals(CanonicalStorageGate.INSTALLATION_RECEIPT)))
+				if (entries.anyMatch(p -> !p.equals(root) && !p.equals(characters)))
 				{ throw new SaveException("Recovery data exists without a complete challenge."); }
 			}
 		}
 	}
-	private void verifyCutoverPlaytime(Filepath selected, String character, UUID run) throws IOException
+	private void verifyStoredPlaytime(Filepath selected, String character, UUID run) throws IOException
 	{
 		Filepath folder = selected.joinSegment("playtime");
 		if (!folder.exists()) { return; }

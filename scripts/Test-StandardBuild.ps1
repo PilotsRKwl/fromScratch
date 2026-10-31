@@ -16,6 +16,10 @@ Invoke-WebRequest $packagerUrl -UseBasicParsing -TimeoutSec 20 -OutFile (Join-Pa
 $packager=[IO.File]::ReadAllText((Join-Path $work 'Plugin.java'))
 $nameRule=[regex]::Match($packager,'PLUGIN_INTERNAL_NAME_TEST\s*=\s*Pattern\.compile\("([^"]+)"\)')
 if(!$nameRule.Success -or !$packager.Contains('PluginDescriptor.internalName must match the real internal name')){throw 'Official identifier validation changed; review the current packager.'}
+$stagedSource=[IO.Path]::GetFullPath((Join-Path $work 'src/main'))
+$stagingRoot=[IO.Path]::GetFullPath((Join-Path $root 'build/standard-check'))+[IO.Path]::DirectorySeparatorChar
+if(!$stagedSource.StartsWith($stagingRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'Standard source staging escaped its build directory.'}
+if(Test-Path -LiteralPath $stagedSource){Remove-Item -LiteralPath $stagedSource -Recurse -Force}
 Copy-Item -LiteralPath (Join-Path $root 'src/main') -Destination (Join-Path $work 'src') -Recurse -Force
 # Hub supplies its client version externally; keep its standard build file byte-for-byte.
 $init="allprojects { configurations.configureEach { resolutionStrategy.eachDependency { if (requested.group == 'net.runelite' && requested.name == 'client') { useVersion '$version' } } } }"
@@ -40,7 +44,7 @@ foreach($tag in ($properties.tags -split ',')){if($tag -cnotmatch '^[a-z0-9-]+$'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive=[IO.Compression.ZipFile]::OpenRead($jar)
 try {
-    if(@($archive.Entries | Where-Object {$_.FullName -match '^com/fromscratch/(preview/|migration/|migrationTest/)|Test\.class$|^META-INF/services/net\.runelite\.client\.plugins\.Plugin$'}).Count){$issues.Add('Development classes or Plugin service registration entered the production JAR.')}
+    if(@($archive.Entries | Where-Object {$_.FullName -match '^com/fromscratch/preview/|Test\.class$|^META-INF/services/net\.runelite\.client\.plugins\.Plugin$'}).Count){$issues.Add('Development classes or Plugin service registration entered the production JAR.')}
     $entry=$archive.GetEntry('com/fromscratch/FromScratchPlugin.class')
     if(!$entry){throw 'Production entry point missing from JAR.'}
     $stream=$entry.Open()
