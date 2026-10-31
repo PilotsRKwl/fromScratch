@@ -3,7 +3,7 @@
 ## Scope and release authority
 
 - Milestone 11 prepares the first official RuneLite Plugin Hub submission. The owner authorizes routine implementation, audited cleanup, commits, pushes and the initial manifest-only submission once its validation and compliance gates pass.
-- Preserve published Friends Beta releases/tags and Git history. Never modify real progression, backups, credentials or account settings. No force push or history rewrite.
+- Preserve published releases/tags and Git history unless the owner separately authorizes removal. Never modify real progression, backups, credentials or account settings. No force push or history rewrite.
 - Do not publish v1.0.0, claim RuneLite approval or advertise Hub availability before acceptance and verified availability. Stop before submission if a material compliance concern remains. Do not silently remove defining gameplay features to avoid review.
 - Read `docs/technical/ARCHITECTURE.md`, `ACCOUNTING.md` and `TEST_PLAN.md` before behavior changes. Current documentation is indexed in `docs/README.md`; Git history preserves superseded milestone notes.
 - Identity stays From Scratch, author Pilots r kwl, repository PilotsRKwl/fromScratch, package `com.fromscratch`, config `fromscratch`, official internal/storage name `from-scratch`. Published beta storage remains `from_scratch`; preserve that original directory and transfer only through the separately authorized offline utility.
@@ -31,12 +31,12 @@
 - Use injected Gson/OkHttp or RuneLite's existing ItemClient feed. No new transitive dependencies already supplied by RuneLite. Price HTTP runs on its separate worker, never client/EDT/storage/render threads. Unknown, zero and stale prices differ; no holdings/identity sent.
 - Client APIs stay on the client thread, Swing on EDT, disk/network on workers. Do not block startup/shutdown; cancel scheduled work and call shutdownNow without awaitTermination. Use CompletableFuture.allOf for batching. No Thread.sleep.
 - Keep rendering cheap and based on cached committed state. No per-frame scene scans or definition/disk/HTTP work in filter predicates. Diagnostics use DEBUG and remain local/rate-limited without account identifiers, snapshots, credentials or private paths.
-- Keep permissive licensing/notices, genuine PNG icons and JAR-safe resource loading. No Plugin service-provider file. `build=standard` compiles only production; beta/preview source sets and Windows tools stay outside that artifact.
-- Never use computer-use tools to operate RuneScape or authenticate. The owner reports the released beta gameplay works. Material production behavior changes require specific owner acceptance before submission; compilation/headless tests are not in-game evidence.
+- Keep permissive licensing/notices, genuine PNG icons and JAR-safe resource loading. No Plugin service-provider file. `build=standard` compiles only production; preview and offline migration source sets stay outside that artifact.
+- Never use computer-use tools to operate RuneScape or authenticate. The owner reports existing gameplay works. Material production behavior changes require specific owner acceptance before submission; compilation/headless tests are not in-game evidence.
 
 ## Workflow and validation
 
-- Inspect consumers before deleting. Retain migration/compatibility tests and current packaging/preview dependencies. Keep source diffs focused; no unrelated reformatting.
+- Inspect consumers before deleting. Retain migration/compatibility tests and current production/preview dependencies. Keep source diffs focused; no unrelated reformatting.
 - Run incremental compilation and directly affected test filters during iteration. Do not repeatedly run the full local suite; final exact-commit Windows and Ubuntu CI supplies the complete regression gate. Never skip failures or weaken genuine assertions.
 - Run documentation/link/image checks and the official standard production build before submission. Keep detailed diagnostics and generated artifacts under ignored build/. Never commit saves, secrets, runtime files, installers, caches or diagnostic output.
 - If tracked sensitive data is found, stop and identify only its location/category and remediation requirements, never secret values. Do not silently rewrite history.

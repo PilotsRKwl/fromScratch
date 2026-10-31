@@ -56,7 +56,7 @@ public final class OfflineProgressMigration
 			offline.check();
 			if (!dry)
 			{
-				out.println("Close ALL RuneLite and From Scratch clients, including other accounts and launchers.");
+				out.println("Close ALL RuneLite and From Scratch processes, including other accounts.");
 				out.println("Source: " + base.toAbsolutePath().normalize().resolve("from_scratch"));
 				out.println("Destination: " + base.toAbsolutePath().normalize().resolve("from-scratch"));
 				out.println("Originals stay in place. Creates local migration staging/receipt files. No information is transmitted.");
@@ -89,7 +89,7 @@ public final class OfflineProgressMigration
 		safeAncestors(base);
 		requireDirectory(base);
 		Path source = base.resolve("from_scratch"), target = base.resolve("from-scratch");
-		// The future Hub plugin can read this through its own scoped Filepath root.
+		// The Hub plugin can read this through its own scoped Filepath root.
 		Path receipt = target.resolve(COMPLETE);
 		if (completed(receipt, target)) { return new Result(0, true, dryRun); }
 		requireDirectory(source);
@@ -366,7 +366,7 @@ public final class OfflineProgressMigration
 				String executable = command.replace('\\', '/');
 				String basename = executable.substring(executable.lastIndexOf('/') + 1);
 				if (isClient(executable, arguments))
-				{ throw fail("A RuneLite/From Scratch client or launcher is running. Close all clients before continuing."); }
+				{ throw fail("A RuneLite/From Scratch process is running. Close all clients and project tools before continuing."); }
 				if ((basename.equals("java.exe") || basename.equals("javaw.exe") || basename.equals("java"))
 					&& !info.arguments().isPresent() && process.isAlive())
 				{ throw fail("A Java process cannot be inspected. Close it before migrating; offline status cannot be verified."); }
@@ -378,10 +378,10 @@ public final class OfflineProgressMigration
 		String executable = command.toLowerCase(Locale.ROOT).replace('\\', '/');
 		String basename = executable.substring(executable.lastIndexOf('/') + 1);
 		String args = arguments.toLowerCase(Locale.ROOT);
-		return executable.contains("runelite") || basename.equals("fromscratchbeta.exe")
+		// Refuse project executables and Java entry points conservatively before copying progression.
+		return executable.contains("runelite") || (basename.startsWith("fromscratch") && basename.endsWith(".exe"))
 			|| args.contains("net.runelite.client.runelite") || args.contains("net.runelite.launcher.launcher")
-			|| args.contains("runelite.jar") || args.contains("com.fromscratch.beta.betalauncher")
-			|| args.contains("com.fromscratch.fromscratchplugintest");
+			|| args.contains("runelite.jar") || args.contains("com.fromscratch.");
 	}
 
 	@FunctionalInterface interface Hook

@@ -25,8 +25,7 @@ public class FoundationResourcesTest
 		assertEquals("Pilots r kwl", metadata.getProperty("author"));
 		assertEquals(FromScratchPlugin.class.getName(), metadata.getProperty("plugins"));
 		assertEquals("standard", metadata.getProperty("build"));
-		// Hub derives standard-build versions from the source commit. The optional
-		// beta installer independently uses Gradle/toolchain package versions.
+		// Hub derives standard-build versions from the source commit.
 		assertNull(metadata.getProperty("version"));
 		net.runelite.client.plugins.PluginDescriptor descriptor = FromScratchPlugin.class.getAnnotation(net.runelite.client.plugins.PluginDescriptor.class);
 		assertEquals(descriptor.name(), metadata.getProperty("displayName"));

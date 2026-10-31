@@ -317,14 +317,16 @@ public class OfflineProgressMigrationTest
 		finally { Files.deleteIfExists(link); }
 	}
 
-	@Test public void clientDetectionRecognizesLaunchersWithoutBlockingOrdinaryJava()
+	@Test public void clientDetectionRecognizesProjectProcessesWithoutBlockingOrdinaryJava()
 	{
-		assertTrue(OfflineProgressMigration.isClient("FromScratchBeta.exe", ""));
+		assertTrue(OfflineProgressMigration.isClient("FromScratch.exe", ""));
+		assertTrue(OfflineProgressMigration.isClient("C:\\Synthetic\\Programs\\FromScratchTools.EXE", ""));
 		assertTrue(OfflineProgressMigration.isClient("C:\\Synthetic\\Programs\\RuneLite.exe", ""));
 		assertTrue(OfflineProgressMigration.isClient("java", "-jar /synthetic/RuneLite.jar"));
 		assertTrue(OfflineProgressMigration.isClient("java", "net.runelite.launcher.Launcher"));
 		assertTrue(OfflineProgressMigration.isClient("javaw.exe", "net.runelite.client.RuneLite"));
-		assertTrue(OfflineProgressMigration.isClient("java", "com.fromscratch.beta.BetaLauncher"));
+		assertTrue(OfflineProgressMigration.isClient("java", "com.fromscratch.tools.ExampleMain"));
+		assertTrue(OfflineProgressMigration.isClient("java", "com.fromscratch.FromScratchPluginTest"));
 		assertFalse(OfflineProgressMigration.isClient("java", "org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.10"));
 		assertFalse(OfflineProgressMigration.isClient("C:\\Synthetic\\Java\\bin\\java.exe", "-version"));
 	}

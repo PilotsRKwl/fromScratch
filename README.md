@@ -40,7 +40,7 @@ Once RuneLite restores availability:
 4. Select **Install**.
 5. Open the purple coin sidebar and follow the plugin's **Before Starting** setup instructions.
 
-[Installation and existing-beta migration guidance](docs/INSTALLATION.md)
+[Installation and legacy progression migration guidance](docs/INSTALLATION.md)
 
 ## See your fresh start grow
 

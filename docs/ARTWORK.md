@@ -8,9 +8,8 @@ From Scratch's purple coin icon was generated specifically for the project with 
 |---|---|---|
 | `icon.png` | 48x48 PNG | Plugin Hub root icon |
 | `src/main/resources/com/fromscratch/icon.png` | 24x24 PNG | Sidebar navigation and missing-sprite fallback |
-| `beta/windows-native/FromScratch.ico` | 16/32/48/64/256 frames | Optional standalone launcher, Setup, uninstaller and shortcuts |
 
-The PNGs are genuine PNG files. The ICO is derived from the root icon by `scripts/Prepare-WindowsIcon.ps1`; it does not introduce a different logo. These assets are supplied under the project's BSD-2-Clause terms to the extent applicable.
+The PNGs are genuine PNG files. These assets are supplied under the project's BSD-2-Clause terms to the extent applicable.
 
 ## Retired hero artwork
 

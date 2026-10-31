@@ -4,15 +4,7 @@ Keep a private **Export Progress** backup before updates, restoration or reset. 
 
 ## From Scratch is unavailable in Plugin Hub
 
-Plugin Hub distribution is temporarily paused pending maintainer review after From Scratch was disabled with the reason `disallowed readme`. See [installation](INSTALLATION.md) for the current status and normal RuneLite installation steps once distribution resumes. Historical beta installers are not an alternative to Plugin Hub installation.
-
-## Historical beta installer diagnostics
-
-Friends Beta 10.8.1 is unsigned. Windows Application Control blocked execution on the release machine. **Manual installation, upgrade and uninstall testing is pending.** Static package, source, runtime and checksum checks do not establish that those execution tests passed.
-
-Keep Windows security protections enabled. Do not disable Smart App Control, Defender or organizational policies to run the installer. Use your normal approved software process or ask the device administrator if applicable. A checksum verifies downloaded bytes; it does not provide a trusted publisher signature.
-
-The [historical beta reference](HISTORICAL_BETA.md) preserves release, compatibility and uninstall information for existing installations.
+Plugin Hub distribution is temporarily paused pending maintainer review after From Scratch was disabled with the reason `disallowed readme`. See [installation](INSTALLATION.md) for the current status and normal RuneLite installation steps once distribution resumes.
 
 ## RuneLite cannot start or sign in
 
@@ -56,7 +48,7 @@ For device transfers, use Export / Import Progress and keep one computer as the 
 
 Open a [bug report](https://github.com/PilotsRKwl/fromScratch/issues/new?template=bug_report.md) with:
 
-- Plugin/beta and RuneLite versions, operating system and UI scale.
+- Plugin and RuneLite versions, operating system and UI scale.
 - Whether this concerns installation, setup, banking, search, buybacks, storage, history or backups.
 - Minimal steps, expected result and actual result.
 - Whether restarting, Full Bank or a particular native tab changes the result.
@@ -65,7 +57,7 @@ Open a [bug report](https://github.com/PilotsRKwl/fromScratch/issues/new?templat
 Remove account/character identifiers, credentials, private paths, chat and authentication context. **Never upload saves, `.fsp` exports, whole logs, entire configuration folders, Jagex account data or tokens.** Logs and progression are private even when their filenames appear harmless.
 
 ```text
-Plugin/beta version:
+Plugin version:
 RuneLite version / OS / UI scale:
 What I did:
 What I expected:

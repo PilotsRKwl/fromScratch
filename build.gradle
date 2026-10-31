@@ -31,7 +31,7 @@ dependencies {
 }
 
 group = 'com.fromscratch'
-version = '0.10.8-beta.2'
+version = '0.0.0-dev'
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
@@ -84,7 +84,11 @@ tasks.register('shadowJar', Jar) {
 	archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
 }
 
-// Owner-side distribution only. The Plugin Hub standard build replaces this build file.
-apply from: 'gradle/beta.gradle'
+tasks.withType(AbstractArchiveTask).configureEach {
+	preserveFileTimestamps = false
+	reproducibleFileOrder = true
+}
+
+// Maintainer utilities remain outside the Plugin Hub standard build.
 apply from: 'gradle/previews.gradle'
 apply from: 'gradle/migration.gradle'

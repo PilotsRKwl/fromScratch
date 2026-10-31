@@ -31,16 +31,16 @@ $internalName=[regex]::Match($descriptor,'internalName="([^"]+)"').Groups[1].Val
 $issues=New-Object 'System.Collections.Generic.List[string]'
 $identifier='from-scratch'
 if($identifier -cnotmatch $nameRule.Groups[1].Value){$issues.Add('Intended manifest identifier fails the official name rule.')}
-if($internalName -cne $identifier){$issues.Add('Compiled internalName is '+$internalName+'; it must match plugins/'+$identifier+'. Resolve beta storage compatibility before renaming it.')}
+if($internalName -cne $identifier){$issues.Add('Compiled internalName is '+$internalName+'; it must match plugins/'+$identifier+'. Resolve legacy storage compatibility before renaming it.')}
 $properties=@{}
 foreach($line in [IO.File]::ReadAllLines((Join-Path $root 'runelite-plugin.properties'))){if($line -match '^([^#=]+)=(.*)$'){$properties[$matches[1]]=$matches[2]}}
 if($properties.build -cne 'standard' -or $properties.plugins -cne 'com.fromscratch.FromScratchPlugin'){$issues.Add('Production entry point or standard build metadata differs.')}
-if($properties.ContainsKey('version')){$issues.Add('Hub metadata must derive its version from the source commit; beta versioning is separate.')}
+if($properties.ContainsKey('version')){$issues.Add('Hub metadata must derive its version from the source commit.')}
 foreach($tag in ($properties.tags -split ',')){if($tag -cnotmatch '^[a-z0-9-]+$'){$issues.Add('Invalid discovery tag: '+$tag)}}
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive=[IO.Compression.ZipFile]::OpenRead($jar)
 try {
-    if(@($archive.Entries | Where-Object {$_.FullName -match '^com/fromscratch/(beta/|preview/|migration/|migrationTest/)|Test\.class$|^META-INF/services/net\.runelite\.client\.plugins\.Plugin$'}).Count){$issues.Add('Development classes or Plugin service registration entered the production JAR.')}
+    if(@($archive.Entries | Where-Object {$_.FullName -match '^com/fromscratch/(preview/|migration/|migrationTest/)|Test\.class$|^META-INF/services/net\.runelite\.client\.plugins\.Plugin$'}).Count){$issues.Add('Development classes or Plugin service registration entered the production JAR.')}
     $entry=$archive.GetEntry('com/fromscratch/FromScratchPlugin.class')
     if(!$entry){throw 'Production entry point missing from JAR.'}
     $stream=$entry.Open()

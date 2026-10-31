@@ -50,7 +50,7 @@ Client APIs run on the client thread, Swing work on the EDT, disk/price work off
 
 The production `src/main` plugin uses no custom backend, cloud sync, credential access, reflection, native process execution, synthetic gameplay input or withdrawal blocking. RuneLite handles its normal authentication and game connection.
 
-The separate owner-side `src/beta`, Windows scripts and Gradle packaging are outside the Hub plugin. They launch an unmodified official RuneLite runtime through its supported developer entry point. `src/preview` renders the same production Swing components with explicit synthetic data and official sprites; it never launches the game or loads player progression. Neither source set enters the production JAR or standard Hub build.
+`src/preview` renders the same production Swing components with explicit synthetic data and official sprites; it never launches the game or loads player progression. The offline migration utility has its own source set and tests. Neither utility enters the production JAR or standard Hub build.
 
 ## Exact-copy buybacks
 

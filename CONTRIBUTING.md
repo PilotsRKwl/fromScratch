@@ -10,7 +10,7 @@ Use Java 11 and the existing Gradle wrapper. Compile incrementally and run the t
 
 Keep changes focused and reviewable. Preserve existing save migrations, prices, receipts, character isolation, backups and configuration identifiers. Keep disk and price IO off the client thread and EDT, use the complete bank for item quantities, and acknowledge persistence before displaying committed ownership. Follow RuneLite's current public APIs and dependency rules.
 
-The standard production plugin must work independently of the beta launcher. Separate beta and preview sources must not enter its JAR. Do not add gameplay automation, synthetic input, withdrawal blocking, credential access, reflection/native calls or unnecessary third-party dependencies.
+The official Plugin Hub standard build compiles only production source. Preview, test and offline migration sources must not enter its JAR. Do not add gameplay automation, synthetic input, withdrawal blocking, credential access, reflection/native calls or unnecessary third-party dependencies.
 
 ## Documentation and images
 

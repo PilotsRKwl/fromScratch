@@ -6,7 +6,7 @@ title: ''
 
 ## Versions
 
-Plugin/beta version, RuneLite version, operating system and UI scale. Is this an installation/update issue or a gameplay issue?
+Plugin version, RuneLite version, operating system and UI scale. Is this an installation/update issue or a gameplay issue?
 
 ## Reproduction
 

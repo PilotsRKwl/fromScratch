@@ -1,6 +1,6 @@
 # Legacy buyback pricing
 
-Friends Beta 10.8.1 uses **fixed gameplay costs in virtual GP**. Purchases never move real coins. Runtime Grand Exchange prices do not set or adjust these prices. Historical receipts remain authoritative: this update adds entries without changing catalog version 1, any existing price, old receipt encoding, or old payment history.
+From Scratch uses **fixed gameplay costs in virtual GP**. Purchases never move real coins. Runtime Grand Exchange prices do not set or adjust these prices. Historical receipts remain authoritative: this update adds entries without changing catalog version 1, any existing price, old receipt encoding, or old payment history.
 
 The original balancing reference was roughly 2M GP/hour with medium gear. Equipment with tradeable components used an approximate GE equivalent; untradeable grind rewards used discounted reacquisition time. Deliberate balancing overrides either estimate. The new 2M complete outfits and utility prices are intentional accessibility choices.
 

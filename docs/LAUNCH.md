@@ -2,23 +2,21 @@
 
 ## Current status
 
-The initial [Plugin Hub submission #19721](https://github.com/runelite/plugin-hub/pull/19721) was merged. RuneLite maintainer abextm then [disabled From Scratch](https://github.com/runelite/plugin-hub/commit/58bc2829c4738785fe3d674c356802a09aace07d) with `disabled=disallowed readme`. **Distribution is temporarily paused pending review.** No specific offending README lines were identified in the disable commit or submission comments checked for this correction.
+The initial [Plugin Hub submission #19721](https://github.com/runelite/plugin-hub/pull/19721) was merged. RuneLite maintainer abextm then [disabled From Scratch](https://github.com/runelite/plugin-hub/commit/58bc2829c4738785fe3d674c356802a09aace07d) with `disabled=disallowed readme`. **Distribution is temporarily paused pending review.** Review corrections are tracked in the existing [re-enablement PR #19824](https://github.com/runelite/plugin-hub/pull/19824).
 
-The README previously promoted an external Windows beta installer and standalone launcher. That may explain the restriction, but it remains a hypothesis. The documentation now prioritizes normal RuneLite Plugin Hub installation and removes that promotion. Re-enablement requires an explicit maintainer decision; these corrections do not establish approval, endorsement or current availability. Production code is unchanged.
-
-Existing beta releases, tags and tools remain preserved for historical/development reference. They are not an alternative installation recommendation while distribution is disabled. No v1.0.0 will be published before re-enablement and verified availability.
+Re-enablement requires an explicit maintainer decision. Local validation, CI and repository corrections do not establish approval, endorsement or current availability. Production gameplay and progression compatibility remain unchanged. No v1.0.0 will be published before re-enablement and verified availability.
 
 ## Before a source update submission
 
 1. Complete the current official-rule audit and keep the [reviewer map](PLUGIN_HUB_REVIEW.md) matched to source. Disclose native bank rendering, filtering, Bank Tags/config interactions, script callbacks, title updates and supplemental Examine behavior. A supported public API alone does not prove policy compliance.
 2. Resolve any published-rule violation through a compliant alternative. If a material policy uncertainty or major gameplay redesign remains, stop before submitting and report the precise concern; do not conceal it or remove defining functionality silently.
-3. Preserve beta progression, identifiers, migration fixtures, receipts, backups and reset archives. Check the production JAR independently of the optional beta launcher.
+3. Preserve progression, identifiers, migration fixtures, receipts, backups and reset archives. Check the production JAR independently of preview/test/offline utility source sets.
 4. Run relevant focused checks and official standard-build compatibility for production changes, commit/push the final source, then require Windows and Ubuntu CI success on that exact full SHA. Documentation-only corrections use documentation/link and metadata checks; existing production build evidence remains valid. Compilation/headless fixtures do not prove in-game behavior. The owner reports successful migration of existing progression and completed manual acceptance of the production candidate; future material production changes need their own owner checks.
 5. Check for an existing name/manifest/submission. Use one dedicated branch in a fork of `runelite/plugin-hub`; keep the upstream change limited to the required manifest and anything its current instructions explicitly require.
 
-The submission manifest is `plugins/from-scratch` and contains `repository=https://github.com/PilotsRKwl/fromScratch.git` plus the **actual verified 40-character source SHA**. The official descriptor/internal storage identifier is `from-scratch`; the original beta used `from_scratch`. The [implemented offline migration and production startup gate](PLUGIN_HUB_REVIEW.md#identifier-and-offline-migration-gate) preserve existing migrated progression and require explicit confirmation for genuinely new installations. The utility remains outside the official standard build, preserves the original beta tree, and does not synchronize old and new histories.
+The submission manifest is `plugins/from-scratch` and contains `repository=https://github.com/PilotsRKwl/fromScratch.git` plus the **actual verified 40-character source SHA**. The official descriptor/internal storage identifier is `from-scratch`; legacy progression used `from_scratch`. The [implemented offline migration and production startup gate](PLUGIN_HUB_REVIEW.md#identifier-and-offline-migration-gate) preserve existing migrated progression and require explicit confirmation for genuinely new installations. The utility remains outside the official standard build, preserves the original legacy tree, and does not synchronize old and new histories.
 
-For this re-enablement request, finish documentation validation, commit/push the source and require successful Windows and Ubuntu CI on that exact SHA. Check for an existing re-enablement PR, use a new fork branch based on current upstream master, update only `plugins/from-scratch` and explicitly propose removal of `disabled=disallowed readme` for maintainer approval. Do not bypass the restriction or open duplicate PRs. Never use a guessed future commit. Include links to the original submission, disable commit, source correction commit and successful CI, plus the truthful footer `Generated-by: OpenAI Codex`. Human review and merge remain outside our control.
+For this re-enablement request, finish documentation validation, commit/push the source and require successful Windows and Ubuntu CI on that exact SHA. Update the existing re-enablement PR #19824, change only `plugins/from-scratch` and explicitly propose removal of `disabled=disallowed readme` for maintainer approval. Do not bypass the restriction or open duplicate PRs. Never use a guessed future commit. Include links to the original submission, disable commit, source correction commit and successful CI, plus the truthful footer `Generated-by: OpenAI Codex`. Human review and merge remain outside our control.
 
 ## During review
 
@@ -28,9 +26,9 @@ No public v1.0.0 release, approval badge or Plugin Hub availability claim belong
 
 ## After approval and verified availability
 
-- Keep normal RuneLite Plugin Hub installation first in README/INSTALLATION. Retain standalone beta information only as historical/development reference.
+- Keep normal RuneLite Plugin Hub installation first in README/INSTALLATION.
 - Replace pending-review language with the verified listing link, update metadata to v1.0.0 as appropriate and record the approved source in the changelog.
-- Prepare one new immutable v1.0.0 tag/release using the appropriate verified commit. Preserve all beta releases/tags/assets and do not rewrite history.
+- Prepare one new immutable v1.0.0 tag/release using the appropriate verified commit. Existing releases/tags/assets require separate owner authorization for deletion; do not rewrite history.
 - Recheck repository/listing author, description, tags, icon, links, license/notices and privacy statements. Publish only after the actual approval boundary has been met.
 
 ## Prepared launch copy
