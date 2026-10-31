@@ -2,7 +2,8 @@
 
 ## Scope and release authority
 
-- Milestone 11 prepares the first official RuneLite Plugin Hub submission. The owner authorizes routine implementation, audited cleanup, commits, pushes and the initial manifest-only submission once its validation and compliance gates pass.
+- Repository work supports official RuneLite Plugin Hub publication. The owner authorizes scoped cleanup, source commits/pushes and manifest-only updates to the existing re-enablement PR #19824 after validation gates pass. Do not create a replacement PR.
+- The owner controls all communication with RuneLite maintainers. Agents must not post GitHub comments, review replies, reviews, discussions or messages, or generate moderator replies. Authorized manifest updates do not authorize communication.
 - Preserve published releases/tags and Git history unless the owner separately authorizes removal. Never modify real progression, backups, credentials or account settings. No force push or history rewrite.
 - Do not publish v1.0.0, claim RuneLite approval or advertise Hub availability before acceptance and verified availability. Stop before submission if a material compliance concern remains. Do not silently remove defining gameplay features to avoid review.
 - Read `docs/technical/ARCHITECTURE.md`, `ACCOUNTING.md` and `TEST_PLAN.md` before behavior changes. Current documentation is indexed in `docs/README.md`; Git history preserves superseded milestone notes.
@@ -42,5 +43,5 @@
 - If tracked sensitive data is found, stop and identify only its location/category and remediation requirements, never secret values. Do not silently rewrite history.
 - Keep issue reports privacy-safe; do not request full logs, configs, authentication data or progression exports publicly.
 - Plugin Hub submission uses only its required manifest with the actual canonical Git URL and verified 40-character commit, after checking name/PR conflicts. Preserve a single submission PR and disclose sensitive APIs and validation limits. Human review/merge remains outside our control.
-- Disclose AI assistance truthfully in the submission footer: `Generated-by: OpenAI Codex`. Do not copy a different tool's attribution from a template.
+- Preserve truthful AI attribution in submission material: `Generated-by: OpenAI Codex`. Do not copy a different tool's attribution from a template; this does not authorize generating or posting maintainer communications.
 - For a material gameplay change, offer `./gradlew run`, point to RuneLite's Using Jagex Accounts instructions and list precise owner checks. Do not claim live acceptance until the owner confirms it.

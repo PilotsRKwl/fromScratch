@@ -39,4 +39,4 @@ Use [manual gameplay checks](../MANUAL_TESTING.md), [installation](../INSTALLATI
 
 ## Submission gate
 
-Finish documentation/metadata/security review, focused tests and the official standard build. Commit and push; verify both CI platforms on that exact full SHA. Submit only the required Hub manifest after name/PR conflict checks and resolution of material compliance issues. Disclose native script/widget/service coupling in the [reviewer map](../PLUGIN_HUB_REVIEW.md). Human review/merge and verified Hub availability precede v1.0.0 publication; see the [launch plan](../LAUNCH.md).
+Finish documentation/metadata/security review, focused tests and the official standard build. Commit and push; verify both CI platforms on that exact full SHA. Update only the manifest source SHA in existing PR #19824, preserving the re-enablement request. Keep native script/widget/service coupling documented in the [reviewer map](../PLUGIN_HUB_REVIEW.md). The owner controls all maintainer communications; agents must not generate or post moderator replies. Human review/merge and verified Hub availability precede v1.0.0 publication; see the [launch plan](../LAUNCH.md).

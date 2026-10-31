@@ -7,43 +7,13 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
-# A branch push and a tag for its exact commit share one queue. Never cancel a release check.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.sha }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  validation:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    outputs:
-      required: ${{ steps.check.outputs.required }}
-    steps:
-      - uses: actions/github-script@v8
-        id: check
-        with:
-          script: |
-            let required = true;
-            if (context.eventName === 'push' && context.ref.startsWith('refs/tags/')) {
-              try {
-                const { data } = await github.rest.actions.listWorkflowRuns({
-                  ...context.repo, workflow_id: 'build.yml', head_sha: context.sha,
-                  status: 'success', per_page: 100
-                });
-                required = !data.workflow_runs.some(run => run.id !== context.runId && run.event === 'push'
-                  && run.head_branch === context.payload.repository.default_branch
-                  && Date.now() - Date.parse(run.updated_at) < 60 * 60 * 1000);
-              } catch (error) {
-                core.warning('Could not verify an earlier build; run both platforms.');
-              }
-            }
-            core.setOutput('required', String(required));
-            core.info(required ? 'Run both platforms.' : 'Exact tagged commit already passed this workflow on both platforms.');
   build:
-    needs: validation
-    if: needs.validation.outputs.required == 'true'
     strategy:
       fail-fast: false
       matrix:

@@ -12,11 +12,13 @@ Re-enablement requires an explicit maintainer decision. Local validation, CI and
 2. Resolve any published-rule violation through a compliant alternative. If a material policy uncertainty or major gameplay redesign remains, stop before submitting and report the precise concern; do not conceal it or remove defining functionality silently.
 3. Preserve progression, identifiers, migration fixtures, receipts, backups and reset archives. Check the production JAR independently of preview/test/offline utility source sets.
 4. Run relevant focused checks and official standard-build compatibility for production changes, commit/push the final source, then require Windows and Ubuntu CI success on that exact full SHA. Documentation-only corrections use documentation/link and metadata checks; existing production build evidence remains valid. Compilation/headless fixtures do not prove in-game behavior. The owner reports successful migration of existing progression and completed manual acceptance of the production candidate; future material production changes need their own owner checks.
-5. Check for an existing name/manifest/submission. Use one dedicated branch in a fork of `runelite/plugin-hub`; keep the upstream change limited to the required manifest and anything its current instructions explicitly require.
+5. Update the existing re-enablement PR #19824 through its dedicated fork branch. Keep the upstream change limited to the manifest; do not create a replacement PR or modify upstream master directly.
 
 The submission manifest is `plugins/from-scratch` and contains `repository=https://github.com/PilotsRKwl/fromScratch.git` plus the **actual verified 40-character source SHA**. The official descriptor/internal storage identifier is `from-scratch`; legacy progression used `from_scratch`. The [implemented offline migration and production startup gate](PLUGIN_HUB_REVIEW.md#identifier-and-offline-migration-gate) preserve existing migrated progression and require explicit confirmation for genuinely new installations. The utility remains outside the official standard build, preserves the original legacy tree, and does not synchronize old and new histories.
 
-For this re-enablement request, finish documentation validation, commit/push the source and require successful Windows and Ubuntu CI on that exact SHA. Update the existing re-enablement PR #19824, change only `plugins/from-scratch` and explicitly propose removal of `disabled=disallowed readme` for maintainer approval. Do not bypass the restriction or open duplicate PRs. Never use a guessed future commit. Include links to the original submission, disable commit, source correction commit and successful CI, plus the truthful footer `Generated-by: OpenAI Codex`. Human review and merge remain outside our control.
+For this re-enablement request, finish documentation validation, commit/push the source and require successful Windows and Ubuntu CI on that exact SHA. Update only the source commit in `plugins/from-scratch` in the existing PR, preserving its explicit proposal to remove `disabled=disallowed readme` for maintainer approval. Do not bypass the restriction or open duplicate PRs. Never use a guessed future commit. Human review and merge remain outside our control.
+
+The owner handles all RuneLite maintainer communications and submission prose. Agents must not post comments, replies, reviews, discussions or messages, or generate moderator replies. Preserve truthful existing AI attribution; manifest-update authorization does not authorize communication.
 
 ## During review
 
@@ -30,19 +32,3 @@ No public v1.0.0 release, approval badge or Plugin Hub availability claim belong
 - Replace pending-review language with the verified listing link, update metadata to v1.0.0 as appropriate and record the approved source in the changelog.
 - Prepare one new immutable v1.0.0 tag/release using the appropriate verified commit. Existing releases/tags/assets require separate owner authorization for deletion; do not rewrite history.
 - Recheck repository/listing author, description, tags, icon, links, license/notices and privacy statements. Publish only after the actual approval boundary has been met.
-
-## Prepared launch copy
-
-**From Scratch | Your Adventure Starts Here**
-
-Restart item progression without restarting your account. Keep your character, achievements and old bank. Start earning useful items and wealth again, reclaim selected legacy gear, play solo or alongside friends, and reset whenever you want a new beginning.
-
-**A fresh start without a fresh account.**
-
-Keep the public story about the game mode, with technical details in the reviewer/developer guides. Explain that rules are voluntary and progression stays local; do not imply a shared bank, multiplayer synchronization or an integrated leaderboard.
-
-## Repository presentation
-
-Suggested concise description: **Start fresh item progression on your existing OSRS character. Track a Virtual Bank, reclaim legacy gear, and play solo or alongside friends.**
-
-Useful topics: `runelite-plugin`, `old-school-runescape`, `osrs`, `runelite`, `challenge`, `bank`, `progression`, `java`. Keep the existing original branding and author **Pilots r kwl**. Use a verified current release/listing URL rather than inventing an approval or launch link. [Artwork and screenshot attribution](ARTWORK.md) remains part of the release record.

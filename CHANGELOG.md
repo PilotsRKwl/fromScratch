@@ -4,6 +4,7 @@ RuneLite Plugin Hub distribution is temporarily paused pending review after the 
 
 ## Unreleased: Plugin Hub review corrections
 
+- Remove unused fat-JAR packaging and simplify CI to run Windows and Ubuntu checks directly. Keep maintainer communications owner-controlled.
 - Prioritize normal RuneLite Plugin Hub installation, clearly marked unavailable pending review.
 - Retain the production plugin, UI preview tools, legacy progression compatibility, offline migration utility and startup completion gate.
 - Preserve gameplay, progression formats, historical prices and original data. No player progression is accessed or changed by repository cleanup.

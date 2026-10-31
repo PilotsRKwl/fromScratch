@@ -73,7 +73,7 @@ Use the panel's **Progress files** menu to **Export Progress** before an update,
 
 ## Screenshots and captures
 
-Existing images are genuine plugin components rendered with synthetic sample data. They are interface previews, not authentic RuneScape gameplay captures. The hero banner is original artwork.
+Existing images are genuine plugin components rendered with synthetic sample data. They are interface previews, not authentic RuneScape gameplay captures.
 
 The owner can complete the public showcase with these real, cropped PNG captures at a consistent RuneLite size and scale:
 

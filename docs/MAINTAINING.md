@@ -15,6 +15,8 @@ Keep Java 11 compatibility, existing RuneLite-provided dependency boundaries, `b
 
 Use the existing wrapper and Java 11. During development run incremental compilation and directly affected test filters; use exact-commit Windows and Ubuntu GitHub Actions for the complete final regression rather than repeating it after documentation edits.
 
+For normal RuneLite development, use `.\gradlew.bat run` (or `./gradlew run`). Authentication and gameplay checks remain owner-operated.
+
 ```powershell
 .\gradlew.bat compileJava compileTestJava --console=plain
 .\gradlew.bat test --tests "com.fromscratch.bank.NativeBankSearchLifecycleTest" --quiet --console=plain
@@ -63,4 +65,4 @@ Preview capture uses unchanged production components and explicitly synthetic da
 
 ## Housekeeping
 
-Use canonical links to `PilotsRKwl/fromScratch`, author **Pilots r kwl**, and no guessed future commit. Public issues should request concise redacted evidence, not credentials or private saves. Apply repository descriptions/topics only when authorized. Release/submission and future approved v1.0.0 gates are in [Launch](LAUNCH.md); only RuneLite review/merge and verified listing availability can establish official publication.
+Use canonical links to `PilotsRKwl/fromScratch`, author **Pilots r kwl**, and no guessed future commit. Public issues should request concise redacted evidence, not credentials or private saves. The owner controls RuneLite maintainer communications; agents update only the authorized manifest and do not generate or post moderator replies. Release/submission and future approved v1.0.0 gates are in [Launch](LAUNCH.md); only RuneLite review/merge and verified listing availability can establish official publication.
